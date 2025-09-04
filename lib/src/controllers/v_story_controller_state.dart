@@ -6,35 +6,35 @@ import '../models/v_base_story.dart';
 /// Represents the complete state of the story controller.
 class VStoryControllerState {
   /// The story list being viewed
-  final VStoryList? storyList;
-  
+  final VStoryList storyList;
+
   /// Current story being displayed
   final VBaseStory? currentStory;
-  
+
   /// Current story playback state
   final VStoryState storyState;
-  
+
   /// Overall progress tracking
   final VStoryProgress progress;
-  
+
   /// Whether the controller is initialized
   final bool isInitialized;
-  
+
   /// Whether navigation is in progress
   final bool isNavigating;
-  
+
   /// Whether the app is in foreground
   final bool isAppActive;
-  
+
   /// Current user ID being viewed
   final String? currentUserId;
-  
+
   /// Current story ID being viewed
   final String? currentStoryId;
-  
+
   /// Creates a controller state
   const VStoryControllerState({
-    this.storyList,
+    required this.storyList,
     this.currentStory,
     this.storyState = const VStoryState(),
     this.progress = const VStoryProgress(storyStates: {}),
@@ -44,37 +44,34 @@ class VStoryControllerState {
     this.currentUserId,
     this.currentStoryId,
   });
-  
+
   /// Creates an initial state
   factory VStoryControllerState.initial() {
-    return const VStoryControllerState();
+    return VStoryControllerState(storyList: VStoryList(groups: []));
   }
-  
-  /// Whether the controller has a story list loaded
-  bool get hasStoryList => storyList != null;
-  
+
   /// Whether there is a current story
   bool get hasCurrentStory => currentStory != null;
-  
+
   /// Whether the controller is ready for playback
-  bool get isReady => isInitialized && hasStoryList && hasCurrentStory;
-  
+  bool get isReady => isInitialized && hasCurrentStory;
+
   /// Whether playback is currently active
   bool get isPlaying => storyState.playbackState == VStoryPlaybackState.playing;
-  
+
   /// Whether playback is paused
   bool get isPaused => storyState.playbackState == VStoryPlaybackState.paused;
-  
+
   /// Gets the index of the current story in its group
   int get storyIndex {
-    if (storyList == null || currentStoryId == null) return 0;
-    
-    final group = storyList!.findGroupContainingStory(currentStoryId!);
+    if (currentStoryId == null) return 0;
+
+    final group = storyList.findGroupContainingStory(currentStoryId!);
     if (group == null) return 0;
-    
+
     return group.stories.indexWhere((story) => story.id == currentStoryId);
   }
-  
+
   /// Creates a copy with updated fields
   VStoryControllerState copyWith({
     VStoryList? storyList,
@@ -99,12 +96,9 @@ class VStoryControllerState {
       currentStoryId: currentStoryId ?? this.currentStoryId,
     );
   }
-  
+
   /// Updates the current story and resets progress
-  VStoryControllerState updateCurrentStory(
-    VBaseStory story, {
-    String? userId,
-  }) {
+  VStoryControllerState updateCurrentStory(VBaseStory story, {String? userId}) {
     return copyWith(
       currentStory: story,
       currentStoryId: story.id,
@@ -112,7 +106,7 @@ class VStoryControllerState {
       storyState: VStoryState.initial(), // Reset state for new story
     );
   }
-  
+
   /// Updates the story state
   VStoryControllerState updateStoryState(VStoryState newState) {
     // Update progress if story completed
@@ -120,28 +114,25 @@ class VStoryControllerState {
     if (currentStoryId != null && newState.isFinished) {
       updatedProgress = progress.markAsViewed(currentStoryId!);
     }
-    
-    return copyWith(
-      storyState: newState,
-      progress: updatedProgress,
-    );
+
+    return copyWith(storyState: newState, progress: updatedProgress);
   }
-  
+
   /// Marks navigation as started
   VStoryControllerState startNavigation() {
     return copyWith(isNavigating: true);
   }
-  
+
   /// Marks navigation as completed
   VStoryControllerState endNavigation() {
     return copyWith(isNavigating: false);
   }
-  
+
   /// Updates app active state
   VStoryControllerState updateAppActive(bool active) {
     return copyWith(isAppActive: active);
   }
-  
+
   @override
   String toString() {
     return 'VStoryControllerState('

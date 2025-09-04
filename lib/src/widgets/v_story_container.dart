@@ -91,7 +91,7 @@ class VStoryContainer extends StatelessWidget {
               width: size.width * 0.4,
               height: size.height,
               child: GestureDetector(
-                onTap: () => controller.next(),
+                onTap: () => controller.nextStory(),
                 // behavior: HitTestBehavior.opaque,
               ),
             ),

@@ -17,7 +17,7 @@ class VStoryGroup {
   const VStoryGroup({
     required this.user,
     required this.stories,
-  }) : assert(stories.length > 0, 'A story group must contain at least one story');
+  })  ;
   
   /// Number of unviewed stories in this group
   int get unviewedCount => stories.where((story) => !story.isViewed).length;

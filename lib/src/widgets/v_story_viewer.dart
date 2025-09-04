@@ -266,7 +266,7 @@ class _VStoryViewerState extends State<VStoryViewer> {
           
           // Get current story and group
           final story = state.currentStory!;
-          final group = state.storyList!.findGroupContainingStory(story.id);
+          final group = state.storyList.findGroupContainingStory(story.id);
           
           if (group == null) {
             return _buildError(context, 'Story group not found');

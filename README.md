@@ -367,5 +367,5 @@ For questions and discussions, join our [Discord server](https://discord.gg/your
 
 ---
 
-Made with ❤️ by [Hatem Ragap](https://github.com/yourusername)
+Made with ❤️ by [Hatem Ragap](https://github.com/hatemragab)
 

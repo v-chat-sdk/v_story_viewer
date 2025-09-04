@@ -40,7 +40,7 @@ class VStoryList {
   const VStoryList({
     required this.groups,
     this.config = const VStoryListConfig(),
-  }) : assert(groups.length > 0, 'Story list must contain at least one group');
+  })  ;
   
   /// Total number of groups in the list
   int get groupCount => groups.length;

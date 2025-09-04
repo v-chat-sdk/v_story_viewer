@@ -248,7 +248,7 @@ class _IntegrationTestState extends State<IntegrationTest> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => VStoryViewer(
-                        storyList: controller.state.storyList!,
+                        storyList: controller.state.storyList,
                         controller: controller,
                         config: VStoryViewerConfig(
                           theme: VStoryTheme.whatsapp(),
