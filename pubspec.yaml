@@ -1,7 +1,10 @@
 name: v_story_viewer
-description: "A comprehensive Flutter package for Instagram/WhatsApp-style story viewers with extensive customization options."
-version: 0.0.1
+description: "Flutter package for WhatsApp/Instagram-style story viewing with gestures, caching, and cross-platform support."
+version: 1.0.0
 homepage: https://github.com/hatemragap/v_story_viewer
+repository: https://github.com/hatemragap/v_story_viewer
+issue_tracker: https://github.com/hatemragap/v_story_viewer/issues
+documentation: https://github.com/hatemragap/v_story_viewer#readme
 
 environment:
   sdk: ^3.9.0
