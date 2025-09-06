@@ -244,29 +244,31 @@ class _IntegrationTestState extends State<IntegrationTest> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => VStoryViewer(
-                        storyList: controller.state.storyList,
-                        config: VStoryViewerConfig(
-                          theme: VStoryTheme.whatsapp(),
-                          showFooter:
-                              true, // Must be true to show reply/reactions
-                          enableReply: true,
-                          enableReactions: true,
-                          replyConfig: VReplyConfiguration(
-                            onReplySend: (message, story) async {
-                              debugPrint('Reply sent: $message');
-                              return true;
-                            },
+                      builder: (context) => SafeArea(
+                        child: VStoryViewer(
+                          storyList: controller.state.storyList,
+                          config: VStoryViewerConfig(
+                            theme: VStoryTheme.whatsapp(),
+                            showFooter:
+                                true, // Must be true to show reply/reactions
+                            enableReply: true,
+                            enableReactions: true,
+                            replyConfig: VReplyConfiguration(
+                              onReplySend: (message, story) async {
+                                debugPrint('Reply sent: $message');
+                                return true;
+                              },
+                            ),
+                            reactionConfig: VReactionConfiguration(
+                              onReaction: (story) {
+                                debugPrint('Reaction sent for ${story.id}');
+                              },
+                            ),
                           ),
-                          reactionConfig: VReactionConfiguration(
-                            onReaction: (story) {
-                              debugPrint('Reaction sent for ${story.id}');
-                            },
-                          ),
+                          onDismiss: () {
+                            Navigator.pop(context);
+                          },
                         ),
-                        onDismiss: () {
-                          Navigator.pop(context);
-                        },
                       ),
                     ),
                   );

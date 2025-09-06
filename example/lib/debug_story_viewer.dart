@@ -78,54 +78,56 @@ class _DebugStoryViewerState extends State<DebugStoryViewer> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => VStoryViewer(
-          storyList: _storyList!,
-          initialGroupIndex: startIndex,
-          onDismiss: () {
-            Navigator.pop(context);
-            _showDebugDialog('Story viewer dismissed');
-          },
-          onPageChanged: (index, group) {
-            setState(() {
-              _currentUserId = group.user.id;
-              _viewedCount++;
-            });
-            debugPrint('👥 Page Changed: User=${group.user.name}, Index=$index');
-          },
-          onStoryViewed: (story) {
-            setState(() {
-              _currentStoryId = story.id;
-              _currentStoryType = story.runtimeType.toString();
-            });
-            debugPrint('✅ Story Viewed: ${story.id}');
-          },
-          onGroupCompleted: (group) {
-            debugPrint('🎉 Group Completed: ${group.user.name}');
-          },
-          errorBuilder: (context, error) {
-            setState(() {
-              _lastError = error.toString();
-            });
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error, color: Colors.red, size: 48),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Error: $error',
-                    style: const TextStyle(color: Colors.white),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Go Back'),
-                  ),
-                ],
-              ),
-            );
-          },
+        builder: (context) => SafeArea(
+          child: VStoryViewer(
+            storyList: _storyList!,
+            initialGroupIndex: startIndex,
+            onDismiss: () {
+              Navigator.pop(context);
+              _showDebugDialog('Story viewer dismissed');
+            },
+            onPageChanged: (index, group) {
+              setState(() {
+                _currentUserId = group.user.id;
+                _viewedCount++;
+              });
+              debugPrint('👥 Page Changed: User=${group.user.name}, Index=$index');
+            },
+            onStoryViewed: (story) {
+              setState(() {
+                _currentStoryId = story.id;
+                _currentStoryType = story.runtimeType.toString();
+              });
+              debugPrint('✅ Story Viewed: ${story.id}');
+            },
+            onGroupCompleted: (group) {
+              debugPrint('🎉 Group Completed: ${group.user.name}');
+            },
+            errorBuilder: (context, error) {
+              setState(() {
+                _lastError = error.toString();
+              });
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.error, color: Colors.red, size: 48),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Error: $error',
+                      style: const TextStyle(color: Colors.white),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Go Back'),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
         ),
       ),
     );

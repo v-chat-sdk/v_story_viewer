@@ -104,45 +104,47 @@ class _SimpleExampleState extends State<SimpleExample> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: VStoryViewer(
-        storyList: controller.state.storyList,
-        config: VStoryViewerConfig(
-          progressStyle: VStoryProgressStyle(
-            activeColor: Colors.white,
-            inactiveColor: Colors.white.withValues(alpha: 0.3),
-            height: 2.5,
-          ),
-          gestureConfig: const VGestureConfig(
-            tapEnabled: true,
-            swipeEnabled: true,
-            longPressEnabled: true,
-            enableDoubleTap: true,
-          ),
-          enableReply: true,
-          enableReactions: true,
-          replyConfig: VReplyConfiguration(
-            hintText: 'Send a message...',
-            onReplySend: (message, story) async {
-              debugPrint('Reply: $message for story ${story.id}');
-              return true;
-            },
-          ),
-          reactionConfig: VReactionConfiguration(
-            onReaction: (story) {
-              debugPrint('Reaction sent for story ${story.id}');
-            },
-          ),
-          theme: VStoryTheme.withProgressBar(
-            progressBarTheme: VStoryProgressStyle(
+      body: SafeArea(
+        child: VStoryViewer(
+          storyList: controller.state.storyList,
+          config: VStoryViewerConfig(
+            progressStyle: VStoryProgressStyle(
               activeColor: Colors.white,
               inactiveColor: Colors.white.withValues(alpha: 0.3),
               height: 2.5,
             ),
+            gestureConfig: const VGestureConfig(
+              tapEnabled: true,
+              swipeEnabled: true,
+              longPressEnabled: true,
+              enableDoubleTap: true,
+            ),
+            enableReply: true,
+            enableReactions: true,
+            replyConfig: VReplyConfiguration(
+              hintText: 'Send a message...',
+              onReplySend: (message, story) async {
+                debugPrint('Reply: $message for story ${story.id}');
+                return true;
+              },
+            ),
+            reactionConfig: VReactionConfiguration(
+              onReaction: (story) {
+                debugPrint('Reaction sent for story ${story.id}');
+              },
+            ),
+            theme: VStoryTheme.withProgressBar(
+              progressBarTheme: VStoryProgressStyle(
+                activeColor: Colors.white,
+                inactiveColor: Colors.white.withValues(alpha: 0.3),
+                height: 2.5,
+              ),
+            ),
           ),
+          onDismiss: () {
+            Navigator.pop(context);
+          },
         ),
-        onDismiss: () {
-          Navigator.pop(context);
-        },
       ),
     );
   }

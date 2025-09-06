@@ -209,99 +209,101 @@ class HorizontalSwipeStoryViewer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: VStoryViewer(
-        storyList: storyList,
-        initialGroupIndex: initialGroupIndex,
-        preloadPages: true, // Preload adjacent pages for smooth transitions
-        config: VStoryViewerConfig(
-          showProgressBars: true,
-          showHeader: true,
-          showFooter: false,
-          enableGestures: true,
-          backgroundColor: Colors.black,
-          progressStyle: const VStoryProgressStyle(
-            activeColor: Colors.white,
-            inactiveColor: Color(0x4DFFFFFF),
-            height: 3,
-            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      body: SafeArea(
+        child: VStoryViewer(
+          storyList: storyList,
+          initialGroupIndex: initialGroupIndex,
+          preloadPages: true, // Preload adjacent pages for smooth transitions
+          config: VStoryViewerConfig(
+            showProgressBars: true,
+            showHeader: true,
+            showFooter: false,
+            enableGestures: true,
+            backgroundColor: Colors.black,
+            progressStyle: const VStoryProgressStyle(
+              activeColor: Colors.white,
+              inactiveColor: Color(0x4DFFFFFF),
+              height: 3,
+              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            ),
+            gestureConfig: const VGestureConfig(
+              tapEnabled: true,
+              swipeEnabled: true,
+              longPressEnabled: true,
+              swipeVelocityThreshold: 300,
+            ),
           ),
-          gestureConfig: const VGestureConfig(
-            tapEnabled: true,
-            swipeEnabled: true,
-            longPressEnabled: true,
-            swipeVelocityThreshold: 300,
-          ),
-        ),
-        onPageChanged: (index, group) {
-          debugPrint('📱 Navigated to user: ${group.user.name} (Page $index)');
-        },
-        onStoryViewed: (story) {
-          debugPrint('👁️ Story viewed: ${story.id}');
-        },
-        onGroupCompleted: (group) {
-          debugPrint('✅ Completed all stories for: ${group.user.name}');
-        },
-        onDismiss: () {
-          Navigator.pop(context);
-        },
-        headerBuilder: (context, user, story) {
-          // Custom header with user info and close button
-          return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                // User avatar
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
-                  ),
-                  child: ClipOval(
-                    child: Image.network(
-                      user.avatarUrl ?? 'https://i.pravatar.cc/150',
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        color: Colors.grey,
-                        child: const Icon(Icons.person, color: Colors.white),
+          onPageChanged: (index, group) {
+            debugPrint('📱 Navigated to user: ${group.user.name} (Page $index)');
+          },
+          onStoryViewed: (story) {
+            debugPrint('👁️ Story viewed: ${story.id}');
+          },
+          onGroupCompleted: (group) {
+            debugPrint('✅ Completed all stories for: ${group.user.name}');
+          },
+          onDismiss: () {
+            Navigator.pop(context);
+          },
+          headerBuilder: (context, user, story) {
+            // Custom header with user info and close button
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  // User avatar
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                    ),
+                    child: ClipOval(
+                      child: Image.network(
+                        user.avatarUrl ?? 'https://i.pravatar.cc/150',
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          color: Colors.grey,
+                          child: const Icon(Icons.person, color: Colors.white),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                // User name and time
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        user.name,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                  const SizedBox(width: 12),
+                  // User name and time
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          user.name,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
-                      ),
-                      Text(
-                        _getTimeAgo(story.createdAt),
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.7),
-                          fontSize: 12,
+                        Text(
+                          _getTimeAgo(story.createdAt),
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.7),
+                            fontSize: 12,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                // Close button
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close, color: Colors.white, size: 28),
-                ),
-              ],
-            ),
-          );
-        },
+                  // Close button
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close, color: Colors.white, size: 28),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }

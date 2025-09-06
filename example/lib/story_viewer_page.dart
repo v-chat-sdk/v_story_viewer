@@ -36,28 +36,30 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
 
   /// Builds story viewer with horizontal swipe navigation between users
   Widget _buildPageViewer() {
-    return VStoryViewer(
-      storyList: widget.storyList,
-      initialGroupIndex: widget.initialGroupIndex,
-      config: const VStoryViewerConfig(
-        gestureConfig: VGestureConfig(
-          tapEnabled: true,
-          swipeEnabled: true,
-          longPressEnabled: true,
+    return SafeArea(
+      child: VStoryViewer(
+        storyList: widget.storyList,
+        initialGroupIndex: widget.initialGroupIndex,
+        config: const VStoryViewerConfig(
+          gestureConfig: VGestureConfig(
+            tapEnabled: true,
+            swipeEnabled: true,
+            longPressEnabled: true,
+          ),
         ),
+        onPageChanged: (index, group) {
+          debugPrint('Switched to user: ${group.user.name} (index: $index)');
+        },
+        onStoryViewed: (story) {
+          debugPrint('Story viewed: ${story.id}');
+        },
+        onGroupCompleted: (group) {
+          debugPrint('All stories completed for user: ${group.user.name}');
+        },
+        onDismiss: () {
+          Navigator.pop(context);
+        },
       ),
-      onPageChanged: (index, group) {
-        debugPrint('Switched to user: ${group.user.name} (index: $index)');
-      },
-      onStoryViewed: (story) {
-        debugPrint('Story viewed: ${story.id}');
-      },
-      onGroupCompleted: (group) {
-        debugPrint('All stories completed for user: ${group.user.name}');
-      },
-      onDismiss: () {
-        Navigator.pop(context);
-      },
     );
   }
 }
@@ -77,61 +79,63 @@ class _ThemedStoryViewerPageState extends State<ThemedStoryViewerPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: VStoryViewer(
-        storyList: widget.storyList,
-        onDismiss: () => Navigator.pop(context),
-        config: VStoryViewerConfig(
-          progressStyle: VStoryProgressStyle(
-            activeColor: Colors.pink,
-            inactiveColor: Colors.pink.withValues(alpha: 0.3),
-            height: 3,
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-          ),
-          textStoryStyle: const VTextStoryStyle(
-            textStyle: TextStyle(color: Colors.white, fontSize: 18),
-          ),
-        ),
-        headerBuilder: (context, user, story) {
-          return Container(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  backgroundImage: NetworkImage(
-                    user.avatarUrl ?? 'https://i.pravatar.cc/150',
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        user.name,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        _formatTime(story.createdAt),
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
+      body: SafeArea(
+        child: VStoryViewer(
+          storyList: widget.storyList,
+          onDismiss: () => Navigator.pop(context),
+          config: VStoryViewerConfig(
+            progressStyle: VStoryProgressStyle(
+              activeColor: Colors.pink,
+              inactiveColor: Colors.pink.withValues(alpha: 0.3),
+              height: 3,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
             ),
-          );
-        },
+            textStoryStyle: const VTextStoryStyle(
+              textStyle: TextStyle(color: Colors.white, fontSize: 18),
+            ),
+          ),
+          headerBuilder: (context, user, story) {
+            return Container(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    backgroundImage: NetworkImage(
+                      user.avatarUrl ?? 'https://i.pravatar.cc/150',
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          user.name,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          _formatTime(story.createdAt),
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -170,22 +174,24 @@ class _CallbackStoryViewerPageState extends State<CallbackStoryViewerPage> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          VStoryViewer(
-            storyList: widget.storyList,
-            onDismiss: () {
-              debugPrint('Viewer dismissed');
-              Navigator.pop(context);
-            },
-            onStoryViewed: (story) {
-              setState(() {
-                events.add('Viewed: ${story.id}');
-              });
-              debugPrint('Story viewed: ${story.id}');
-            },
-            onGroupCompleted: (group) {
-              debugPrint('All stories completed for group: ${group.user.name}');
-              Navigator.pop(context);
-            },
+          SafeArea(
+            child: VStoryViewer(
+              storyList: widget.storyList,
+              onDismiss: () {
+                debugPrint('Viewer dismissed');
+                Navigator.pop(context);
+              },
+              onStoryViewed: (story) {
+                setState(() {
+                  events.add('Viewed: ${story.id}');
+                });
+                debugPrint('Story viewed: ${story.id}');
+              },
+              onGroupCompleted: (group) {
+                debugPrint('All stories completed for group: ${group.user.name}');
+                Navigator.pop(context);
+              },
+            ),
           ),
           // Event log overlay
           Positioned(
@@ -231,38 +237,40 @@ class _ReplyStoryViewerPageState extends State<ReplyStoryViewerPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: VStoryViewer(
-        storyList: widget.storyList,
-        onDismiss: () => Navigator.pop(context),
-        footerBuilder: (context, story) {
-          return Container(
-            padding: const EdgeInsets.all(16),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Send a message...',
-                hintStyle: const TextStyle(color: Colors.white54),
-                filled: true,
-                fillColor: Colors.white.withValues(alpha: 0.1),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(25),
-                  borderSide: BorderSide.none,
+      body: SafeArea(
+        child: VStoryViewer(
+          storyList: widget.storyList,
+          onDismiss: () => Navigator.pop(context),
+          footerBuilder: (context, story) {
+            return Container(
+              padding: const EdgeInsets.all(16),
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: 'Send a message...',
+                  hintStyle: const TextStyle(color: Colors.white54),
+                  filled: true,
+                  fillColor: Colors.white.withValues(alpha: 0.1),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(25),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 10,
+                  ),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.send, color: Colors.white),
+                    onPressed: () {
+                      // Handle reply send
+                      debugPrint('Reply sent for story ${story.id}');
+                    },
+                  ),
                 ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 10,
-                ),
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.send, color: Colors.white),
-                  onPressed: () {
-                    // Handle reply send
-                    debugPrint('Reply sent for story ${story.id}');
-                  },
-                ),
+                style: const TextStyle(color: Colors.white),
               ),
-              style: const TextStyle(color: Colors.white),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
@@ -292,11 +300,13 @@ class _ReactionStoryViewerPageState extends State<ReactionStoryViewerPage> {
         },
         child: Stack(
           children: [
-            VStoryViewer(
-              storyList: widget.storyList,
-              onDismiss: () => Navigator.pop(context),
-              config: const VStoryViewerConfig(
-                gestureConfig: VGestureConfig(enableDoubleTap: true),
+            SafeArea(
+              child: VStoryViewer(
+                storyList: widget.storyList,
+                onDismiss: () => Navigator.pop(context),
+                config: const VStoryViewerConfig(
+                  gestureConfig: VGestureConfig(enableDoubleTap: true),
+                ),
               ),
             ),
             // Instructions overlay
