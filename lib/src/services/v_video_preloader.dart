@@ -273,7 +273,6 @@ class VVideoPreloader extends ChangeNotifier {
       _preloadStatus[story.id] = true;
     } catch (e) {
       _preloadStatus[story.id] = false;
-      debugPrint('Error preloading video ${story.id}: $e');
     } finally {
       _preloadingStories.remove(story.id);
       _preloadTimers.remove(story.id);

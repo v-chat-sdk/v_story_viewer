@@ -19,6 +19,7 @@ export 'src/widgets/v_story_header.dart';
 export 'src/widgets/v_story_footer.dart';
 export 'src/widgets/v_story_actions.dart';
 export 'src/widgets/v_reply_system.dart';
+export 'src/widgets/v_text_story_style.dart';
 
 // Utils exports
 export 'src/utils/v_file_utils.dart';
@@ -31,6 +32,7 @@ export 'src/utils/v_gesture_zones.dart';
 export 'src/utils/v_duration_calculator.dart';
 export 'src/utils/v_story_localizations.dart';
 export 'src/utils/v_rtl_adapter.dart';
+export 'src/utils/v_story_viewer_config.dart';
 
 // Services exports
 export 'src/services/v_download_progress.dart';

@@ -20,8 +20,6 @@ class VStoryControllerState {
   /// Whether the controller is initialized
   final bool isInitialized;
 
-  /// Whether navigation is in progress
-  final bool isNavigating;
 
   /// Whether the app is in foreground
   final bool isAppActive;
@@ -39,7 +37,6 @@ class VStoryControllerState {
     this.storyState = const VStoryState(),
     this.progress = const VStoryProgress(storyStates: {}),
     this.isInitialized = false,
-    this.isNavigating = false,
     this.isAppActive = true,
     this.currentUserId,
     this.currentStoryId,
@@ -79,7 +76,6 @@ class VStoryControllerState {
     VStoryState? storyState,
     VStoryProgress? progress,
     bool? isInitialized,
-    bool? isNavigating,
     bool? isAppActive,
     String? currentUserId,
     String? currentStoryId,
@@ -90,7 +86,6 @@ class VStoryControllerState {
       storyState: storyState ?? this.storyState,
       progress: progress ?? this.progress,
       isInitialized: isInitialized ?? this.isInitialized,
-      isNavigating: isNavigating ?? this.isNavigating,
       isAppActive: isAppActive ?? this.isAppActive,
       currentUserId: currentUserId ?? this.currentUserId,
       currentStoryId: currentStoryId ?? this.currentStoryId,
@@ -118,15 +113,6 @@ class VStoryControllerState {
     return copyWith(storyState: newState, progress: updatedProgress);
   }
 
-  /// Marks navigation as started
-  VStoryControllerState startNavigation() {
-    return copyWith(isNavigating: true);
-  }
-
-  /// Marks navigation as completed
-  VStoryControllerState endNavigation() {
-    return copyWith(isNavigating: false);
-  }
 
   /// Updates app active state
   VStoryControllerState updateAppActive(bool active) {

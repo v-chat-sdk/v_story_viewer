@@ -107,7 +107,6 @@ class VVideoControllerManager extends ChangeNotifier {
     
     // Check for errors
     if (_errorStates.containsKey(storyId)) {
-      debugPrint('Video $storyId has error: ${_errorStates[storyId]}');
       return null;
     }
     
@@ -123,7 +122,6 @@ class VVideoControllerManager extends ChangeNotifier {
       }
     } catch (e) {
       _errorStates[storyId] = e.toString();
-      debugPrint('Error loading video $storyId: $e');
     }
     
     return null;

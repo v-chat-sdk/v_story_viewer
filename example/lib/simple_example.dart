@@ -106,7 +106,6 @@ class _SimpleExampleState extends State<SimpleExample> {
       backgroundColor: Colors.black,
       body: VStoryViewer(
         storyList: controller.state.storyList,
-        controller: controller,
         config: VStoryViewerConfig(
           progressStyle: VStoryProgressStyle(
             activeColor: Colors.white,

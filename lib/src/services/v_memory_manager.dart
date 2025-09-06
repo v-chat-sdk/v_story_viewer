@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import '../models/v_story_models.dart';
 import 'v_cache_manager.dart';
@@ -79,7 +78,6 @@ class VMemoryManager {
         return controller;
       }
     } catch (error) {
-      debugPrint('Failed to create video controller for ${story.id}: $error');
       _eventController.add(VVideoEvent.error(story.id, error));
     }
     
@@ -103,7 +101,6 @@ class VMemoryManager {
       // Prepare video for playback
       await controller.setVolume(1.0);
     } catch (error) {
-      debugPrint('Failed to initialize video controller: $error');
       rethrow;
     }
   }
@@ -230,9 +227,7 @@ class VMemoryManager {
       if (!_controllers.containsKey(story.id)) {
         // Preload in background
         getVideoController(story).then((_) {
-          debugPrint('Preloaded video for story ${story.id}');
         }).catchError((error) {
-          debugPrint('Failed to preload video: $error');
         });
       }
     }

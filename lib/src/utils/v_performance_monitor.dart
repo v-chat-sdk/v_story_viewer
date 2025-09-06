@@ -195,7 +195,6 @@ class VPerformanceMonitor {
         listener(warning);
       } catch (e) {
         if (kDebugMode) {
-          debugPrint('Error in warning listener: $e');
         }
       }
     }
@@ -209,7 +208,6 @@ class VPerformanceMonitor {
         listener(metrics);
       } catch (e) {
         if (kDebugMode) {
-          debugPrint('Error in performance listener: $e');
         }
       }
     }

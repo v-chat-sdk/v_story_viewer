@@ -59,7 +59,8 @@ class _IntegrationTestState extends State<IntegrationTest> {
             VVideoStory(
               id: 'video_1',
               media: VPlatformFile.fromUrl(
-                networkUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+                networkUrl:
+                    'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
               ),
               duration: const Duration(seconds: 10), // Set explicit duration
               createdAt: DateTime.now(),
@@ -92,10 +93,7 @@ class _IntegrationTestState extends State<IntegrationTest> {
           user: VStoryUser(
             id: 'user_2',
             name: 'Test User 2',
-            metadata: {
-              'verified': true,
-              'followers': 1000,
-            },
+            metadata: {'verified': true, 'followers': 1000},
           ),
           stories: [
             VTextStory(
@@ -204,8 +202,7 @@ class _IntegrationTestState extends State<IntegrationTest> {
       ),
       body: Column(
         children: [
-          if (!testPassed)
-            const LinearProgressIndicator(),
+          if (!testPassed) const LinearProgressIndicator(),
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.all(16),
@@ -222,15 +219,15 @@ class _IntegrationTestState extends State<IntegrationTest> {
                 } else if (result.contains('🎉')) {
                   textColor = Colors.purple;
                 }
-                
+
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Text(
                     result,
                     style: TextStyle(
                       color: textColor,
-                      fontWeight: result.contains('🎉') 
-                          ? FontWeight.bold 
+                      fontWeight: result.contains('🎉')
+                          ? FontWeight.bold
                           : FontWeight.normal,
                       fontSize: result.contains('🎉') ? 18 : 14,
                     ),
@@ -249,10 +246,10 @@ class _IntegrationTestState extends State<IntegrationTest> {
                     MaterialPageRoute(
                       builder: (context) => VStoryViewer(
                         storyList: controller.state.storyList,
-                        controller: controller,
                         config: VStoryViewerConfig(
                           theme: VStoryTheme.whatsapp(),
-                          showFooter: true, // Must be true to show reply/reactions
+                          showFooter:
+                              true, // Must be true to show reply/reactions
                           enableReply: true,
                           enableReactions: true,
                           replyConfig: VReplyConfiguration(
@@ -300,10 +297,7 @@ class IntegrationTestApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'V Story Viewer - Integration Test',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        useMaterial3: true,
-      ),
+      theme: ThemeData(primarySwatch: Colors.blue, useMaterial3: true),
       home: const IntegrationTest(),
     );
   }

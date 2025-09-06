@@ -5,7 +5,7 @@ import 'mock_data.dart';
 /// Example demonstrating horizontal swipe navigation between users' stories
 class HorizontalSwipeExample extends StatelessWidget {
   const HorizontalSwipeExample({super.key});
-  
+
   @override
   Widget build(BuildContext context) {
     // Create story list from mock data
@@ -26,10 +26,7 @@ class HorizontalSwipeExample extends StatelessWidget {
           children: [
             const Text(
               'Horizontal Swipe Between Users',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             const Text(
@@ -37,7 +34,7 @@ class HorizontalSwipeExample extends StatelessWidget {
               style: TextStyle(color: Colors.grey),
             ),
             const SizedBox(height: 24),
-            
+
             // User avatars to show available story groups
             SizedBox(
               height: 100,
@@ -58,24 +55,26 @@ class HorizontalSwipeExample extends StatelessWidget {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: group.hasUnviewed 
-                                    ? Colors.blue 
+                                color: group.hasUnviewed
+                                    ? Colors.blue
                                     : Colors.grey,
                                 width: 3,
                               ),
                             ),
                             child: ClipOval(
                               child: Image.network(
-                                group.user.avatarUrl ?? 'https://i.pravatar.cc/150',
+                                group.user.avatarUrl ??
+                                    'https://i.pravatar.cc/150',
                                 fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) => Container(
-                                  color: Colors.grey[300],
-                                  child: Icon(
-                                    Icons.person,
-                                    size: 40,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Container(
+                                      color: Colors.grey[300],
+                                      child: Icon(
+                                        Icons.person,
+                                        size: 40,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
                               ),
                             ),
                           ),
@@ -93,9 +92,9 @@ class HorizontalSwipeExample extends StatelessWidget {
                 },
               ),
             ),
-            
+
             const SizedBox(height: 32),
-            
+
             // Instructions
             Card(
               child: Padding(
@@ -135,9 +134,9 @@ class HorizontalSwipeExample extends StatelessWidget {
                 ),
               ),
             ),
-            
+
             const Spacer(),
-            
+
             // Full-width button to open story viewer
             SizedBox(
               width: double.infinity,
@@ -152,10 +151,7 @@ class HorizontalSwipeExample extends StatelessWidget {
                 ),
                 child: const Text(
                   'Open Story Viewer',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
             ),
@@ -164,7 +160,7 @@ class HorizontalSwipeExample extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildInstruction(IconData icon, String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
@@ -172,17 +168,12 @@ class HorizontalSwipeExample extends StatelessWidget {
         children: [
           Icon(icon, size: 20, color: Colors.blue),
           const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(fontSize: 14),
-            ),
-          ),
+          Expanded(child: Text(text, style: const TextStyle(fontSize: 14))),
         ],
       ),
     );
   }
-  
+
   void _openStoryViewer(BuildContext context, int initialIndex) {
     // Get the story list
     final storyGroups = MockStoryData.getMockStoryGroups();
@@ -190,7 +181,7 @@ class HorizontalSwipeExample extends StatelessWidget {
       groups: storyGroups,
       config: const VStoryListConfig(),
     );
-    
+
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -207,18 +198,18 @@ class HorizontalSwipeExample extends StatelessWidget {
 class HorizontalSwipeStoryViewer extends StatelessWidget {
   final VStoryList storyList;
   final int initialGroupIndex;
-  
+
   const HorizontalSwipeStoryViewer({
     super.key,
     required this.storyList,
     this.initialGroupIndex = 0,
   });
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: VStoryPageViewer(
+      body: VStoryViewer(
         storyList: storyList,
         initialGroupIndex: initialGroupIndex,
         preloadPages: true, // Preload adjacent pages for smooth transitions
@@ -227,7 +218,6 @@ class HorizontalSwipeStoryViewer extends StatelessWidget {
           showHeader: true,
           showFooter: false,
           enableGestures: true,
-          useSafeArea: true,
           backgroundColor: Colors.black,
           progressStyle: const VStoryProgressStyle(
             activeColor: Colors.white,
@@ -274,10 +264,7 @@ class HorizontalSwipeStoryViewer extends StatelessWidget {
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) => Container(
                         color: Colors.grey,
-                        child: const Icon(
-                          Icons.person,
-                          color: Colors.white,
-                        ),
+                        child: const Icon(Icons.person, color: Colors.white),
                       ),
                     ),
                   ),
@@ -309,11 +296,7 @@ class HorizontalSwipeStoryViewer extends StatelessWidget {
                 // Close button
                 IconButton(
                   onPressed: () => Navigator.pop(context),
-                  icon: const Icon(
-                    Icons.close,
-                    color: Colors.white,
-                    size: 28,
-                  ),
+                  icon: const Icon(Icons.close, color: Colors.white, size: 28),
                 ),
               ],
             ),
@@ -322,13 +305,13 @@ class HorizontalSwipeStoryViewer extends StatelessWidget {
       ),
     );
   }
-  
+
   String _getTimeAgo(DateTime? dateTime) {
     if (dateTime == null) return 'Just now';
-    
+
     final now = DateTime.now();
     final difference = now.difference(dateTime);
-    
+
     if (difference.inMinutes < 60) {
       return '${difference.inMinutes}m ago';
     } else if (difference.inHours < 24) {

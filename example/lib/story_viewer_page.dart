@@ -6,15 +6,13 @@ import 'package:v_story_viewer/v_story_viewer.dart';
 class StoryViewerPage extends StatefulWidget {
   final VStoryList storyList;
   final int initialGroupIndex;
-  final bool usePageViewer;
-  
+
   const StoryViewerPage({
     super.key,
     required this.storyList,
     this.initialGroupIndex = 0,
-    this.usePageViewer = true, // Enable horizontal swipe by default
   });
-  
+
   @override
   State<StoryViewerPage> createState() => _StoryViewerPageState();
 }
@@ -29,18 +27,16 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
         systemNavigationBarColor: Colors.black,
       ),
     );
-    
+
     return Scaffold(
       backgroundColor: Colors.black,
-      body: widget.usePageViewer 
-        ? _buildPageViewer()  // Use horizontal swipe navigation
-        : _buildSingleViewer(), // Use single viewer (old behavior)
+      body: _buildPageViewer(), // Use horizontal swipe navigation
     );
   }
-  
+
   /// Builds story viewer with horizontal swipe navigation between users
   Widget _buildPageViewer() {
-    return VStoryPageViewer(
+    return VStoryViewer(
       storyList: widget.storyList,
       initialGroupIndex: widget.initialGroupIndex,
       config: const VStoryViewerConfig(
@@ -64,78 +60,25 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
       },
     );
   }
-  
-  /// Builds single story viewer (legacy mode without horizontal swipe)
-  Widget _buildSingleViewer() {
-    final controller = VStoryController();
-    
-    // Initialize with story list
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      controller.initialize(widget.storyList);
-      if (widget.initialGroupIndex > 0) {
-        // Navigate to specified group
-        final group = widget.storyList.groups[widget.initialGroupIndex];
-        if (group.stories.isNotEmpty) {
-          controller.goToStory(group.stories.first.id);
-        }
-      }
-    });
-    
-    return VStoryViewer(
-      storyList: widget.storyList,
-      controller: controller,
-      initialGroupIndex: widget.initialGroupIndex,
-      onDismiss: () {
-        controller.dispose();
-        Navigator.pop(context);
-      },
-      config: const VStoryViewerConfig(
-        gestureConfig: VGestureConfig(
-          tapEnabled: true,
-          swipeEnabled: true,
-          longPressEnabled: true,
-        ),
-      ),
-    );
-  }
 }
 
 /// Themed story viewer page with custom styles
 class ThemedStoryViewerPage extends StatefulWidget {
   final VStoryList storyList;
-  
-  const ThemedStoryViewerPage({
-    super.key,
-    required this.storyList,
-  });
-  
+
+  const ThemedStoryViewerPage({super.key, required this.storyList});
+
   @override
   State<ThemedStoryViewerPage> createState() => _ThemedStoryViewerPageState();
 }
 
 class _ThemedStoryViewerPageState extends State<ThemedStoryViewerPage> {
-  late VStoryController controller;
-  
-  @override
-  void initState() {
-    super.initState();
-    controller = VStoryController();
-    controller.initialize(widget.storyList);
-  }
-  
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
-  }
-  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
       body: VStoryViewer(
         storyList: widget.storyList,
-        controller: controller,
         onDismiss: () => Navigator.pop(context),
         config: VStoryViewerConfig(
           progressStyle: VStoryProgressStyle(
@@ -145,10 +88,7 @@ class _ThemedStoryViewerPageState extends State<ThemedStoryViewerPage> {
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
           ),
           textStoryStyle: const VTextStoryStyle(
-            textStyle: TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-            ),
+            textStyle: TextStyle(color: Colors.white, fontSize: 18),
           ),
         ),
         headerBuilder: (context, user, story) {
@@ -195,11 +135,11 @@ class _ThemedStoryViewerPageState extends State<ThemedStoryViewerPage> {
       ),
     );
   }
-  
+
   String _formatTime(DateTime time) {
     final now = DateTime.now();
     final difference = now.difference(time);
-    
+
     if (difference.inMinutes < 60) {
       return '${difference.inMinutes}m ago';
     } else if (difference.inHours < 24) {
@@ -213,33 +153,17 @@ class _ThemedStoryViewerPageState extends State<ThemedStoryViewerPage> {
 /// Story viewer with all callbacks demonstrated
 class CallbackStoryViewerPage extends StatefulWidget {
   final VStoryList storyList;
-  
-  const CallbackStoryViewerPage({
-    super.key,
-    required this.storyList,
-  });
-  
+
+  const CallbackStoryViewerPage({super.key, required this.storyList});
+
   @override
-  State<CallbackStoryViewerPage> createState() => _CallbackStoryViewerPageState();
+  State<CallbackStoryViewerPage> createState() =>
+      _CallbackStoryViewerPageState();
 }
 
 class _CallbackStoryViewerPageState extends State<CallbackStoryViewerPage> {
-  late VStoryController controller;
   final List<String> events = [];
-  
-  @override
-  void initState() {
-    super.initState();
-    controller = VStoryController();
-    controller.initialize(widget.storyList);
-  }
-  
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
-  }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -248,7 +172,6 @@ class _CallbackStoryViewerPageState extends State<CallbackStoryViewerPage> {
         children: [
           VStoryViewer(
             storyList: widget.storyList,
-            controller: controller,
             onDismiss: () {
               debugPrint('Viewer dismissed');
               Navigator.pop(context);
@@ -259,8 +182,8 @@ class _CallbackStoryViewerPageState extends State<CallbackStoryViewerPage> {
               });
               debugPrint('Story viewed: ${story.id}');
             },
-            onAllStoriesCompleted: () {
-              debugPrint('All stories completed');
+            onGroupCompleted: (group) {
+              debugPrint('All stories completed for group: ${group.user.name}');
               Navigator.pop(context);
             },
           ),
@@ -296,39 +219,20 @@ class _CallbackStoryViewerPageState extends State<CallbackStoryViewerPage> {
 /// Story viewer with reply system
 class ReplyStoryViewerPage extends StatefulWidget {
   final VStoryList storyList;
-  
-  const ReplyStoryViewerPage({
-    super.key,
-    required this.storyList,
-  });
-  
+
+  const ReplyStoryViewerPage({super.key, required this.storyList});
+
   @override
   State<ReplyStoryViewerPage> createState() => _ReplyStoryViewerPageState();
 }
 
 class _ReplyStoryViewerPageState extends State<ReplyStoryViewerPage> {
-  late VStoryController controller;
-  
-  @override
-  void initState() {
-    super.initState();
-    controller = VStoryController();
-    controller.initialize(widget.storyList);
-  }
-  
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
-  }
-  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
       body: VStoryViewer(
         storyList: widget.storyList,
-        controller: controller,
         onDismiss: () => Navigator.pop(context),
         footerBuilder: (context, story) {
           return Container(
@@ -343,7 +247,10 @@ class _ReplyStoryViewerPageState extends State<ReplyStoryViewerPage> {
                   borderRadius: BorderRadius.circular(25),
                   borderSide: BorderSide.none,
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 10,
+                ),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.send, color: Colors.white),
                   onPressed: () {
@@ -364,32 +271,15 @@ class _ReplyStoryViewerPageState extends State<ReplyStoryViewerPage> {
 /// Story viewer with reaction system
 class ReactionStoryViewerPage extends StatefulWidget {
   final VStoryList storyList;
-  
-  const ReactionStoryViewerPage({
-    super.key,
-    required this.storyList,
-  });
-  
+
+  const ReactionStoryViewerPage({super.key, required this.storyList});
+
   @override
-  State<ReactionStoryViewerPage> createState() => _ReactionStoryViewerPageState();
+  State<ReactionStoryViewerPage> createState() =>
+      _ReactionStoryViewerPageState();
 }
 
 class _ReactionStoryViewerPageState extends State<ReactionStoryViewerPage> {
-  late VStoryController controller;
-  
-  @override
-  void initState() {
-    super.initState();
-    controller = VStoryController();
-    controller.initialize(widget.storyList);
-  }
-  
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
-  }
-  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -404,12 +294,9 @@ class _ReactionStoryViewerPageState extends State<ReactionStoryViewerPage> {
           children: [
             VStoryViewer(
               storyList: widget.storyList,
-              controller: controller,
               onDismiss: () => Navigator.pop(context),
               config: const VStoryViewerConfig(
-                gestureConfig: VGestureConfig(
-                  enableDoubleTap: true,
-                ),
+                gestureConfig: VGestureConfig(enableDoubleTap: true),
               ),
             ),
             // Instructions overlay
@@ -420,10 +307,7 @@ class _ReactionStoryViewerPageState extends State<ReactionStoryViewerPage> {
               child: Text(
                 'Double tap to react ❤️',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 14,
-                ),
+                style: TextStyle(color: Colors.white70, fontSize: 14),
               ),
             ),
           ],
@@ -431,11 +315,11 @@ class _ReactionStoryViewerPageState extends State<ReactionStoryViewerPage> {
       ),
     );
   }
-  
+
   void _showReactionAnimation(BuildContext context) {
     final overlay = Overlay.of(context);
     late OverlayEntry entry;
-    
+
     entry = OverlayEntry(
       builder: (context) => Center(
         child: TweenAnimationBuilder<double>(
@@ -447,18 +331,14 @@ class _ReactionStoryViewerPageState extends State<ReactionStoryViewerPage> {
               scale: value < 0.5 ? value * 2 : 2 - value * 2,
               child: Opacity(
                 opacity: 1 - value,
-                child: const Icon(
-                  Icons.favorite,
-                  color: Colors.red,
-                  size: 100,
-                ),
+                child: const Icon(Icons.favorite, color: Colors.red, size: 100),
               ),
             );
           },
         ),
       ),
     );
-    
+
     overlay.insert(entry);
   }
 }

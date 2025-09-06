@@ -219,7 +219,6 @@ class VErrorLogger {
       );
     } else {
       // Use debugPrint for release mode if enabled
-      debugPrint(formattedMessage);
     }
   }
   

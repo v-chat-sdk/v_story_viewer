@@ -82,6 +82,9 @@ class VReplySystem extends StatefulWidget {
   /// Called when reply field is unfocused
   final VoidCallback? onUnfocused;
   
+  /// Called when emoji button is tapped
+  final VoidCallback? onEmojiTap;
+  
   /// Creates a reply system
   const VReplySystem({
     super.key,
@@ -98,6 +101,7 @@ class VReplySystem extends StatefulWidget {
     this.onReplySubmitted,
     this.onFocused,
     this.onUnfocused,
+    this.onEmojiTap,
   });
   
   @override
@@ -254,9 +258,7 @@ class _VReplySystemState extends State<VReplySystem> {
             ? IconButton(
                 icon: const Icon(Icons.emoji_emotions_outlined),
                 color: Colors.white60,
-                onPressed: () {
-                  // TODO: Implement emoji picker
-                },
+                onPressed: widget.onEmojiTap ?? () {},
               )
             : null,
       ),

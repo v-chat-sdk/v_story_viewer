@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'package:flutter/foundation.dart';
 
 /// Configuration for retry policy with exponential backoff.
 class VRetryConfig {
@@ -119,10 +118,6 @@ class VRetryPolicy {
         
         // Notify retry callback
         onRetry?.call(attempt, error);
-        
-        debugPrint(
-          'Retry attempt $attempt/${config.maxAttempts} after ${delay}ms: $error',
-        );
         
         // Wait before retrying
         await Future.delayed(Duration(milliseconds: delay));

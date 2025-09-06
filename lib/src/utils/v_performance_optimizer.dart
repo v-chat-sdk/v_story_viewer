@@ -182,7 +182,6 @@ class VPerformanceOptimizer {
         listener(settings);
       } catch (e) {
         if (kDebugMode) {
-          debugPrint('Error in optimization listener: $e');
         }
       }
     }

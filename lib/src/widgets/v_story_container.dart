@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../models/v_story_models.dart';
 import '../controllers/v_story_controller.dart';
-import 'v_story_viewer.dart';
+import '../utils/v_story_viewer_config.dart';
 import 'v_story_progress_bar.dart';
-import 'v_story_content.dart';
+import 'v_story_content_container.dart';
 import 'v_story_header.dart';
 import 'v_story_footer.dart';
 
@@ -53,7 +53,7 @@ class VStoryContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    
+
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -111,7 +111,7 @@ class VStoryContainer extends StatelessWidget {
                 onVerticalDragEnd: config.gestureConfig.swipeEnabled
                     ? (details) {
                         // Swipe down to dismiss
-                        if (details.velocity.pixelsPerSecond.dy > 
+                        if (details.velocity.pixelsPerSecond.dy >
                             config.gestureConfig.swipeVelocityThreshold) {
                           onDismiss?.call();
                         }
@@ -178,7 +178,7 @@ class VStoryContainer extends StatelessWidget {
     final currentIndex = group.stories.indexOf(story);
 
     return Positioned(
-      top: config.useSafeArea ? 0 : MediaQuery.of(context).padding.top,
+      top: 0,
       left: 0,
       right: 0,
       child: VStoryProgressBar(
@@ -192,12 +192,8 @@ class VStoryContainer extends StatelessWidget {
 
   Widget _buildHeader(BuildContext context) {
     return Positioned(
-      top: config.useSafeArea
-          ? config.progressStyle.padding.top + config.progressStyle.height + 16
-          : MediaQuery.of(context).padding.top +
-                config.progressStyle.padding.top +
-                config.progressStyle.height +
-                16,
+      top: config.progressStyle.padding.top + config.progressStyle.height + 16,
+
       left: 0,
       right: 0,
       child: headerBuilder != null
@@ -208,7 +204,7 @@ class VStoryContainer extends StatelessWidget {
 
   Widget _buildFooter(BuildContext context) {
     return Positioned(
-      bottom: config.useSafeArea ? 0 : MediaQuery.of(context).padding.bottom,
+      bottom: 0,
       left: 0,
       right: 0,
       child: footerBuilder != null
@@ -232,157 +228,6 @@ class VStoryContainer extends StatelessWidget {
               replyPlaceholder:
                   config.replyConfig?.hintText ?? 'Send a reply...',
             ),
-    );
-  }
-}
-
-/// Responsive story container that adapts to screen size.
-class VResponsiveStoryContainer extends StatelessWidget {
-  /// The story viewer widget
-  final Widget storyViewer;
-
-  /// Maximum width for tablet/desktop
-  final double maxWidth;
-
-  /// Background color for letterboxing
-  final Color backgroundColor;
-
-  /// Whether to center the viewer
-  final bool centerViewer;
-
-  /// Creates a responsive story container
-  const VResponsiveStoryContainer({
-    super.key,
-    required this.storyViewer,
-    this.maxWidth = 500,
-    this.backgroundColor = Colors.black,
-    this.centerViewer = true,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final width = constraints.maxWidth;
-
-        // For mobile, use full width
-        if (width <= maxWidth) {
-          return storyViewer;
-        }
-
-        // For tablet/desktop, constrain width
-        Widget constrained = SizedBox(
-          width: maxWidth,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: storyViewer,
-          ),
-        );
-
-        // Center if configured
-        if (centerViewer) {
-          constrained = Center(child: constrained);
-        }
-
-        return Container(color: backgroundColor, child: constrained);
-      },
-    );
-  }
-}
-
-/// Animated story container with transitions.
-class VAnimatedStoryContainer extends StatefulWidget {
-  /// The story to display
-  final VBaseStory story;
-
-  /// The story controller
-  final VStoryController controller;
-
-  /// Animation duration
-  final Duration animationDuration;
-
-  /// Animation curve
-  final Curve animationCurve;
-
-  /// Child widget
-  final Widget child;
-
-  /// Creates an animated story container
-  const VAnimatedStoryContainer({
-    super.key,
-    required this.story,
-    required this.controller,
-    this.animationDuration = const Duration(milliseconds: 300),
-    this.animationCurve = Curves.easeInOut,
-    required this.child,
-  });
-
-  @override
-  State<VAnimatedStoryContainer> createState() =>
-      _VAnimatedStoryContainerState();
-}
-
-class _VAnimatedStoryContainerState extends State<VAnimatedStoryContainer>
-    with SingleTickerProviderStateMixin {
-  /// Animation controller
-  late AnimationController _animationController;
-
-  /// Fade animation
-  late Animation<double> _fadeAnimation;
-
-  /// Scale animation
-  late Animation<double> _scaleAnimation;
-
-  /// Current story ID
-  String? _currentStoryId;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _animationController = AnimationController(
-      duration: widget.animationDuration,
-      vsync: this,
-    );
-
-    _fadeAnimation = CurvedAnimation(
-      parent: _animationController,
-      curve: widget.animationCurve,
-    );
-
-    _scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: widget.animationCurve,
-      ),
-    );
-
-    _currentStoryId = widget.story.id;
-    _animationController.forward();
-  }
-
-  @override
-  void didUpdateWidget(VAnimatedStoryContainer oldWidget) {
-    super.didUpdateWidget(oldWidget);
-
-    // Animate on story change
-    if (widget.story.id != _currentStoryId) {
-      _currentStoryId = widget.story.id;
-      _animationController.forward(from: 0.0);
-    }
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: _fadeAnimation,
-      child: ScaleTransition(scale: _scaleAnimation, child: widget.child),
     );
   }
 }

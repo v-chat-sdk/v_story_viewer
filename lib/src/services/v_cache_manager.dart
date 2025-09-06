@@ -5,6 +5,7 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'v_download_progress.dart';
 import 'v_cache_policy.dart';
 import 'v_retry_policy.dart';
+import 'v_web_cache_config.dart';
 
 /// Enhanced cache manager with URL-specific progress tracking.
 /// 
@@ -46,15 +47,8 @@ class VCacheManager {
   
   /// Creates the cache manager with custom configuration
   CacheManager _createCacheManager() {
-    return CacheManager(
-      Config(
-        'v_story_viewer_cache',
-        stalePeriod: policy.stalePeriod,
-        maxNrOfCacheObjects: policy.maxCacheObjects,
-        repo: JsonCacheInfoRepository(databaseName: 'v_story_viewer_cache'),
-        fileService: HttpFileService(),
-      ),
-    );
+    // Use web-safe configuration that handles platform differences
+    return CacheManager(VWebCacheConfig.createConfig());
   }
   
   /// Gets a file from cache or downloads it with progress tracking
@@ -65,12 +59,18 @@ class VCacheManager {
     try {
       // Check if already cached
       final fileInfo = await _cacheManager.getFileFromCache(url);
-      if (fileInfo != null && fileInfo.file.existsSync()) {
-        _emitProgress(VDownloadProgress.completed(
-          url,
-          totalSize: fileInfo.file.lengthSync(),
-        ));
-        return fileInfo.file;
+      if (fileInfo != null) {
+        // On web, we can't use existsSync() or lengthSync()
+        if (kIsWeb) {
+          _emitProgress(VDownloadProgress.completed(url, totalSize: 0));
+          return fileInfo.file;
+        } else if (fileInfo.file.existsSync()) {
+          _emitProgress(VDownloadProgress.completed(
+            url,
+            totalSize: fileInfo.file.lengthSync(),
+          ));
+          return fileInfo.file;
+        }
       }
       
       // Download with progress tracking
@@ -106,9 +106,10 @@ class VCacheManager {
         );
         
         // Download completed
+        final totalSize = kIsWeb ? 0 : fileInfo.file.lengthSync();
         _emitProgress(VDownloadProgress.completed(
           url,
-          totalSize: fileInfo.file.lengthSync(),
+          totalSize: totalSize,
         ));
         
         // Record success
@@ -127,7 +128,6 @@ class VCacheManager {
           error: error.toString(),
         ));
         
-        debugPrint('Retrying download for $url (attempt $attempt): $error');
       },
       onError: (error) {
         // Final error after all retries
@@ -153,9 +153,10 @@ class VCacheManager {
       );
       
       // Emit completion progress
+      final totalSize = kIsWeb ? 0 : fileInfo.file.lengthSync();
       _emitProgress(VDownloadProgress.completed(
         url,
-        totalSize: fileInfo.file.lengthSync(),
+        totalSize: totalSize,
       ));
       
       return fileInfo;
@@ -171,7 +172,6 @@ class VCacheManager {
     
     for (final url in urls) {
       futures.add(getFile(url).catchError((e) {
-        debugPrint('Failed to preload $url: $e');
         return File(''); // Return dummy file on error
       }));
     }
@@ -182,6 +182,10 @@ class VCacheManager {
   /// Checks if a URL is cached
   Future<bool> isCached(String url) async {
     final fileInfo = await _cacheManager.getFileFromCache(url);
+    // On web, we can't check if file exists, so just check if fileInfo exists
+    if (kIsWeb) {
+      return fileInfo != null;
+    }
     return fileInfo != null && fileInfo.file.existsSync();
   }
   

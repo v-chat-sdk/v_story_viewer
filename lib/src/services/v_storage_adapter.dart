@@ -141,7 +141,6 @@ class SharedPreferencesAdapter implements VStorageAdapter {
       final jsonString = jsonEncode(value);
       return prefs.setString(key, jsonString);
     } catch (e) {
-      debugPrint('Error encoding JSON: $e');
       return false;
     }
   }
@@ -153,8 +152,8 @@ class SharedPreferencesAdapter implements VStorageAdapter {
     if (jsonString != null) {
       try {
         return jsonDecode(jsonString) as Map<String, dynamic>;
-      } catch (e) {
-        debugPrint('Error decoding JSON: $e');
+      } catch (_) {
+        // Ignore decode errors for corrupt data
       }
     }
     return null;

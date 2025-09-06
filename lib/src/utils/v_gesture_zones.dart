@@ -50,8 +50,8 @@ class VGestureConfig {
     this.enableHapticFeedback = true,
     this.swipeVelocityThreshold = 200.0,
     this.swipeDistanceThreshold = 50.0,
-    this.leftZonePercentage = 0.3,
-    this.rightZonePercentage = 0.3,
+    this.leftZonePercentage = 0.4,
+    this.rightZonePercentage = 0.4,
   });
 }
 

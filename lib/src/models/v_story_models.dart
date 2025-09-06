@@ -29,3 +29,15 @@ export 'v_story_progress.dart';
 export 'v_reply_configuration.dart';
 export 'v_reaction_configuration.dart';
 export 'v_story_gesture_config.dart';
+
+// Error handling
+export 'v_story_error.dart';
+export 'v_media_load_error.dart';
+export 'v_network_error.dart';
+export 'v_controller_error.dart';
+export 'v_controller_error_type.dart';
+export 'v_cache_error.dart';
+export 'v_permission_error.dart';
+export 'v_timeout_error.dart';
+export 'v_generic_error.dart';
+export 'v_security_error.dart';

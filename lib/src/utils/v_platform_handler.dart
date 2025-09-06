@@ -109,7 +109,6 @@ class VPlatformHandler {
     if (isWeb && file.fileLocalPath != null) {
       // Web can't access local file paths directly
       // This would need special handling in actual implementation
-      debugPrint('Warning: Local file paths are not directly accessible on web');
     }
     
     return file;

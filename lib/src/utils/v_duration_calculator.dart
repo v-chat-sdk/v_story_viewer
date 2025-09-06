@@ -26,10 +26,10 @@ class VDurationConfig {
   
   /// Creates a duration configuration
   const VDurationConfig({
-    this.defaultImageDuration = 5,
-    this.defaultTextDuration = 3,
-    this.defaultCustomDuration = 5,
-    this.minDuration = 2,
+    this.defaultImageDuration = 7,
+    this.defaultTextDuration = 5,
+    this.defaultCustomDuration = 7,
+    this.minDuration = 5,
     this.maxDuration = 30,
     this.wordsPerMinute = 200,
     this.useVideoDurationFromModel = true,

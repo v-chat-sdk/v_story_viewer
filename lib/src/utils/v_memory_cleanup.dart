@@ -103,7 +103,6 @@ class VMemoryCleanup {
           listener(story.id);
         } catch (e) {
           if (kDebugMode) {
-            debugPrint('Error in cleanup listener: $e');
           }
         }
       }
@@ -169,7 +168,6 @@ class VMemoryCleanup {
           listener(storyId);
         } catch (e) {
           if (kDebugMode) {
-            debugPrint('Error in cleanup listener: $e');
           }
         }
       }

@@ -9,8 +9,6 @@ class VStoryListConfig {
   /// Whether to sort groups by unviewed count
   final bool sortByUnviewed;
   
-  /// Whether to loop back to first group after last
-  final bool loopGroups;
   
   /// Whether to auto-advance to next group when current group completes
   final bool autoAdvanceToNextGroup;
@@ -19,7 +17,6 @@ class VStoryListConfig {
   const VStoryListConfig({
     this.showViewedStories = true,
     this.sortByUnviewed = true,
-    this.loopGroups = false,
     this.autoAdvanceToNextGroup = true,
   });
 }
@@ -119,12 +116,8 @@ class VStoryList {
   /// Gets the next group after the specified user ID
   VStoryGroup? getNextGroup(String currentUserId) {
     final currentIndex = getGroupIndex(currentUserId);
-    if (currentIndex >= 0) {
-      if (currentIndex < groups.length - 1) {
-        return groups[currentIndex + 1];
-      } else if (config.loopGroups && groups.isNotEmpty) {
-        return groups.first;
-      }
+    if (currentIndex >= 0 && currentIndex < groups.length - 1) {
+      return groups[currentIndex + 1];
     }
     return null;
   }
@@ -134,8 +127,6 @@ class VStoryList {
     final currentIndex = getGroupIndex(currentUserId);
     if (currentIndex > 0) {
       return groups[currentIndex - 1];
-    } else if (currentIndex == 0 && config.loopGroups && groups.isNotEmpty) {
-      return groups.last;
     }
     return null;
   }

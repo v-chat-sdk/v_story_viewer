@@ -231,7 +231,6 @@ class WebOptimizations {
     // Use HLS or DASH for adaptive streaming
     
     if (kDebugMode) {
-      debugPrint('Web optimizations: WebGL, lazy loading, service workers');
     }
   }
 }
@@ -257,7 +256,6 @@ class IOSOptimizations {
     // Pause heavy operations in background
     
     if (kDebugMode) {
-      debugPrint('iOS optimizations: Metal rendering, ProMotion support');
     }
   }
 }
@@ -283,7 +281,6 @@ class AndroidOptimizations {
     // Handle low memory killer
     
     if (kDebugMode) {
-      debugPrint('Android optimizations: Vulkan/OpenGL, adaptive performance');
     }
   }
 }
@@ -309,7 +306,6 @@ class DesktopOptimizations {
     // Desktop-specific interactions
     
     if (kDebugMode) {
-      debugPrint('Desktop optimizations: Full GPU acceleration, higher quality');
     }
   }
 }

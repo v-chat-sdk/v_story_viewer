@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 import '../models/v_story_error.dart';
+import '../models/v_network_error.dart';
+import '../models/v_media_load_error.dart';
+import '../models/v_controller_error.dart';
+import '../models/v_cache_error.dart';
+import '../models/v_permission_error.dart';
+import '../models/v_timeout_error.dart';
 
 /// Provides error recovery strategies and placeholder widgets
 class VErrorRecovery {

@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import '../models/v_story_error.dart';
+import '../models/v_security_error.dart';
 import 'v_error_logger.dart';
 
 /// Security validator for story viewer

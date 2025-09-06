@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
 import '../models/v_story_models.dart';
-import '../models/v_story_error.dart';
 import '../utils/v_state_transitions.dart';
 import '../utils/v_error_logger.dart';
 import '../services/v_view_state_manager.dart';
@@ -81,8 +80,6 @@ class VStoryController extends ChangeNotifier with WidgetsBindingObserver {
   /// Whether the controller is paused
   bool get isPaused => _state.isPaused;
 
-  /// Whether navigation is in progress
-  bool get isNavigating => _state.isNavigating;
 
   /// Creates a story controller
   VStoryController() {
@@ -244,109 +241,134 @@ class VStoryController extends ChangeNotifier with WidgetsBindingObserver {
 
   /// Navigates to the next story
   Future<void> nextStory() async {
-    if (_isDisposed) return;
-
-    _updateState(_state.startNavigation());
-
-    try {
-      final storyList = _state.storyList;
-      final currentGroup = storyList.findGroupContainingStory(
-        _state.currentStoryId!,
-      );
-
-      if (currentGroup == null) {
-        _updateState(_state.endNavigation());
-        return;
-      }
-
-      // Try next story in current group
-      final nextStory = currentGroup.getNextStory(_state.currentStoryId!);
-
-      if (nextStory != null) {
-        await _navigateToStory(nextStory, currentGroup.user.id);
-      } else {
-        // Move to next group
-        final nextGroup = storyList.getNextGroup(currentGroup.user.id);
-        if (nextGroup != null) {
-          // Use persistence to find first unviewed if enabled
-          VBaseStory? firstStory;
-          if (enablePersistence) {
-            firstStory = _viewStateManager.findFirstUnviewed(nextGroup);
-          }
-          firstStory ??= nextGroup.firstUnviewed ?? nextGroup.stories.first;
-
-          await _navigateToStory(firstStory, nextGroup.user.id);
-        } else {
-          // End of all stories
-          _handleAllStoriesCompleted();
-        }
-      }
-    } finally {
-      _updateState(_state.endNavigation());
+    print('🔵 nextStory() called');
+    print('  └─ isDisposed: $_isDisposed');
+    
+    if (_isDisposed) {
+      print('  ⚠️ Controller is disposed, returning early');
+      return;
     }
+    
+    final storyList = _state.storyList;
+    print('  └─ Total groups in storyList: ${storyList.groups.length}');
+    print('  └─ Current story ID: ${_state.currentStoryId}');
+    
+    final currentGroup = storyList.findGroupContainingStory(_state.currentStoryId!)!;
+    print('  └─ Current group: ${currentGroup.user.id}');
+    print('  └─ Stories in current group: ${currentGroup.stories.length}');
+    print('  └─ Current story index in group: ${currentGroup.stories.indexWhere((s) => s.id == _state.currentStoryId)}');
+
+
+    // Try next story in current group first
+    final nextStoryInGroup = currentGroup.getNextStory(_state.currentStoryId!);
+    print('  └─ Next story in current group: ${nextStoryInGroup?.id ?? "null"}');
+    
+    if (nextStoryInGroup != null) {
+      print('  ✅ Found next story in same group: ${nextStoryInGroup.id}');
+      print('  └─ Navigating to story within group...');
+      await _navigateToStory(nextStoryInGroup, currentGroup.user.id);
+      print('  └─ Navigation complete');
+      return;
+    }
+    
+    print('  └─ No more stories in current group, checking for next group...');
+    
+    // No more stories in current group, try next group
+    var nextGroup = storyList.getNextGroup(currentGroup.user.id);
+    print('  └─ Next group found: ${nextGroup?.user.id ?? "null"}');
+    
+    // Skip empty groups
+    int skippedGroups = 0;
+    while (nextGroup != null && nextGroup.stories.isEmpty) {
+      skippedGroups++;
+      print('  └─ Skipping empty group: ${nextGroup.user.id}');
+      nextGroup = storyList.getNextGroup(nextGroup.user.id);
+    }
+    
+    if (skippedGroups > 0) {
+      print('  └─ Skipped $skippedGroups empty groups');
+    }
+    
+    // Check if we've reached the end of all stories
+    if (nextGroup == null) {
+      print('  🏁 Reached end of all stories - calling _handleAllStoriesCompleted()');
+      _handleAllStoriesCompleted();
+      return;
+    }
+    
+    print('  └─ Found next non-empty group: ${nextGroup.user.id}');
+    print('  └─ Stories in next group: ${nextGroup.stories.length}');
+    
+    // Find first story to show in next group
+    VBaseStory? firstStory;
+    if (enablePersistence) {
+      print('  └─ Persistence enabled, finding first unviewed story...');
+      firstStory = _viewStateManager.findFirstUnviewed(nextGroup);
+      print('  └─ First unviewed from persistence: ${firstStory?.id ?? "null"}');
+    }
+    
+    if (firstStory == null) {
+      firstStory = nextGroup.firstUnviewed ?? nextGroup.stories.first;
+      print('  └─ Using fallback: ${nextGroup.firstUnviewed != null ? "firstUnviewed" : "first story"}');
+    }
+    
+    print('  ✅ Selected story to navigate to: ${firstStory.id}');
+    print('  └─ Starting navigation to new group...');
+    
+    await _navigateToStory(firstStory, nextGroup.user.id);
+    
+    print('  └─ Navigation to next group complete');
+    print('🔵 nextStory() finished');
   }
 
   /// Navigates to the previous story
   Future<void> previous() async {
-    if (_isDisposed) return;
-    if (!_state.isReady || _state.isNavigating) return;
-
-    _updateState(_state.startNavigation());
-
-    try {
-      final storyList = _state.storyList;
-      final currentGroup = storyList.findGroupContainingStory(
-        _state.currentStoryId!,
-      );
-
-      if (currentGroup == null) {
-        _updateState(_state.endNavigation());
-        return;
-      }
-
-      // Try previous story in current group
-      final previousStory = currentGroup.getPreviousStory(
-        _state.currentStoryId!,
-      );
-
-      if (previousStory != null) {
-        await _navigateToStory(previousStory, currentGroup.user.id);
-      } else {
-        // Move to previous group
-        final previousGroup = storyList.getPreviousGroup(currentGroup.user.id);
-        if (previousGroup != null && previousGroup.stories.isNotEmpty) {
-          final lastStory = previousGroup.stories.last;
-          await _navigateToStory(lastStory, previousGroup.user.id);
-        }
-      }
-    } finally {
-      _updateState(_state.endNavigation());
+    if (_isDisposed || !_state.isReady) return;
+    
+    final storyList = _state.storyList;
+    final currentGroup = storyList.findGroupContainingStory(_state.currentStoryId!);
+    
+    // Early return if current group not found
+    if (currentGroup == null) return;
+    
+    // Try previous story in current group first
+    final previousStoryInGroup = currentGroup.getPreviousStory(_state.currentStoryId!);
+    if (previousStoryInGroup != null) {
+      await _navigateToStory(previousStoryInGroup, currentGroup.user.id);
+      return;
     }
+    
+    // No previous story in current group, try previous group
+    var previousGroup = storyList.getPreviousGroup(currentGroup.user.id);
+    
+    // Skip empty groups when going backwards
+    while (previousGroup != null && previousGroup.stories.isEmpty) {
+      previousGroup = storyList.getPreviousGroup(previousGroup.user.id);
+    }
+    
+    // If no previous group with stories found, return
+    if (previousGroup == null) return;
+    
+    await _navigateToStory(previousGroup.stories.last, previousGroup.user.id);
   }
 
   /// Navigates to a specific story by ID
   Future<void> goToStory(String storyId) async {
-    if (_isDisposed) return;
-    if (!_state.isReady || _state.isNavigating) return;
-
-    _updateState(_state.startNavigation());
-
-    try {
-      final storyList = _state.storyList;
-      final story = storyList.findStoryById(storyId);
-      final group = storyList.findGroupContainingStory(storyId);
-
-      if (story != null && group != null) {
-        await _navigateToStory(story, group.user.id);
-      }
-    } finally {
-      _updateState(_state.endNavigation());
-    }
+    if (_isDisposed || !_state.isReady) return;
+    
+    final storyList = _state.storyList;
+    final story = storyList.findStoryById(storyId);
+    final group = storyList.findGroupContainingStory(storyId);
+    
+    // Early return if story or group not found
+    if (story == null || group == null) return;
+    
+    await _navigateToStory(story, group.user.id);
   }
 
   /// Navigates to a specific story by index in current group
   void goToStoryByIndex(int index) {
-    if (!_state.isReady || _state.isNavigating) return;
+    if (!_state.isReady) return;
 
     final storyList = _state.storyList;
     final currentGroup = storyList.findGroupContainingStory(
@@ -439,19 +461,12 @@ class VStoryController extends ChangeNotifier with WidgetsBindingObserver {
     if (story.media.networkUrl != null) {
       try {
         // Try to get cached file first for network videos
-        debugPrint('Attempting to cache video from: ${story.media.networkUrl}');
         final cachedFile = await _cacheManager.getFile(story.media.networkUrl!);
 
         // Use cached file if available
         controller = VideoPlayerController.file(cachedFile);
-        debugPrint(
-          '✅ Using cached video for story: ${story.id} from ${cachedFile.path}',
-        );
       } catch (e) {
         // Fallback to network URL if caching fails
-        debugPrint(
-          '⚠️ Failed to cache video for story: ${story.id}, using direct network stream: $e',
-        );
         controller = VideoPlayerController.networkUrl(
           Uri.parse(story.media.networkUrl!),
         );

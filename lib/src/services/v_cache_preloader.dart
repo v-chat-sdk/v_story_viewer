@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import '../models/v_story_models.dart';
 import 'v_cache_manager.dart';
 
@@ -138,8 +137,8 @@ class VCachePreloader {
     try {
       // Use the cache manager to preload
       await _cacheManager.preloadUrls(urlsToPreload);
-    } catch (e) {
-      debugPrint('Error preloading URLs: $e');
+    } catch (_) {
+      // Preload errors are non-critical
     } finally {
       // Remove from preloading set
       _preloadingUrls.removeAll(urlsToPreload);

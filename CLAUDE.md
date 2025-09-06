@@ -10,8 +10,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Build & Test
 ```bash
-# Build example app for Android
-cd example && flutter build apk
+# Build example app for Android (verify compilation only)
+cd example && flutter build apk --debug
 
 # Build for iOS  
 cd example && flutter build ios
@@ -24,6 +24,12 @@ flutter analyze
 
 # Format code
 dart format lib/
+
+# Check for dependency updates
+flutter pub outdated
+
+# Upgrade dependencies
+flutter pub upgrade
 ```
 
 ### Development Flow
@@ -32,6 +38,14 @@ dart format lib/
 cd example
 flutter pub get  # Update package dependency
 flutter run      # Test changes in example app
+
+# Run specific example
+flutter run -t lib/simple_example.dart  # Minimal implementation
+flutter run -t lib/integration_test.dart  # Integration tests
+flutter run -t lib/horizontal_swipe_example.dart  # Swipe navigation
+
+# Clean build artifacts
+flutter clean
 ```
 
 ## Architecture & Code Structure
@@ -40,8 +54,9 @@ flutter run      # Test changes in example app
 
 1. **V-Prefix Naming**: All public classes use `V` prefix (e.g., `VStoryController`, `VStoryViewer`)
 2. **ID-Based Navigation**: Never use array indexes for navigation - always use unique story IDs
-3. **abstract Classes**: Story types use abstract classes for type safety and compile-time validation
+3. **Sealed Classes**: Story types use sealed classes (`VBaseStory`) for type safety and compile-time validation
 4. **File Organization**: One class per file - no multiple classes in single files
+5. **Fail Gracefully**: Every network operation and file access must have fallback behavior - no crashes
 
 ### Package Architecture
 
@@ -83,9 +98,11 @@ Initial → Loading → Playing → Completed
 ### Key Implementation Rules
 
 1. **Progress Always Resets**: When navigating between stories, progress must reset to 0
-2. **Pause on Background**: Stories automatically pause when app goes to background
-3. **Memory Management**: Video controllers limited to 3 cached instances
+2. **Pause on Background**: Stories automatically pause when app goes to background (via WidgetsBindingObserver)
+3. **Memory Management**: Video controllers limited to 10 cached instances (_maxVideoCacheCount)
 4. **Performance Targets**: 60 FPS animations, <50MB memory, <100ms transitions
+5. **Error Model Hierarchy**: Use specific error types (VNetworkError, VCacheError, VMediaLoadError, etc.) for precise error handling
+6. **Controller Disposal**: Always check _isDisposed flag before operations in controllers
 
 ### Cross-Platform File Handling
 
@@ -109,9 +126,11 @@ Critical dependencies that must be maintained:
 
 1. Check requirements in `requirements/requirements.md` for specifications
 2. Review design decisions in `requirements/design.md` 
-3. Follow task breakdown in `requirements/tasks.md`
+3. Follow task breakdown in `requirements/tasks.md` if it exists
 4. Ensure new code follows V-prefix naming convention
 5. Implement proper disposal in controllers to prevent memory leaks
+6. Use the existing error model hierarchy for error handling
+7. Maintain one class per file structure
 
 ### Performance Considerations
 
@@ -129,14 +148,60 @@ All network operations and file access must:
 - Never crash - graceful degradation only
 - Use exponential backoff for retries
 
-### Testing Strategy 
-- dont write any test for now !
+### Testing Strategy
+
 The package is verified through the example application (`example/lib/`):
 - `mock_data.dart`: Test data generation
 - `story_viewer_page.dart`: Full feature demonstration
 - `integration_test.dart`: Integration testing scenarios
 - `simple_example.dart`: Minimal implementation example
+- `horizontal_swipe_example.dart`: Horizontal swipe navigation demonstration
 
+**Note**: Do not write tests unless explicitly requested
+
+
+## Story Types & Usage
+
+### Available Story Types
+
+```dart
+// Image Story
+VImageStory(
+  id: 'unique_id',
+  url: 'https://example.com/image.jpg',
+  duration: const Duration(seconds: 5),
+  caption: 'Optional caption',
+)
+
+// Video Story
+VVideoStory(
+  id: 'unique_id',
+  url: 'https://example.com/video.mp4',
+  caption: 'Optional caption',
+)
+
+// Text Story
+VTextStory(
+  id: 'unique_id',
+  text: 'Story content',
+  backgroundColor: Colors.blue,
+  duration: const Duration(seconds: 3),
+)
+
+// Custom Story
+VCustomStory(
+  id: 'unique_id',
+  duration: const Duration(seconds: 5),
+  builder: (context) => CustomWidget(),
+)
+```
+
+## Important Project Files
+
+- **Requirements**: `requirements/requirements.md` - Feature specifications and acceptance criteria
+- **Design Document**: `requirements/design.md` - Architecture decisions, state machines, and user flows
+- **Example Apps**: `example/lib/` - Various implementation examples for testing
+- **Main Export**: `lib/v_story_viewer.dart` - Public API surface
 
 # AI Agent Directives: Flutter Development Standards
 

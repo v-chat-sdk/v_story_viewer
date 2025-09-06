@@ -4,6 +4,7 @@ import 'mock_data.dart';
 import 'story_viewer_page.dart';
 import 'integration_test.dart';
 import 'horizontal_swipe_example.dart';
+import 'debug_story_viewer.dart';
 
 void main() {
   runApp(const MainApp());
@@ -43,7 +44,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final List<VStoryGroup> storyGroups = MockStoryData.getMockStoryGroups();
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -58,9 +59,9 @@ class _HomePageState extends State<HomePage> {
           children: [
             // Story circles preview
             _buildStoryCircles(),
-            
+
             const Divider(),
-            
+
             // Feature demos
             _buildFeatureDemos(),
           ],
@@ -68,7 +69,7 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-  
+
   Widget _buildStoryCircles() {
     return Container(
       height: 120,
@@ -79,7 +80,7 @@ class _HomePageState extends State<HomePage> {
         itemBuilder: (context, index) {
           final group = storyGroups[index];
           final hasUnviewed = group.stories.any((s) => s.viewedAt == null);
-          
+
           return GestureDetector(
             onTap: () => _openStoryViewer(context, index),
             child: Container(
@@ -134,7 +135,7 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-  
+
   Widget _buildFeatureDemos() {
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -160,6 +161,19 @@ class _HomePageState extends State<HomePage> {
           ),
           
           _buildDemoCard(
+            title: 'Debug Story Viewer',
+            description: 'Comprehensive debugging tools with numbered users/stories',
+            icon: Icons.bug_report,
+            isNew: true,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const DebugStoryViewer(),
+              ),
+            ),
+          ),
+
+          _buildDemoCard(
             title: 'Text Story Viewer',
             description: 'Open stories with default settings',
             onTap: () => _openTextStoryViewer(context),
@@ -170,56 +184,56 @@ class _HomePageState extends State<HomePage> {
             description: 'Open stories with default settings',
             onTap: () => _openBasicStoryViewer(context),
           ),
-          
+
           // Custom themed viewer
           _buildDemoCard(
             title: 'Custom Themed Viewer',
             description: 'Story viewer with custom colors and styles',
             onTap: () => _openThemedStoryViewer(context),
           ),
-          
+
           // With callbacks
           _buildDemoCard(
             title: 'With Callbacks',
             description: 'Demonstrates all callback events',
             onTap: () => _openCallbackStoryViewer(context),
           ),
-          
+
           // With replies enabled
           _buildDemoCard(
             title: 'Reply System',
             description: 'Stories with reply functionality',
             onTap: () => _openReplyStoryViewer(context),
           ),
-          
+
           // With reactions
           _buildDemoCard(
             title: 'Reaction System',
             description: 'Double tap to send reactions',
             onTap: () => _openReactionStoryViewer(context),
           ),
-          
+
           // Performance test
           _buildDemoCard(
             title: 'Performance Test',
             description: 'Test with many stories for performance',
             onTap: () => _openPerformanceTest(context),
           ),
-          
+
           // RTL support
           _buildDemoCard(
             title: 'RTL Support',
             description: 'Right-to-left language support',
             onTap: () => _openRTLStoryViewer(context),
           ),
-          
+
           // Custom widgets
           _buildDemoCard(
             title: 'Custom Story Widgets',
             description: 'Display any Flutter widget as a story',
             onTap: () => _openCustomWidgetDemo(context),
           ),
-          
+
           // Integration test
           _buildDemoCard(
             title: 'Integration Test',
@@ -237,7 +251,7 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-  
+
   Widget _buildDemoCard({
     required String title,
     required String description,
@@ -248,9 +262,9 @@ class _HomePageState extends State<HomePage> {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
-        leading: icon != null 
-          ? Icon(icon, color: Theme.of(context).colorScheme.primary)
-          : null,
+        leading: icon != null
+            ? Icon(icon, color: Theme.of(context).colorScheme.primary)
+            : null,
         title: Row(
           children: [
             Expanded(child: Text(title)),
@@ -278,19 +292,21 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-  
+
   void _openStoryViewer(BuildContext context, int startIndex) {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => StoryViewerPage(
-          storyList: VStoryList(groups: storyGroups),
+          storyList: VStoryList(
+            groups: storyGroups,
+            config: VStoryListConfig(),
+          ),
           initialGroupIndex: startIndex,
         ),
       ),
     );
   }
-
 
   void _openTextStoryViewer(BuildContext context) {
     Navigator.push(
@@ -304,71 +320,62 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-
-
-
   void _openBasicStoryViewer(BuildContext context) {
     _openStoryViewer(context, 0);
   }
-  
+
   void _openThemedStoryViewer(BuildContext context) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ThemedStoryViewerPage(
-          storyList: VStoryList(groups: storyGroups),
-        ),
+        builder: (context) =>
+            ThemedStoryViewerPage(storyList: VStoryList(groups: storyGroups)),
       ),
     );
   }
-  
+
   void _openCallbackStoryViewer(BuildContext context) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => CallbackStoryViewerPage(
-          storyList: VStoryList(groups: storyGroups),
-        ),
+        builder: (context) =>
+            CallbackStoryViewerPage(storyList: VStoryList(groups: storyGroups)),
       ),
     );
   }
-  
+
   void _openReplyStoryViewer(BuildContext context) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ReplyStoryViewerPage(
-          storyList: VStoryList(groups: storyGroups),
-        ),
+        builder: (context) =>
+            ReplyStoryViewerPage(storyList: VStoryList(groups: storyGroups)),
       ),
     );
   }
-  
+
   void _openReactionStoryViewer(BuildContext context) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ReactionStoryViewerPage(
-          storyList: VStoryList(groups: storyGroups),
-        ),
+        builder: (context) =>
+            ReactionStoryViewerPage(storyList: VStoryList(groups: storyGroups)),
       ),
     );
   }
-  
+
   void _openPerformanceTest(BuildContext context) {
     // Create large dataset for performance testing
     final largeStoryList = _createLargeStoryList();
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => StoryViewerPage(
-          storyList: largeStoryList,
-          initialGroupIndex: 0,
-        ),
+        builder: (context) =>
+            StoryViewerPage(storyList: largeStoryList, initialGroupIndex: 0),
       ),
     );
   }
-  
+
   void _openRTLStoryViewer(BuildContext context) {
     Navigator.push(
       context,
@@ -383,7 +390,7 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-  
+
   void _openCustomWidgetDemo(BuildContext context) {
     final customStoryGroup = VStoryGroup(
       user: VStoryUser.fromUrl(
@@ -398,13 +405,9 @@ class _HomePageState extends State<HomePage> {
           createdAt: DateTime.now(),
           builder: (context) => Container(
             decoration: const BoxDecoration(
-              gradient: RadialGradient(
-                colors: [Colors.blue, Colors.purple],
-              ),
+              gradient: RadialGradient(colors: [Colors.blue, Colors.purple]),
             ),
-            child: const Center(
-              child: FlutterLogo(size: 200),
-            ),
+            child: const Center(child: FlutterLogo(size: 200)),
           ),
         ),
         VCustomStory(
@@ -421,9 +424,9 @@ class _HomePageState extends State<HomePage> {
                   const SizedBox(height: 20),
                   Text(
                     'Any Widget Works!',
-                    style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                      color: Colors.white,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.headlineLarge?.copyWith(color: Colors.white),
                   ),
                 ],
               ),
@@ -432,7 +435,7 @@ class _HomePageState extends State<HomePage> {
         ),
       ],
     );
-    
+
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -443,7 +446,7 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-  
+
   VStoryList _createLargeStoryList() {
     final groups = <VStoryGroup>[];
     for (int i = 0; i < 20; i++) {
@@ -453,14 +456,15 @@ class _HomePageState extends State<HomePage> {
           VImageStory(
             id: 'perf_${i}_$j',
             media: VPlatformFile.fromUrl(
-              networkUrl: 'https://picsum.photos/1080/1920?random=${i * 10 + j}',
+              networkUrl:
+                  'https://picsum.photos/1080/1920?random=${i * 10 + j}',
             ),
             duration: const Duration(seconds: 5),
             createdAt: DateTime.now(),
           ),
         );
       }
-      
+
       groups.add(
         VStoryGroup(
           user: VStoryUser.fromUrl(
@@ -472,7 +476,7 @@ class _HomePageState extends State<HomePage> {
         ),
       );
     }
-    
+
     return VStoryList(groups: groups);
   }
 }

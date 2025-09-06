@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Manages persistence of story view states across app sessions.
@@ -222,8 +221,8 @@ class VStoryPersistence {
     if (jsonString != null) {
       try {
         return jsonDecode(jsonString) as Map<String, dynamic>;
-      } catch (e) {
-        debugPrint('Error loading story metadata: $e');
+      } catch (_) {
+        // Ignore decode errors for corrupt data
       }
     }
     return null;
@@ -245,8 +244,8 @@ class VStoryPersistence {
       try {
         final Map<String, dynamic> map = jsonDecode(jsonString);
         return map.map((key, value) => MapEntry(key, value.toDouble()));
-      } catch (e) {
-        debugPrint('Error loading progress map: $e');
+      } catch (_) {
+        // Ignore decode errors for corrupt data
       }
     }
     return {};
@@ -259,8 +258,8 @@ class VStoryPersistence {
       try {
         final Map<String, dynamic> map = jsonDecode(jsonString);
         return map.map((key, value) => MapEntry(key, List<String>.from(value)));
-      } catch (e) {
-        debugPrint('Error loading user view states: $e');
+      } catch (_) {
+        // Ignore decode errors for corrupt data
       }
     }
     return {};
@@ -306,7 +305,6 @@ class VStoryPersistence {
           }
         } catch (e) {
           // If the key doesn't store an int, skip it
-          debugPrint('VStoryPersistence: Skipping non-timestamp key $key');
         }
       }
     }
