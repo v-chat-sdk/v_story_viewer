@@ -4,160 +4,282 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**v_story_viewer** is a Flutter package that provides WhatsApp/Instagram-style story viewing functionality. The package focuses exclusively on story viewing (not creation) with comprehensive gesture controls, media support, and cross-platform compatibility.
+The v_story_viewer is a Flutter package for WhatsApp/Instagram-style story viewing with comprehensive gesture controls, media support, and cross-platform compatibility. The package uses a modern architecture with dependency injection and unidirectional data flow patterns.
 
-## Key Commands
+## Build & Development Commands
 
-### Build & Test
 ```bash
-# Build example app for Android (verify compilation only)
-cd example && flutter build apk --debug
+# Get dependencies
+flutter pub get
 
-# Build for iOS  
-cd example && flutter build ios
+# Run tests
+flutter test
 
-# Run the example app
-cd example && flutter run
+# Run specific test file
+flutter test test/features/v_story_viewer/controllers/v_story_controller_test.dart
 
-# Analyze code for issues
+# Analyze code
 flutter analyze
 
-# Format code
-dart format lib/
+# Check formatting
+dart format --set-exit-if-changed .
 
-# Check for dependency updates
-flutter pub outdated
+# Run example app
+cd example && flutter run
 
-# Upgrade dependencies
-flutter pub upgrade
+# Build APK (for testing compilation)
+cd example && flutter build apk
+
+# Generate coverage report
+flutter test --coverage
 ```
 
-### Development Flow
-```bash
-# After making changes to the package
-cd example
-flutter pub get  # Update package dependency
-flutter run      # Test changes in example app
+## Architecture
 
-# Run specific example
-flutter run -t lib/simple_example.dart  # Minimal implementation
-flutter run -t lib/integration_test.dart  # Integration tests
-flutter run -t lib/horizontal_swipe_example.dart  # Swipe navigation
+### Core Architecture Pattern
 
-# Clean build artifacts
-flutter clean
+The package uses a **Controller-Provider-Widget** architecture with dependency injection:
+
+1. **Provider Layer**: InheritedWidget-based providers (VControllerProvider, VDataProvider) manage controller registry and data flow
+2. **Orchestration Layer**: VStoryViewer acts as the main orchestrator, coordinating all feature controllers through its internal controller hierarchy
+3. **Feature Layer**: Specialized controllers for each feature (progress, media, gestures, etc.) communicate via callbacks
+4. **Widget Layer**: Stateless widgets access controllers through providers and rebuild reactively
+
+### Key Design Principles
+
+- **Unidirectional Data Flow**: Data flows from controllers → providers → widgets
+- **Callback-Based Mediator Pattern**: Features communicate via typed callbacks through an orchestrator
+  - Each feature defines callback interfaces (e.g., `VProgressCallbacks`, `VGestureCallbacks`)
+  - Controllers receive callbacks via constructor injection
+  - Orchestrator wires all callbacks and manages feature coordination
+  - Features have NO direct references to each other (complete separation)
+  - See `requirements/feature_communication_architecture.md` for detailed implementation
+- **Single Responsibility**: Each controller handles one specific aspect (progress, media, gestures, etc.)
+- **Dependency Injection**: All dependencies explicitly injected through constructors via VControllerFactory
+- **Type Safety**: Sealed classes for story types, no dynamic types in APIs
+
+### Feature Organization
+
+The codebase uses **feature-based architecture** under `lib/src/features/`. Each feature is self-contained:
+
+```
+feature_folder/
+├── controllers/     # Feature-specific controllers
+├── widgets/         # Feature-specific widgets
+├── models/          # Feature data models (including callbacks)
+├── utils/           # Feature utilities
+└── views/           # Feature screens/pages
 ```
 
-## Architecture & Code Structure
+**Available Features:**
+- **v_story_viewer**: **Main orchestrator** - Coordinates all feature controllers and manages story viewing lifecycle
+- **v_progress_bar**: Progress indicators using Flutter's LinearProgressIndicator
+- **v_gesture_detector**: Gesture handling with tap zones and swipe detection
+- **v_media_viewer**: Media display for images, videos, text, and custom content
+- **v_cache_manager**: Media caching with flutter_cache_manager integration
+- **v_reply_system**: Reply functionality with keyboard handling
+- **v_story_actions**: Story action buttons (share, save, etc.)
+- **v_story_header**: User info and timestamp display
+- **v_story_footer**: Caption and metadata display
+- **v_theme_system**: Centralized theme management
+- **v_localization**: Internationalization support
+- **v_error_handling**: Error states and recovery
+- **v_story_models**: Core data models (VStoryGroup, VBaseStory, etc.)
+- **v_story_state_manager**: Global state coordination
 
-### Core Design Principles
+## Critical Implementation Notes
 
-1. **V-Prefix Naming**: All public classes use `V` prefix (e.g., `VStoryController`, `VStoryViewer`)
-2. **ID-Based Navigation**: Never use array indexes for navigation - always use unique story IDs
-3. **Sealed Classes**: Story types use sealed classes (`VBaseStory`) for type safety and compile-time validation
-4. **File Organization**: One class per file - no multiple classes in single files
-5. **Fail Gracefully**: Every network operation and file access must have fallback behavior - no crashes
+### Feature Communication Pattern
 
-### Package Architecture
+Features communicate using **Callback-Based Mediator Pattern**:
 
-The package follows a modular architecture with clear separation:
-
-- **Models** (`lib/src/models/`): Data structures using sealed classes
-  - `VBaseStory`: Sealed class hierarchy for story types
-  - `VStoryGroup`: Story collection per user
-  - `VStoryState`: Playback state management
-  
-- **Controllers** (`lib/src/controllers/`): State management
-  - `VStoryController`: Main controller extending ChangeNotifier
-  - Handles lifecycle, navigation, and playback
-  
-- **Services** (`lib/src/services/`): Business logic
-  - `VCacheManager`: Media caching with progress streaming
-  - `VMemoryManager`: Video controller lifecycle
-  - `VStorageAdapter`: Cross-platform persistence
-  
-- **Widgets** (`lib/src/widgets/`): UI components
-  - `VStoryViewer`: Main widget entry point
-  - `VStoryContent`: Content rendering
-  - `VStoryProgressBar`: Progress indicators using step_progress package
-  
-- **Utils** (`lib/src/utils/`): Utilities
-  - `VPlatformHandler`: Cross-platform file handling via v_platform
-  - `VDurationCalculator`: Story duration logic
-  - `VGestureZones`: Touch zone detection
-
-### State Management Pattern
-
-The package uses ChangeNotifier pattern with specific lifecycle:
 ```dart
-Initial → Loading → Playing → Completed
-         ↓           ↓
-       Error      Paused
+// Example: Progress completion flow
+VProgressController
+  → callbacks.onStoryComplete()
+  → VStoryViewer._handleStoryComplete()
+  → VMediaController.loadStory()
+  → callbacks.onMediaReady()
+  → VStoryViewer._handleMediaReady()
+  → VProgressController.startProgress()
 ```
 
-### Key Implementation Rules
+**Key Rules:**
+1. Features define callback interfaces in `models/` (e.g., `VProgressCallbacks`)
+2. Controllers accept callbacks via constructor injection
+3. **VStoryViewer (main orchestrator)** creates all controllers and wires their callbacks
+4. Features NEVER reference each other directly
+5. All inter-feature communication flows through VStoryViewer orchestrator
 
-1. **Progress Always Resets**: When navigating between stories, progress must reset to 0
-2. **Pause on Background**: Stories automatically pause when app goes to background (via WidgetsBindingObserver)
-3. **Memory Management**: Video controllers limited to 10 cached instances (_maxVideoCacheCount)
-4. **Performance Targets**: 60 FPS animations, <50MB memory, <100ms transitions
-5. **Error Model Hierarchy**: Use specific error types (VNetworkError, VCacheError, VMediaLoadError, etc.) for precise error handling
-6. **Controller Disposal**: Always check _isDisposed flag before operations in controllers
+### Controller Lifecycle
+
+Controllers are created once by VControllerFactory and disposed in reverse dependency order. **VStoryViewer (main orchestrator)** manages all feature controllers through callbacks set up in `_setupControllerConnections()`.
+
+### Media Loading Pattern
+
+```dart
+// Media loading flow:
+// 1. VStoryViewer (orchestrator) requests media load
+// 2. VMediaController checks cache via VCacheController
+// 3. Downloads if needed, shows progress
+// 4. Invokes onMediaReady callback
+// 5. VStoryViewer triggers VProgressController to start progress animation
+```
+
+### Navigation State Management
+
+Navigation is thread-safe using `_isNavigating` flag to prevent concurrent navigation. Stories are tracked by group and story indices in VDataNotifier.
+
+### Performance Optimizations
+
+- Single video controller instance with init/dispose per story
+- LinearProgressIndicator for efficient progress animation
+- Selective widget rebuilds using AnimatedBuilder with specific listenables
+- Provider caching to reduce context lookups
+
+## Testing Strategy
+
+### Test Organization
+
+Tests mirror the source structure under `test/features/`. Each controller has unit tests, widgets have widget tests, and complete flows have integration tests.
+
+### Testing Feature Communication
+
+When testing controllers with callbacks:
+
+```dart
+// Test controller in isolation with mock callbacks
+test('progress controller calls onComplete when animation finishes', () {
+  var completeCalled = false;
+
+  final controller = VProgressController(
+    storyCount: 3,
+    callbacks: VProgressCallbacks(
+      onStoryComplete: () => completeCalled = true,
+    ),
+  );
+
+  // Simulate story completion
+  controller.startProgress(Duration(milliseconds: 100));
+  await tester.pumpAndSettle();
+
+  expect(completeCalled, isTrue);
+});
+```
+
+### Mock Pattern
+
+Use MockControllerBundle to create mock controllers with configurable callbacks for testing controller interactions.
+
+## Package Dependencies
+
+Core dependencies (from pubspec.yaml):
+- **flutter_cache_manager: ^3.4.1** - Media caching
+- **video_player: ^2.10.0** - Video playback
+- **v_platform: ^2.1.4** - Cross-platform file handling
+- **cached_network_image: ^3.4.1** - Image caching
+
+## Linting & Code Quality
+
+The project uses strict linting with:
+- **leancode_lint** for base rules
+- **dart_code_linter** for complexity metrics
+- **custom_lint** for additional checks
+
+Key metrics enforced:
+- Cyclomatic complexity: max 20
+- Number of parameters: max 4
+- Maximum nesting level: 5
+
+## Common Development Tasks
+
+### Adding a New Feature
+
+1. **Create feature folder** under `lib/src/features/v_[feature_name]/`
+2. **Define callback interface** in `models/v_[feature]_callbacks.dart`:
+   ```dart
+   class VFeatureCallbacks {
+     final VoidCallback? onEvent;
+     final void Function(String data)? onDataEvent;
+     const VFeatureCallbacks({this.onEvent, this.onDataEvent});
+   }
+   ```
+3. **Create controller** in `controllers/v_[feature]_controller.dart`:
+   ```dart
+   class VFeatureController extends ChangeNotifier {
+     VFeatureController({VFeatureCallbacks? callbacks})
+       : _callbacks = callbacks ?? const VFeatureCallbacks();
+
+     final VFeatureCallbacks _callbacks;
+
+     void triggerEvent() {
+       _callbacks.onEvent?.call();
+     }
+   }
+   ```
+4. **Wire in VStoryViewer** - Add controller creation and callback wiring in VStoryViewer (main orchestrator)
+5. **Create widgets** in `widgets/` folder
+6. **Add tests** mirroring feature structure under `test/features/`
+
+### Adding a New Controller to Existing Feature
+
+1. Create controller in `lib/src/features/[feature]/controllers/`
+2. Accept callbacks via constructor if needed for inter-feature communication
+3. Add to VControllerBundle if part of main orchestration
+4. Wire dependencies in VControllerFactory
+5. Set up callbacks in orchestrator's `_setupControllerConnections()`
+
+### Adding a New Story Type
+
+1. Extend VBaseStory abstract class
+2. Create corresponding viewer widget
+3. Add case handling in VMediaController
+4. Update VDurationController for duration logic
+
+### Implementing Custom UI
+
+1. Use VCustomStory for arbitrary Flutter widgets
+2. Maintain gesture controls by wrapping in VGestureDetector
+3. Access theme via VControllerProvider.of(context).themeController
+
+## Requirements & Design Documents
+
+Key documents in `requirements/`:
+- **requirements.md**: Full feature requirements with acceptance criteria (19 major requirements)
+- **design.md**: Feature-based architecture and folder structure specifications
+- **feature_communication_architecture.md**: Callback-based mediator pattern implementation guide
+
+The package implements 19 major requirements including media types, gestures, lifecycle management, customization, and cross-platform support.
+
+
 
 ### Cross-Platform File Handling
 
 All file operations use `v_platform` package for unified handling:
 - Network URLs
-- Asset paths  
+- Asset paths
 - File paths
 - Bytes data
 
-### Dependencies
-
-Critical dependencies that must be maintained:
-- `flutter_cache_manager: ^3.4.1` - Media caching
-- `v_platform: ^2.1.4` - Cross-platform file handling
-- `video_player: ^2.10.0` - Video playback
-- `step_progress: ^2.6.2` - Progress indicators
 
 ## Implementation Guidelines
 
 ### When Adding Features
 
 1. Check requirements in `requirements/requirements.md` for specifications
-2. Review design decisions in `requirements/design.md` 
+2. Review design decisions in `requirements/design.md`
 3. Follow task breakdown in `requirements/tasks.md` if it exists
 4. Ensure new code follows V-prefix naming convention
 5. Implement proper disposal in controllers to prevent memory leaks
 6. Use the existing error model hierarchy for error handling
 7. Maintain one class per file structure
+8. write high maintainable code and testable code
 
 ### Performance Considerations
 
 - Use `const` constructors wherever possible
 - Prefer `StatelessWidget` over `StatefulWidget`
 - Extract complex UI into separate widgets
-- Implement lazy loading for media content
-- Cache video controllers (max 3 instances)
-
-### Error Handling
-
-All network operations and file access must:
-- Have try-catch blocks
-- Provide fallback behavior
-- Never crash - graceful degradation only
-- Use exponential backoff for retries
-
-### Testing Strategy
-
-The package is verified through the example application (`example/lib/`):
-- `mock_data.dart`: Test data generation
-- `story_viewer_page.dart`: Full feature demonstration
-- `integration_test.dart`: Integration testing scenarios
-- `simple_example.dart`: Minimal implementation example
-- `horizontal_swipe_example.dart`: Horizontal swipe navigation demonstration
-
-**Note**: Do not write tests unless explicitly requested
 
 
 ## Story Types & Usage
@@ -171,6 +293,7 @@ VImageStory(
   url: 'https://example.com/image.jpg',
   duration: const Duration(seconds: 5),
   caption: 'Optional caption',
+etc ...
 )
 
 // Video Story
@@ -214,10 +337,10 @@ VCustomStory(
 - Ensure no task leaves orphaned or unused code.
 - **V-Prefix Naming:** All public APIs must follow the `V` prefix naming convention.
 - **File Separation:** Maintain a strict separation of one class per file. **Each Flutter class or widget must be in its own separate `.dart` file.**
-- Use sealed classes for enhanced type safety where applicable.
+- Use abstract classes for enhanced type safety where applicable.
 - Follow Flutter best practices for building widgets and structuring code.
 - **Single Responsibility:** Adhere to the single responsibility principle—each class should do only one thing.
-- Prefer composition over inheritance where possible.
+- Prefer composition to inheritance where possible.
 - **Resource Management:** Implement `dispose()` methods for all controllers and streams to prevent memory leaks.
 - Use `const` constructors wherever possible for performance optimization.
 

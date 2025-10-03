@@ -1,0 +1,22 @@
+/// English translations
+const Map<String, String> enTranslations = {
+  'reply': 'Reply to story...',
+  'send': 'Send',
+  'close': 'Close',
+  'share': 'Share',
+  'save': 'Save',
+  'delete': 'Delete',
+  'report': 'Report',
+  'mute': 'Mute',
+  'unmute': 'Unmute',
+  'pause': 'Pause',
+  'play': 'Play',
+  'retry': 'Retry',
+  'error_loading': 'Failed to load story',
+  'error_network': 'Network error',
+  'error_permission': 'Permission denied',
+  'just_now': 'Just now',
+  'minutes_ago': '{count}m ago',
+  'hours_ago': '{count}h ago',
+  'days_ago': '{count}d ago',
+};

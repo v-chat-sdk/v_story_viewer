@@ -1,0 +1,22 @@
+/// Spanish translations
+const Map<String, String> esTranslations = {
+  'reply': 'Responder a la historia...',
+  'send': 'Enviar',
+  'close': 'Cerrar',
+  'share': 'Compartir',
+  'save': 'Guardar',
+  'delete': 'Eliminar',
+  'report': 'Reportar',
+  'mute': 'Silenciar',
+  'unmute': 'Activar sonido',
+  'pause': 'Pausar',
+  'play': 'Reproducir',
+  'retry': 'Reintentar',
+  'error_loading': 'Error al cargar la historia',
+  'error_network': 'Error de red',
+  'error_permission': 'Permiso denegado',
+  'just_now': 'Ahora',
+  'minutes_ago': 'Hace {count}m',
+  'hours_ago': 'Hace {count}h',
+  'days_ago': 'Hace {count}d',
+};

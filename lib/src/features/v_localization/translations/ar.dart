@@ -1,0 +1,22 @@
+/// Arabic translations
+const Map<String, String> arTranslations = {
+  'reply': 'الرد على القصة...',
+  'send': 'إرسال',
+  'close': 'إغلاق',
+  'share': 'مشاركة',
+  'save': 'حفظ',
+  'delete': 'حذف',
+  'report': 'إبلاغ',
+  'mute': 'كتم الصوت',
+  'unmute': 'إلغاء كتم الصوت',
+  'pause': 'إيقاف مؤقت',
+  'play': 'تشغيل',
+  'retry': 'إعادة المحاولة',
+  'error_loading': 'فشل تحميل القصة',
+  'error_network': 'خطأ في الشبكة',
+  'error_permission': 'تم رفض الإذن',
+  'just_now': 'الآن',
+  'minutes_ago': 'منذ {count} دقيقة',
+  'hours_ago': 'منذ {count} ساعة',
+  'days_ago': 'منذ {count} يوم',
+};

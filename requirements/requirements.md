@@ -6,7 +6,7 @@ The v_story_viewer is a dedicated Flutter package for viewing WhatsApp-style sto
 
 ## Requirements
 
-### Requirement 1
+### Requirement 1: Media Types Support
 
 **User Story:** As a Flutter developer, I want to display stories with multiple media types (images, videos, text), so that users can view diverse content in a WhatsApp-like interface.
 
@@ -18,303 +18,391 @@ The v_story_viewer is a dedicated Flutter package for viewing WhatsApp-style sto
 4. WHEN loading network media THEN the system SHALL use flutter_cache_manager for caching and show progress indicators
 5. WHEN media fails to load THEN the system SHALL display error handling with retry mechanisms
 
-### Requirement 2
+#### Testing Requirements
+
+- **Widget Tests:** Test image, video, and text story widget rendering with different data sources
+- **Integration Tests:** Test media loading flow with cache manager integration
+- **E2E Tests:** Test complete story viewing flow with all media types in sequence
+
+### Requirement 2: Gesture Controls & Navigation
 
 **User Story:** As a user, I want intuitive gesture controls for story navigation, so that I can easily browse through stories with familiar interactions.
 
 #### Acceptance Criteria
 
-1. WHEN user taps left side of screen THEN the system SHALL navigate to previous story with haptic feedback
-2. WHEN user taps right side of screen THEN the system SHALL navigate to next story with visual confirmation
-3. WHEN user long presses anywhere THEN the system SHALL pause the current story immediately
-4. WHEN user swipes down vertically THEN the system SHALL dismiss the story viewer
-5. WHEN user swipes horizontally THEN the system SHALL navigate between stories
-6. WHEN user double taps THEN the system SHALL trigger story interaction functionality
+1. WHEN user taps left side of screen (50% split) THEN the system SHALL navigate to previous story with haptic feedback
+2. WHEN user taps right side of screen (50% split) THEN the system SHALL navigate to next story with visual confirmation
+3. WHEN user swipes down vertically THEN the system SHALL dismiss the story viewer
+4. WHEN user swipes horizontally THEN the system SHALL navigate between user story groups
+5. WHEN user double taps THEN the system SHALL trigger story interaction functionality
+6. WHEN user long presses THEN the system SHALL pause story progression
+7. WHEN user navigates with no stories left in group THEN the system SHALL move to next/previous group or call completion callback
+8. WHEN all stories in a group are viewed THEN the system SHALL restart from first story in that group
 
-### Requirement 3
+#### Testing Requirements
 
-**User Story:** As a developer, I want programmatic story control through a controller, so that I can manage story playback and navigation from my application code.
+- **Unit Tests:** Test gesture detector logic and navigation state management
+- **Widget Tests:** Test tap zones, gesture recognition, and animation triggers
+- **Integration Tests:** Test gesture handling with story controller synchronization
+- **E2E Tests:** Test complete gesture navigation flow with multiple stories
+
+### Requirement 3: Story Controller & Lifecycle Management
+
+**User Story:** As a developer, I want comprehensive story control through a controller with proper lifecycle management, so that I can safely manage story playback across different app states.
 
 #### Acceptance Criteria
 
 1. WHEN using StoryController THEN the system SHALL provide play, pause, stop, and reset methods
-2. WHEN navigating programmatically THEN the system SHALL use unique story IDs instead of indexes
+2. WHEN tracking programmatically THEN the system SHALL store reference to current user story group and current story index
 3. WHEN controlling video stories THEN the system SHALL synchronize video pause with story pause
 4. WHEN story completes THEN the system SHALL trigger completion callbacks
 5. WHEN controller state changes THEN the system SHALL persist state across widget rebuilds
+6. WHEN attaching controllers THEN the system SHALL document proper attach/detach lifecycle
+7. WHEN disposing resources THEN the system SHALL ensure safe disposal without memory leaks
+8. WHEN managing video controllers THEN the system SHALL use single instance with proper init/dispose per story
+9. WHEN handling app lifecycle THEN the system SHALL pause/resume controllers appropriately
 
-### Requirement 4
+#### Testing Requirements
 
-**User Story:** As a user, I want visual progress indicators for stories, so that I can track story progression and loading status.
+- **Unit Tests:** Test controller methods, lifecycle, state transitions, and callbacks
+- **Widget Tests:** Test controller attachment, disposal, and state persistence
+- **Integration Tests:** Test controller synchronization with video players and route navigation
+- **E2E Tests:** Test controller management through complete app lifecycle
+
+### Requirement 4: Progress Indicators
+
+**User Story:** As a user, I want visual progress indicators using Flutter's built-in components, so that I can track story progression and loading status.
 
 #### Acceptance Criteria
 
-1. WHEN viewing stories THEN the system SHALL display segmented progress bars using step_progress package with Instagram-style design
-2. WHEN media is loading THEN the system SHALL pause story progression and show circular progress indicator
-3. WHEN story progresses THEN the system SHALL animate progress bars smoothly using StepProgress controller
-4. WHEN multiple stories exist THEN the system SHALL synchronize progress across all story items using step_progress features
-5. WHEN download fails THEN the system SHALL show error state in progress indicator
+1. WHEN viewing stories THEN the system SHALL display segmented progress bars using Flutter's LinearProgressIndicator
+2. WHEN media is loading THEN the system SHALL pause progression and show CircularProgressIndicator
+3. WHEN first story loads THEN the system SHALL wait until 100% ready before playing
+4. WHEN story progresses THEN the system SHALL animate smoothly using AnimationController
+5. WHEN multiple stories exist THEN the system SHALL create custom segmented widget with multiple LinearProgressIndicator instances
+6. WHEN download fails THEN the system SHALL retry automatically without showing error to user
+7. WHEN styling progress THEN the system SHALL use ProgressIndicatorTheme with customizable properties
+8. Implementation SHALL be in dedicated feature folder
 
-### Requirement 5
+#### Testing Requirements
 
-**User Story:** As a developer, I want comprehensive customization options, so that I can match the story viewer to my app's design system.
+- **Unit Tests:** Test progress calculation and animation controller logic
+- **Widget Tests:** Test LinearProgressIndicator rendering and animation
+- **Integration Tests:** Test progress synchronization with story duration
+- **E2E Tests:** Test progress behavior across complete viewing session
+
+### Requirement 5: Customization & Custom Content
+
+**User Story:** As a developer, I want comprehensive customization options including custom content support, so that I can match the story viewer to my app's design and render arbitrary widgets.
 
 #### Acceptance Criteria
 
 1. WHEN configuring appearance THEN the system SHALL allow custom color schemes and themes
 2. WHEN adding UI elements THEN the system SHALL support user-defined header and footer widgets
-3. WHEN styling progress bars THEN the system SHALL provide configurable styling and positioning options
-4. WHEN setting typography THEN the system SHALL allow custom fonts and text styling for text stories
-5. WHEN replacing icons THEN the system SHALL support custom icon sets and styling
+3. WHEN styling progress bars THEN the system SHALL provide configurable styling for LinearProgressIndicator
+4. WHEN setting typography THEN the system SHALL allow custom fonts for text stories
+5. WHEN creating custom stories THEN the system SHALL support VCustomStory type for arbitrary Flutter widgets
+6. WHEN rendering custom content THEN the system SHALL maintain gesture controls and progress indicators
+7. WHEN handling custom content THEN the system SHALL provide error boundaries and fallbacks
 
-### Requirement 6
+#### Testing Requirements
 
-**User Story:** As a user, I want optimal performance during story viewing, so that I experience smooth 60 FPS animations and efficient memory usage.
+- **Unit Tests:** Test theme structures, custom story models, and builder functions
+- **Widget Tests:** Test custom widget integration and error handling
+- **Integration Tests:** Test theme changes and custom stories with standard controls
+- **E2E Tests:** Test complete customization scenarios with mixed story types
+
+### Requirement 6: Performance Optimization
+
+**User Story:** As a user, I want optimal performance during story viewing, so that I experience smooth animations and efficient resource usage.
 
 #### Acceptance Criteria
 
 1. WHEN viewing stories THEN the system SHALL maintain 60 FPS smooth animations
-2. WHEN loading media THEN the system SHALL keep memory usage under 50MB for typical sequences
-3. WHEN transitioning between stories THEN the system SHALL complete transitions within 100ms
-4. WHEN caching content THEN the system SHALL implement automatic memory cleanup for dismissed stories
-5. WHEN playing videos THEN the system SHALL optimize CPU usage and utilize hardware acceleration
+2. WHEN transitioning between stories THEN the system SHALL complete transitions immediately
+3. WHEN managing video controllers THEN the system SHALL use single instance with init/dispose per story
+4. WHEN caching content THEN the system SHALL implement automatic memory cleanup
 
-### Requirement 7
+#### Testing Requirements
+
+- **Performance Tests:** Test FPS metrics and memory usage
+- **Widget Tests:** Test resource cleanup and disposal
+- **Integration Tests:** Test performance with Flutter DevTools
+- **E2E Tests:** Test performance under load with multiple media types
+
+### Requirement 7: Cross-Platform File Handling
 
 **User Story:** As a developer, I want cross-platform file handling, so that my story viewer works consistently across iOS, Android, and web platforms.
 
 #### Acceptance Criteria
 
-1. WHEN accessing files THEN the system SHALL use v_platform package for unified file handling
-2. WHEN supporting different sources THEN the system SHALL handle URLs, file paths, assets, and bytes consistently
-3. WHEN running on web THEN the system SHALL maintain full compatibility through v_platform abstraction
-4. WHEN handling native file operations THEN the system SHALL avoid Dart IO limitations
-5. WHEN accessing media THEN the system SHALL provide consistent API across all platforms
+1. WHEN accessing files THEN the system SHALL use v_platform package for unified handling
+2. WHEN supporting different sources THEN the system SHALL handle URLs, paths, assets, bytes consistently
+3. WHEN running on web THEN the system SHALL maintain compatibility through v_platform abstraction
+4. WHEN handling native operations THEN the system SHALL avoid Dart IO limitations
+5. WHEN accessing media THEN the system SHALL provide consistent API across platforms
 
-### Requirement 8
+#### Testing Requirements
 
-**User Story:** As a user, I want story action controls (three vertical dots menu), so that I can perform actions like hide, mute, report on stories.
+- **Unit Tests:** Test platform detection and file access abstraction
+- **Widget Tests:** Test platform-specific rendering paths
+- **Integration Tests:** Test file operations on each platform
+- **E2E Tests:** Test complete viewing on all platforms
 
-#### Acceptance Criteria
+### Requirement 8: Story Actions Menu
 
-1. WHEN viewing a story THEN the system SHALL display a three vertical dots menu button
-2. WHEN tapping the action menu THEN the system SHALL show action options (Hide, Mute, Report, etc.)
-3. WHEN selecting an action THEN the system SHALL trigger appropriate callback functions
-4. WHEN action is performed THEN the system SHALL provide feedback to the parent application
-5. WHEN customizing actions THEN the system SHALL allow developers to define custom action items and callbacks
-
-### Requirement 9
-
-**User Story:** As a user, I want to see story author information and metadata, so that I know who created the story and when it was posted.
+**User Story:** As a user, I want story action controls (three dots menu), so that I can perform actions like hide, mute, report on stories.
 
 #### Acceptance Criteria
 
-1. WHEN viewing a story THEN the system SHALL display user profile information (name, avatar)
-2. WHEN showing story details THEN the system SHALL include creation time and metadata
-3. WHEN customizing user display THEN the system SHALL allow custom user profile widgets
-4. WHEN handling user data THEN the system SHALL support StoryUser model with flexible data structure
-5. WHEN displaying timestamps THEN the system SHALL format time according to user preferences
+1. WHEN viewing a story THEN the system SHALL display three dots menu button
+2. WHEN tapping menu THEN the system SHALL show action options
+3. WHEN selecting action THEN the system SHALL trigger callbacks
+4. WHEN action performed THEN the system SHALL provide feedback
+5. WHEN customizing THEN the system SHALL allow custom action items
 
-### Requirement 10
+#### Testing Requirements
 
-**User Story:** As a user, I want full-screen immersive story viewing, so that I can focus on the content without distractions.
+- **Unit Tests:** Test action logic and callbacks
+- **Widget Tests:** Test menu rendering and selection
+- **Integration Tests:** Test menu with pause/resume
+- **E2E Tests:** Test complete action flow
 
-#### Acceptance Criteria
+### Requirement 9: User Information & Metadata
 
-1. WHEN opening story viewer THEN the system SHALL provide full-screen immersive experience
-2. WHEN handling device features THEN the system SHALL manage safe areas for notched devices
-3. WHEN displaying on different screens THEN the system SHALL implement responsive design across screen sizes
-4. WHEN managing system UI THEN the system SHALL integrate with status bar and provide configurable theming
-5. WHEN optimizing layout THEN the system SHALL handle orientation changes gracefully
-
-### Requirement 11
-
-**User Story:** As a developer, I want specific Flutter framework compatibility and required dependencies, so that the package integrates seamlessly with modern Flutter projects.
+**User Story:** As a user, I want to see story author information and metadata, so that I know who created the story and when.
 
 #### Acceptance Criteria
 
-1. WHEN using the package THEN the system SHALL support Flutter 3.24.0 and above
-2. WHEN developing with Dart THEN the system SHALL require minimum Dart 3.0 with null safety
-3. WHEN managing dependencies THEN the system SHALL use flutter_cache_manager: ^3.4.1 for caching
-4. WHEN handling files THEN the system SHALL use v_platform: ^2.1.4 for cross-platform file access
-5. WHEN playing videos THEN the system SHALL use video_player: ^2.10.0 for consistent video playback
-6. WHEN displaying progress indicators THEN the system SHALL use step_progress: ^2.6.2 for Instagram-style story progress bars
+1. WHEN viewing story THEN the system SHALL display user profile (name, avatar)
+2. WHEN showing details THEN the system SHALL include creation time
+3. WHEN customizing THEN the system SHALL allow custom profile widgets
+4. WHEN handling data THEN the system SHALL support StoryUser model
+5. WHEN displaying timestamps THEN the system SHALL format per preferences
 
-### Requirement 12
+#### Testing Requirements
 
-**User Story:** As a user, I want to reply to stories, so that I can interact with story creators through text responses.
+- **Unit Tests:** Test user model and timestamp formatting
+- **Widget Tests:** Test profile widget rendering
+- **Integration Tests:** Test metadata with localization
+- **E2E Tests:** Test user information display
 
-#### Acceptance Criteria
+### Requirement 10: Full-Screen Immersive Experience
 
-1. WHEN viewing a story THEN the system SHALL display a story footer with reply input field
-2. WHEN user focuses on reply text input THEN the system SHALL pause the current story
-3. WHEN user types a reply THEN the system SHALL maintain story pause state
-4. WHEN reply is sent THEN the system SHALL trigger callback with reply content and story information
-5. WHEN reply interaction ends THEN the system SHALL resume story progression
-
-### Requirement 13
-
-**User Story:** As a user, I want to send quick reactions to stories, so that I can express emotions with a simple double tap.
+**User Story:** As a user, I want full-screen immersive story viewing, so that I can focus on content without distractions.
 
 #### Acceptance Criteria
 
-1. WHEN user double taps on story THEN the system SHALL show love reaction animation
-2. WHEN reaction is triggered THEN the system SHALL call reaction callback with story information
-3. WHEN reaction animation plays THEN the system SHALL continue story progression
-4. WHEN reaction is sent THEN the system SHALL provide visual feedback to user
-5. WHEN customizing reactions THEN the system SHALL allow developers to define custom reaction types
+1. WHEN opening viewer THEN the system SHALL provide full-screen experience
+2. WHEN handling devices THEN the system SHALL manage safe areas
+3. WHEN displaying THEN the system SHALL implement responsive design
+4. WHEN managing UI THEN the system SHALL integrate with status bar
+5. WHEN optimizing THEN the system SHALL handle orientation changes
 
-### Requirement 14
+#### Testing Requirements
 
-**User Story:** As a developer, I want internationalization support, so that the story viewer works in different languages and regions.
+- **Unit Tests:** Test safe area calculations
+- **Widget Tests:** Test full-screen layout
+- **Integration Tests:** Test system UI management
+- **E2E Tests:** Test on different screen sizes
 
-#### Acceptance Criteria
+### Requirement 11: Framework Compatibility
 
-1. WHEN displaying UI strings THEN the system SHALL support localization for "Reply", "Mute", etc.
-2. WHEN formatting timestamps THEN the system SHALL use locale-based date/time formatting
-3. WHEN supporting RTL languages THEN the system SHALL handle right-to-left layout properly
-4. WHEN changing locale THEN the system SHALL update all UI elements accordingly
-5. WHEN providing translations THEN the system SHALL allow custom localization overrides
-
-### Requirement 15
-
-**User Story:** As a developer, I want configurable story durations, so that different story types display for appropriate time periods.
+**User Story:** As a developer, I want specific Flutter framework compatibility, so that the package integrates seamlessly.
 
 #### Acceptance Criteria
 
-1. WHEN displaying image stories THEN the system SHALL use configurable default duration
-2. WHEN displaying text stories THEN the system SHALL adapt duration based on text length
-3. WHEN displaying video stories THEN the system SHALL use video duration from VVideoStory model
-4. WHEN setting individual durations THEN the system SHALL allow per-story duration configuration
-5. WHEN managing different media types THEN the system SHALL apply different default durations
+1. WHEN using package THEN the system SHALL support Flutter 3.24.0+
+2. WHEN developing THEN the system SHALL require Dart 3.0+ with null safety
+3. WHEN managing dependencies:
+    - flutter_cache_manager: ^3.4.1 for caching
+    - v_platform: ^2.1.4 for file access
+    - video_player: ^2.10.0 for video playback
+    - Flutter's built-in LinearProgressIndicator
 
-### Requirement 16
+#### Testing Requirements
 
-**User Story:** As a developer, I want consistent naming conventions, so that all public classes follow a clear prefix pattern.
+- **Unit Tests:** Test version compatibility
+- **Widget Tests:** Test dependency integration
+- **Integration Tests:** Test with minimum versions
+- **E2E Tests:** Test package integration
 
-#### Acceptance Criteria
+### Requirement 12: Reply Functionality
 
-1. WHEN creating story models THEN the system SHALL use V prefix (VUserStory, VBaseStory, VVideoStory)
-2. WHEN defining enums THEN the system SHALL use V prefix for all public enumerations
-3. WHEN creating abstractions THEN the system SHALL maintain consistent V prefix naming
-4. WHEN exposing public APIs THEN the system SHALL follow V prefix convention throughout
-5. WHEN documenting classes THEN the system SHALL clearly indicate V-prefixed public interfaces
-
-### Requirement 17
-
-**User Story:** As a user, I want story state management, so that I can track which stories I've seen and which are new.
+**User Story:** As a user, I want to reply to stories with enhanced keyboard handling, so that I can interact seamlessly.
 
 #### Acceptance Criteria
 
-1. WHEN viewing stories THEN the system SHALL track seen/unseen state for each story
-2. WHEN partially viewing stories THEN the system SHALL remember partial progress
-3. WHEN displaying story indicators THEN the system SHALL show new story visual indicators
-4. WHEN persisting states THEN the system SHALL maintain view states across app sessions
-5. WHEN managing VStoryList THEN the system SHALL include isViewed boolean for each VStoryItem
+1. WHEN viewing story THEN the system SHALL display reply input field
+2. WHEN focusing input THEN the system SHALL pause story
+3. WHEN typing THEN the system SHALL maintain pause state
+4. WHEN keyboard appears THEN the system SHALL shift viewport for keyboard-safe area
+5. WHEN sending THEN the system SHALL show loading and trigger callback
+6. WHEN reply fails THEN the system SHALL provide retry mechanism
+7. WHEN transitioning THEN the system SHALL animate viewport smoothly
 
-### Requirement 18
+#### Testing Requirements
 
-**User Story:** As a user, I want multiple stories per user, so that I can view story sequences from the same person.
+- **Unit Tests:** Test reply logic and viewport calculations
+- **Widget Tests:** Test input behavior and keyboard avoidance
+- **Integration Tests:** Test reply flow with keyboard management
+- **E2E Tests:** Test complete reply experience
 
-#### Acceptance Criteria
+### Requirement 13: Quick Reactions
 
-1. WHEN displaying user stories THEN the system SHALL support multiple stories per user
-2. WHEN navigating sequences THEN the system SHALL progress through user's story collection
-3. WHEN showing story indicators THEN the system SHALL display circle indicators like WhatsApp
-4. WHEN managing story lists THEN the system SHALL group stories by user in VStoryList
-5. WHEN tracking progress THEN the system SHALL maintain individual story view states within sequences
-
-### Requirement 19
-
-**User Story:** As a developer, I want a comprehensive Flutter example, so that I can understand and test all package functionality.
+**User Story:** As a user, I want to send quick reactions to stories with double tap.
 
 #### Acceptance Criteria
 
-1. WHEN using the package THEN the system SHALL provide complete Flutter example application
-2. WHEN demonstrating features THEN the system SHALL showcase all story types and interactions
-3. WHEN testing functionality THEN the system SHALL include examples of all callbacks and customizations
-4. WHEN exploring capabilities THEN the system SHALL demonstrate gesture controls, replies, reactions, and actions
-5. WHEN validating implementation THEN the system SHALL provide working examples of all requirements
+1. WHEN double tapping THEN the system SHALL show love reaction animation
+2. WHEN reaction triggered THEN the system SHALL call callback
+3. WHEN animation plays THEN the system SHALL continue progression
+4. WHEN reaction sent THEN the system SHALL provide visual feedback
 
-### Requirement 20
+#### Testing Requirements
 
-**User Story:** As a developer, I want efficient caching and network management, so that stories load quickly and work offline when possible.
+- **Unit Tests:** Test reaction detection and callbacks
+- **Widget Tests:** Test reaction animation
+- **Integration Tests:** Test with story progression
+- **E2E Tests:** Test complete reaction flow
 
-#### Acceptance Criteria
+### Requirement 14: Internationalization
 
-1. WHEN downloading media THEN the system SHALL use flutter_cache_manager for all network requests
-2. WHEN caching content THEN the system SHALL implement cache expiration policies for optimal storage
-3. WHEN accessing cached content THEN the system SHALL provide offline access to previously downloaded media
-4. WHEN tracking downloads THEN the system SHALL integrate progress listeners for download tracking
-5. WHEN managing storage THEN the system SHALL implement unified caching layer for images, videos, and files#
-## Requirement 21
-
-**User Story:** As a developer, I want custom story content support, so that I can render arbitrary Flutter widgets beyond standard media types.
+**User Story:** As a developer, I want internationalization support for different languages and regions.
 
 #### Acceptance Criteria
 
-1. WHEN creating custom stories THEN the system SHALL support VCustomStory type for arbitrary Flutter widgets
-2. WHEN rendering custom content THEN the system SHALL allow developers to provide custom widget builders
-3. WHEN displaying custom stories THEN the system SHALL maintain consistent gesture controls and progress indicators
-4. WHEN integrating custom widgets THEN the system SHALL preserve story lifecycle and controller functionality
-5. WHEN handling custom content THEN the system SHALL provide proper error boundaries and fallback mechanisms
+1. WHEN displaying UI THEN the system SHALL support localization
+2. WHEN formatting timestamps THEN the system SHALL use locale-based formatting
+3. WHEN supporting RTL THEN the system SHALL handle right-to-left layout
+4. WHEN changing locale THEN the system SHALL update all UI elements
+5. WHEN providing translations THEN the system SHALL allow overrides
 
-### Requirement 22
+#### Testing Requirements
 
-**User Story:** As a developer, I want advanced text story duration algorithms, so that text stories display for appropriate reading time.
+- **Unit Tests:** Test localization logic
+- **Widget Tests:** Test RTL rendering
+- **Integration Tests:** Test locale changes
+- **E2E Tests:** Test multiple languages
 
-#### Acceptance Criteria
+### Requirement 15: Story Duration Management
 
-1. WHEN calculating text duration THEN the system SHALL use words-per-minute heuristic with configurable WPM rate
-2. WHEN setting duration bounds THEN the system SHALL enforce minimum and maximum duration limits
-3. WHEN overriding durations THEN the system SHALL allow developer-specified duration per text story
-4. WHEN analyzing text content THEN the system SHALL consider text length, complexity, and reading difficulty
-5. WHEN applying algorithms THEN the system SHALL provide fallback to default duration for edge cases
-
-### Requirement 23
-
-**User Story:** As a user, I want enhanced reply functionality, so that I can interact with stories seamlessly during keyboard input.
+**User Story:** As a developer, I want configurable story durations with advanced algorithms for text stories.
 
 #### Acceptance Criteria
 
-1. WHEN keyboard appears THEN the system SHALL shift viewport to maintain keyboard-safe area
-2. WHEN typing reply THEN the system SHALL keep story paused until keyboard is dismissed
-3. WHEN sending reply THEN the system SHALL show send state with loading indicator
-4. WHEN reply fails THEN the system SHALL provide retry mechanism with error feedback
-5. WHEN transitioning input modes THEN the system SHALL animate viewport changes smoothly
+1. WHEN displaying images THEN the system SHALL use configurable default duration
+2. WHEN displaying text THEN the system SHALL use WPM heuristic (configurable rate)
+3. WHEN displaying video THEN the system SHALL use video duration from VVideoStory
+4. WHEN setting bounds THEN the system SHALL enforce min/max duration limits
+5. WHEN analyzing text THEN the system SHALL consider length and complexity
+6. WHEN overriding THEN the system SHALL allow per-story configuration
+7. WHEN edge cases THEN the system SHALL provide fallback defaults
 
-### Requirement 24
+#### Testing Requirements
 
-**User Story:** As a developer, I want comprehensive V-prefix naming for all classes, so that I have consistent and type-safe APIs.
+- **Unit Tests:** Test duration calculations and WPM algorithms
+- **Widget Tests:** Test duration application
+- **Integration Tests:** Test with progress indicators
+- **E2E Tests:** Test mixed duration configurations
 
-#### Acceptance Criteria
+### Requirement 16: V-Prefix Naming Convention
 
-1. WHEN creating DTOs THEN the system SHALL use V prefix (VStoryTheme, VStoryProgressStyle, VCachePolicy)
-2. WHEN defining config classes THEN the system SHALL follow V prefix convention (VStoryAction, VStoryConfig)
-3. WHEN implementing base classes THEN the system SHALL provide sealed VBaseStory with discriminated unions
-4. WHEN ensuring type safety THEN the system SHALL use sealed classes for compile-time exhaustiveness
-5. WHEN exposing public interfaces THEN the system SHALL maintain consistent V prefix across all public APIs
-
-### Requirement 25
-
-**User Story:** As a developer, I want step_progress integration for Instagram-style progress indicators, so that I can provide modern and customizable story progress visualization.
+**User Story:** As a developer, I want consistent V-prefix naming for type-safe APIs.
 
 #### Acceptance Criteria
 
-1. WHEN displaying progress THEN the system SHALL use step_progress: ^2.6.2 package for story progress bars
-2. WHEN configuring progress THEN the system SHALL implement StepProgress with lineOnly visibility options
-3. WHEN styling progress THEN the system SHALL use customizable StepProgressThemeData with rounded borders
-4. WHEN controlling progress THEN the system SHALL integrate StepProgressController with story controller
-5. WHEN animating progress THEN the system SHALL use configurable animation duration and auto-start functionality
+1. WHEN creating models THEN use V prefix (VUserStory, VBaseStory, VVideoStory)
+2. WHEN defining DTOs THEN use V prefix (VStoryTheme, VStoryConfig)
+3. WHEN creating enums THEN use V prefix for public enumerations
+4. WHEN implementing base classes THEN provide abstract VBaseStory with unions
+5. WHEN ensuring type safety THEN use abstract classes for exhaustiveness
 
-### Requirement 26
+#### Testing Requirements
 
-**User Story:** As a developer, I want proper controller lifecycle management, so that I can safely use controllers across different app states.
+- **Unit Tests:** Test type safety and instantiation
+- **Widget Tests:** Test widget construction
+- **Integration Tests:** Test API consistency
+- **E2E Tests:** Test usage patterns
+
+### Requirement 17: Story State & Sequence Management
+
+**User Story:** As a user, I want story state management for tracking viewed/unviewed stories and managing sequences.
 
 #### Acceptance Criteria
 
-1. WHEN attaching controllers THEN the system SHALL document proper attach/detach lifecycle
-2. WHEN disposing resources THEN the system SHALL ensure safe disposal without memory leaks
-3. WHEN reparenting across routes THEN the system SHALL handle controller state preservation
-4. WHEN managing video controllers THEN the system SHALL prevent video controller leaks
-5. WHEN handling app lifecycle THEN the system SHALL pause/resume controllers appropriately
+1. WHEN viewing stories THEN track seen/unseen state for each story
+2. WHEN partially viewing THEN remember partial progress
+3. WHEN displaying indicators THEN show new story visual indicators
+4. WHEN persisting THEN maintain states across app sessions
+5. WHEN managing sequences THEN support multiple stories per user
+6. WHEN grouping THEN organize stories by user in VBaseStory
+7. WHEN showing indicators THEN display circle indicators like WhatsApp
+8. WHEN managing VBaseStory THEN include isViewed boolean for VStoryItem
+
+#### Testing Requirements
+
+- **Unit Tests:** Test state tracking and grouping logic
+- **Widget Tests:** Test indicator updates
+- **Integration Tests:** Test state persistence
+- **E2E Tests:** Test complete state management
+
+### Requirement 18: Example Application
+
+**User Story:** As a developer, I want a comprehensive Flutter example to understand all functionality.
+
+#### Acceptance Criteria
+
+1. WHEN using package THEN provide complete example application
+2. WHEN demonstrating THEN showcase all story types and interactions
+3. WHEN testing THEN include all callbacks and customizations
+4. WHEN exploring THEN demonstrate gestures, replies, reactions, actions
+5. WHEN debugging THEN include numbered test stories (story_1, user_2, etc.)
+
+#### Testing Requirements
+
+- **Unit Tests:** Test example app logic
+- **Widget Tests:** Test example screens
+- **Integration Tests:** Test feature flows
+- **E2E Tests:** Test user journeys
+
+### Requirement 19: Caching & Network Management
+
+**User Story:** As a developer, I want efficient caching for quick loading and offline access.
+
+#### Acceptance Criteria
+
+1. WHEN downloading THEN use flutter_cache_manager for all requests
+2. WHEN caching THEN implement expiration policies
+3. WHEN accessing cached THEN provide offline access
+4. WHEN tracking THEN integrate progress listeners
+5. WHEN managing storage THEN implement unified caching layer
+
+#### Testing Requirements
+
+- **Unit Tests:** Test cache policies
+- **Widget Tests:** Test cache indicators
+- **Integration Tests:** Test cache manager integration
+- **E2E Tests:** Test offline functionality
+
+## Testing Strategy
+
+### Test Coverage Requirements
+
+- **Minimum Code Coverage:** 80% for all production code
+- **Critical Path Coverage:** 100% for story navigation, media loading, and controller logic
+- **Platform Coverage:** All tests must pass on iOS, Android, and Web platforms
+
+### Test Execution Strategy
+
+1. **Unit Tests:** Run on every commit, must complete within 30 seconds
+2. **Widget Tests:** Run on every pull request, must complete within 2 minutes
+3. **Integration Tests:** Run before merging to main branch, must complete within 5 minutes
+4. **E2E Tests:** Run nightly and before releases, must complete within 15 minutes
+
+### Test Documentation
+
+- Each test file must include clear descriptions of test scenarios
+- Complex test setups must be documented with comments
+- Test failures must provide meaningful error messages
+- Example test implementations must be provided in the package documentation
