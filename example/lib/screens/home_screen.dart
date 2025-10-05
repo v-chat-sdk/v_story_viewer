@@ -119,8 +119,8 @@ class HomeScreen extends StatelessWidget {
           ),
           _buildFeatureCard(
             context,
-            title: '🎯 Story Viewer (NEW)',
-            description: 'NEW: Complete orchestrator with all features',
+            title: '🎯 Story Viewer with Carousel (NEW)',
+            description: 'NEW: Horizontal swipe between groups + all features',
             icon: Icons.play_circle_filled,
             color: Colors.blue.shade700,
             onTap: () => _navigate(context, const StoryViewerExampleScreen()),

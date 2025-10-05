@@ -24,6 +24,7 @@ dependencies:
   intl: ^0.19.0
   shared_preferences: ^2.5.3
   crypto: ^3.0.3
+  carousel_slider: ^5.0.0
 dependency_overrides:
   analyzer: ^8.1.1
   custom_lint_builder: ^0.8.1

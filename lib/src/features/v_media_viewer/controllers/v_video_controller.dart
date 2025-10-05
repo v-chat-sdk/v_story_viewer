@@ -14,8 +14,8 @@ import 'v_base_media_controller.dart';
 /// Uses single controller instance with init/dispose per story for performance.
 class VVideoController extends VBaseMediaController {
   VVideoController({
-    VMediaCallbacks? callbacks,
-  }) : super(callbacks: callbacks);
+    super.callbacks,
+  });
 
   VideoPlayerController? _videoPlayerController;
 

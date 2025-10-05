@@ -1,12 +1,18 @@
+import 'dart:async';
+
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../v_story_viewer.dart';
 import '../../v_cache_manager/controllers/v_cache_controller.dart';
 import '../../v_gesture_detector/widgets/v_gesture_callbacks.dart';
 import '../../v_gesture_detector/widgets/v_gesture_wrapper.dart';
 import '../../v_media_viewer/controllers/v_base_media_controller.dart';
 import '../../v_media_viewer/controllers/v_media_controller_factory.dart';
+import '../../v_media_viewer/controllers/v_video_controller.dart';
 import '../../v_media_viewer/models/v_media_callbacks.dart';
 import '../../v_media_viewer/widgets/v_media_display.dart';
+import '../../v_story_models/models/v_video_story.dart';
 import '../../v_progress_bar/controllers/v_progress_controller.dart';
 import '../../v_progress_bar/models/v_progress_callbacks.dart';
 import '../../v_progress_bar/widgets/v_segmented_progress.dart';
@@ -24,6 +30,11 @@ import '../models/v_story_viewer_state.dart';
 ///
 /// Coordinates all feature controllers using callback-based mediator pattern.
 /// This is the single entry point for displaying stories.
+///
+/// **Carousel Mode** (when multiple groups):
+/// - Horizontal swipe navigation between groups
+/// - Automatic pause/resume during swipe
+/// - Edge handling (no infinite scroll)
 class VStoryViewer extends StatefulWidget {
   const VStoryViewer({
     required this.storyGroups,
@@ -66,11 +77,24 @@ class _VStoryViewerState extends State<VStoryViewer> {
   late VStoryViewerConfig _config;
   late VStoryViewerState _state;
 
+  /// Carousel controller for group navigation (only used in carousel mode)
+  CarouselSliderController? _carouselController;
+
   /// Track media loading progress (0.0 to 1.0)
   double _mediaLoadingProgress = 0;
 
   /// Prevent concurrent navigation operations
   bool _isNavigating = false;
+
+  /// Track carousel scroll state for pause/resume
+  bool _isCarouselScrolling = false;
+
+  /// Timer for syncing video progress with progress bar
+  Timer? _videoProgressSyncTimer;
+
+  /// Check if carousel mode is enabled
+  bool get _isCarouselMode =>
+      _config.enableCarousel && widget.storyGroups.length > 1;
 
   @override
   void initState() {
@@ -78,6 +102,12 @@ class _VStoryViewerState extends State<VStoryViewer> {
     _config = widget.config ?? VStoryViewerConfig.defaultConfig;
     _state = VStoryViewerState.initial();
     _cacheController = widget.cacheController ?? VCacheController();
+
+    // Initialize carousel controller if in carousel mode
+    if (_isCarouselMode) {
+      _carouselController = CarouselSliderController();
+    }
+
     _initializeControllers();
     _loadCurrentStory();
   }
@@ -105,17 +135,7 @@ class _VStoryViewerState extends State<VStoryViewer> {
       callbacks: VReactionCallbacks(onReactionSent: _handleReactionSent),
     );
 
-    // Create media controller with callbacks
-    _mediaController = VMediaControllerFactory.createController(
-      story: _navigationController.currentStory,
-      cacheController: _cacheController,
-      callbacks: VMediaCallbacks(
-        onLoadingProgress: _handleLoadingProgress,
-        onMediaReady: _handleMediaReady,
-        onMediaError: _handleMediaError,
-        onDurationKnown: _handleDurationKnown,
-      ),
-    );
+    _initMediaController(_navigationController.currentStory);
   }
 
   /// Load current story
@@ -125,6 +145,9 @@ class _VStoryViewerState extends State<VStoryViewer> {
 
     // CRITICAL: Stop progress timer IMMEDIATELY  and set cursor at next story
     _progressController.setCursorAt(_navigationController.currentStoryIndex);
+
+    // Stop video progress sync
+    _stopVideoProgressSync();
 
     // Reset loading progress
     _mediaLoadingProgress = 0.0;
@@ -147,16 +170,7 @@ class _VStoryViewerState extends State<VStoryViewer> {
     _mediaController.dispose();
 
     // Create new media controller for current story
-    _mediaController = VMediaControllerFactory.createController(
-      story: currentStory,
-      cacheController: _cacheController,
-      callbacks: VMediaCallbacks(
-        onLoadingProgress: _handleLoadingProgress,
-        onMediaReady: _handleMediaReady,
-        onMediaError: _handleMediaError,
-        onDurationKnown: _handleDurationKnown,
-      ),
-    );
+    _initMediaController(currentStory);
 
     // Load media (progress will be set when media is ready)
     await _mediaController.loadStory(currentStory);
@@ -212,6 +226,11 @@ class _VStoryViewerState extends State<VStoryViewer> {
       _navigationController.currentStoryIndex,
       currentStory.duration ?? const Duration(seconds: 5),
     );
+
+    // Start video progress sync if this is a video story
+    if (currentStory is VVideoStory) {
+      _startVideoProgressSync();
+    }
   }
 
   /// Handle media error
@@ -221,7 +240,7 @@ class _VStoryViewerState extends State<VStoryViewer> {
 
   /// Handle duration known (for videos)
   void _handleDurationKnown(Duration duration) {
-    // Could update progress duration if needed
+    _progressController.updateDuration(duration);
   }
 
   /// Handle tap previous
@@ -234,13 +253,22 @@ class _VStoryViewerState extends State<VStoryViewer> {
       _navigationController.previousStory();
       _loadCurrentStory();
     } else if (_navigationController.hasPreviousGroup) {
-      _navigationController.previousGroup();
-      _reinitializeProgressController();
-      _loadCurrentStory();
-      widget.callbacks?.onGroupChanged?.call(
-        _navigationController.currentGroup,
-        _navigationController.currentGroupIndex,
-      );
+      // In carousel mode, use carousel navigation
+      if (_isCarouselMode) {
+        _carouselController?.previousPage(
+          duration: _config.carouselAnimationDuration,
+          curve: Curves.easeInOut,
+        );
+        _isNavigating = false; // Carousel will handle navigation
+      } else {
+        _navigationController.previousGroup();
+        _reinitializeProgressController();
+        _loadCurrentStory();
+        widget.callbacks?.onGroupChanged?.call(
+          _navigationController.currentGroup,
+          _navigationController.currentGroupIndex,
+        );
+      }
     } else {
       // No previous story, release lock
       _isNavigating = false;
@@ -256,24 +284,14 @@ class _VStoryViewerState extends State<VStoryViewer> {
   void _handleLongPressStart() {
     if (!_config.pauseOnLongPress) return;
 
-    _progressController.pauseProgress();
-    _mediaController.pause();
-
-    setState(() {
-      _state = _state.copyWith(playbackState: VStoryPlaybackState.paused);
-    });
+    _pauseStory();
   }
 
   /// Handle long press end (resume)
   void _handleLongPressEnd() {
     if (!_config.pauseOnLongPress) return;
-    //todo is current medai ready ????
-    _progressController.resumeProgress();
-    _mediaController.resume();
 
-    setState(() {
-      _state = _state.copyWith(playbackState: VStoryPlaybackState.playing);
-    });
+    _resumeStory();
   }
 
   /// Handle swipe down (dismiss)
@@ -291,8 +309,78 @@ class _VStoryViewerState extends State<VStoryViewer> {
 
   /// Handle reaction sent
   void _handleReactionSent(story, String reactionType) {
-    // You can notify parent or update story state here
     debugPrint('Reaction sent: $reactionType for story ${story.id}');
+  }
+
+  /// Handle carousel page changed (only called in carousel mode)
+  void _handleCarouselPageChanged(int index, CarouselPageChangedReason reason) {
+    // Prevent concurrent navigation
+    if (_isNavigating) return;
+    _isNavigating = true;
+
+    // Update navigation controller to new group
+    _navigationController.jumpTo(groupIndex: index, storyIndex: 0);
+
+    // Reinitialize progress for new group
+    _reinitializeProgressController();
+
+    // Load first story of new group
+    _loadCurrentStory();
+
+    // Notify parent of group change
+    widget.callbacks?.onGroupChanged?.call(
+      _navigationController.currentGroup,
+      _navigationController.currentGroupIndex,
+    );
+  }
+
+  /// Handle carousel scroll events (only called in carousel mode)
+  void _handleCarouselScrolled(double? value) {
+    if (!_config.pauseOnCarouselScroll) return;
+
+    final isScrolling = value != null && value > 0;
+
+    // Only update if state changed
+    if (_isCarouselScrolling == isScrolling) return;
+
+    setState(() {
+      _isCarouselScrolling = isScrolling;
+    });
+
+    if (isScrolling) {
+      _pauseStory();
+    } else {
+      _resumeStory();
+    }
+  }
+
+  /// Pause current story (progress and media)
+  void _pauseStory() {
+    _progressController.pauseProgress();
+    _mediaController.pause();
+    _stopVideoProgressSync();
+
+    setState(() {
+      _state = _state.copyWith(playbackState: VStoryPlaybackState.paused);
+    });
+  }
+
+  /// Resume current story (progress and media)
+  void _resumeStory() {
+    // Only resume if media is ready (not loading)
+    if (_mediaLoadingProgress < 1.0) return;
+
+    _progressController.resumeProgress();
+    _mediaController.resume();
+
+    // Restart video progress sync if this is a video story
+    if (_navigationController.currentStory is VVideoStory) {
+      _startVideoProgressSync();
+    }
+
+    setState(() {
+      _state = _state.copyWith(playbackState: VStoryPlaybackState.playing);
+    });
   }
 
   // ==================== Navigation Helpers ====================
@@ -310,13 +398,22 @@ class _VStoryViewerState extends State<VStoryViewer> {
     } else if (_navigationController.hasNextGroup &&
         _config.autoMoveToNextGroup) {
       // Move to next group
-      _navigationController.nextGroup();
-      _reinitializeProgressController();
-      _loadCurrentStory();
-      widget.callbacks?.onGroupChanged?.call(
-        _navigationController.currentGroup,
-        _navigationController.currentGroupIndex,
-      );
+      if (_isCarouselMode) {
+        // Use carousel navigation
+        _carouselController?.nextPage(
+          duration: _config.carouselAnimationDuration,
+          curve: Curves.easeInOut,
+        );
+        _isNavigating = false; // Carousel will handle navigation
+      } else {
+        _navigationController.nextGroup();
+        _reinitializeProgressController();
+        _loadCurrentStory();
+        widget.callbacks?.onGroupChanged?.call(
+          _navigationController.currentGroup,
+          _navigationController.currentGroupIndex,
+        );
+      }
     } else if (_config.restartGroupWhenAllViewed) {
       // Restart current group
       _navigationController.restartGroup();
@@ -337,72 +434,148 @@ class _VStoryViewerState extends State<VStoryViewer> {
       ..dispose();
     _progressController = VProgressController(
       barCount: _navigationController.currentGroup.stories.length,
-
       callbacks: VProgressCallbacks(onBarComplete: _handleProgressComplete),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: SafeArea(
-        child: VGestureWrapper(
-          callbacks: VGestureCallbacks(
-            onTapPrevious: _handleTapPrevious,
-            onTapNext: _handleTapNext,
-            onLongPressStart: _handleLongPressStart,
-            onLongPressEnd: _handleLongPressEnd,
-            onSwipeDown: _handleSwipeDown,
-            onDoubleTap: _handleDoubleTap,
-          ),
-          child: Stack(
-            children: [
-              // Media content
-              VMediaDisplay(
-                controller: _mediaController,
-                story: _navigationController.currentStory,
-              ),
+    final storyContent = _buildStoryContent();
 
-              // Loading overlay (shown while media is downloading)
-              if (_state.isLoading && _mediaLoadingProgress < 1.0)
-                ColoredBox(
-                  color: Colors.black.withValues(alpha: 0.7),
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        CircularProgressIndicator(
-                          value: _mediaLoadingProgress,
-                          color: Colors.white,
-                          backgroundColor: Colors.white.withValues(alpha: 0.3),
-                        ),
-                        SizedBox(height: 5),
-                        Text(_mediaLoadingProgress.toString()),
-                      ],
-                    ),
-                  ),
-                ),
-
-              // Progress bars at top
-              Positioned(
-                top: 8,
-                left: 8,
-                right: 8,
-                child: VSegmentedProgress(controller: _progressController),
-              ),
-
-              // Reaction animation overlay
-              VReactionAnimation(controller: _reactionController),
-            ],
+    // Wrap in carousel if carousel mode is enabled
+    if (_isCarouselMode) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        body: SafeArea(
+          child: CarouselSlider.builder(
+            carouselController: _carouselController,
+            itemCount: widget.storyGroups.length,
+            options: CarouselOptions(
+              height: MediaQuery.of(context).size.height,
+              viewportFraction: 1,
+              enableInfiniteScroll: false,
+              initialPage: widget.initialGroupIndex,
+              onPageChanged: _handleCarouselPageChanged,
+              onScrolled: _handleCarouselScrolled,
+            ),
+            itemBuilder: (context, index, realIndex) {
+              // Only build content for current group to avoid multiple controllers
+              if (index == _navigationController.currentGroupIndex) {
+                return storyContent;
+              }
+              // Return placeholder for other pages
+              return const ColoredBox(color: Colors.black);
+            },
           ),
         ),
+      );
+    }
+
+    // Non-carousel mode (single group or carousel disabled)
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: SafeArea(child: storyContent),
+    );
+  }
+
+  /// Build story content (used in both carousel and non-carousel modes)
+  Widget _buildStoryContent() {
+    return VGestureWrapper(
+      callbacks: VGestureCallbacks(
+        onTapPrevious: _handleTapPrevious,
+        onTapNext: _handleTapNext,
+        onLongPressStart: _mediaController.isLoading
+            ? null
+            : _handleLongPressStart,
+        onLongPressEnd: _mediaController.isLoading ? null : _handleLongPressEnd,
+        onSwipeDown: _handleSwipeDown,
+        onDoubleTap: _mediaController.isLoading ? null : _handleDoubleTap,
+      ),
+      child: Stack(
+        children: [
+          // Media content
+          VMediaDisplay(
+            controller: _mediaController,
+            story: _navigationController.currentStory,
+          ),
+
+          // Loading overlay (shown while media is downloading)
+          if (_state.isLoading && _mediaLoadingProgress < 1.0)
+            ColoredBox(
+              color: Colors.black.withValues(alpha: 0.7),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(
+                      value: _mediaLoadingProgress,
+                      color: Colors.white,
+                      backgroundColor: Colors.white.withValues(alpha: 0.3),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(_mediaLoadingProgress.toString()),
+                  ],
+                ),
+              ),
+            ),
+
+          // Progress bars at top
+          Positioned(
+            top: 8,
+            left: 8,
+            right: 8,
+            child: VSegmentedProgress(controller: _progressController),
+          ),
+
+          // Reaction animation overlay
+          VReactionAnimation(controller: _reactionController),
+        ],
       ),
     );
   }
 
+  /// Start syncing video progress with progress bar
+  ///
+  /// This creates a periodic timer that updates the progress bar based on
+  /// the actual video playback position.
+  void _startVideoProgressSync() {
+    _stopVideoProgressSync();
+
+    if (_mediaController is! VVideoController) return;
+
+    final videoController = _mediaController as VVideoController;
+    final videoPlayer = videoController.videoPlayerController;
+
+    if (videoPlayer == null) return;
+
+    _videoProgressSyncTimer = Timer.periodic(
+      const Duration(milliseconds: 100),
+      (timer) {
+        if (!mounted) {
+          timer.cancel();
+          return;
+        }
+
+        final position = videoPlayer.value.position;
+        final duration = videoPlayer.value.duration;
+
+        if (duration != Duration.zero) {
+          final progress = position.inMilliseconds / duration.inMilliseconds;
+          _progressController.updateCurrentProgress(progress.clamp(0.0, 1.0));
+        }
+      },
+    );
+  }
+
+  /// Stop video progress sync timer
+  void _stopVideoProgressSync() {
+    _videoProgressSyncTimer?.cancel();
+    _videoProgressSyncTimer = null;
+  }
+
   @override
   void dispose() {
+    _stopVideoProgressSync();
     _navigationController.dispose();
     _progressController.dispose();
     _mediaController.dispose();
@@ -411,5 +584,18 @@ class _VStoryViewerState extends State<VStoryViewer> {
       _cacheController.dispose();
     }
     super.dispose();
+  }
+
+  void _initMediaController(VBaseStory currentStory) {
+    _mediaController = VMediaControllerFactory.createController(
+      story: currentStory,
+      cacheController: _cacheController,
+      callbacks: VMediaCallbacks(
+        onLoadingProgress: _handleLoadingProgress,
+        onMediaReady: _handleMediaReady,
+        onMediaError: _handleMediaError,
+        onDurationKnown: _handleDurationKnown,
+      ),
+    );
   }
 }

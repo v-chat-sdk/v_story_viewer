@@ -9,6 +9,9 @@ class VStoryViewerConfig {
     this.dismissOnSwipeDown = true,
     this.autoMoveToNextGroup = true,
     this.restartGroupWhenAllViewed = false,
+    this.enableCarousel = true,
+    this.pauseOnCarouselScroll = true,
+    this.carouselAnimationDuration = const Duration(milliseconds: 300),
   });
 
   /// Enable haptic feedback for gestures
@@ -26,6 +29,22 @@ class VStoryViewerConfig {
   /// Restart group from beginning when all stories viewed
   final bool restartGroupWhenAllViewed;
 
+  /// Enable carousel mode for horizontal swipe between groups
+  ///
+  /// When true and multiple story groups are provided, enables horizontal
+  /// swipe navigation between groups using carousel slider.
+  /// When false, uses traditional auto-advance to next group only.
+  final bool enableCarousel;
+
+  /// Pause current story while user is scrolling the carousel
+  ///
+  /// When true, story progress and media playback pause during horizontal swipe.
+  /// This provides smoother UX and prevents story advancement during navigation.
+  final bool pauseOnCarouselScroll;
+
+  /// Duration for carousel page transition animation
+  final Duration carouselAnimationDuration;
+
   /// Default configuration
   static const defaultConfig = VStoryViewerConfig();
 
@@ -35,6 +54,9 @@ class VStoryViewerConfig {
     bool? dismissOnSwipeDown,
     bool? autoMoveToNextGroup,
     bool? restartGroupWhenAllViewed,
+    bool? enableCarousel,
+    bool? pauseOnCarouselScroll,
+    Duration? carouselAnimationDuration,
   }) {
     return VStoryViewerConfig(
       enableHapticFeedback: enableHapticFeedback ?? this.enableHapticFeedback,
@@ -43,6 +65,11 @@ class VStoryViewerConfig {
       autoMoveToNextGroup: autoMoveToNextGroup ?? this.autoMoveToNextGroup,
       restartGroupWhenAllViewed:
           restartGroupWhenAllViewed ?? this.restartGroupWhenAllViewed,
+      enableCarousel: enableCarousel ?? this.enableCarousel,
+      pauseOnCarouselScroll:
+          pauseOnCarouselScroll ?? this.pauseOnCarouselScroll,
+      carouselAnimationDuration:
+          carouselAnimationDuration ?? this.carouselAnimationDuration,
     );
   }
 }

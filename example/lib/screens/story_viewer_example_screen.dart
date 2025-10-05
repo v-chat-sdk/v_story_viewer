@@ -10,27 +10,55 @@ class StoryViewerExampleScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Story Viewer Example'),
+        title: const Text('Story Viewer with Carousel'),
         backgroundColor: Colors.blue,
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            const Icon(
+              Icons.swipe,
+              size: 80,
+              color: Colors.blue,
+            ),
+            const SizedBox(height: 24),
             const Text(
-              'Story Viewer Test',
+              'Story Viewer with Carousel',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 32),
+              child: Text(
+                'Swipe horizontally to navigate between story groups!',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16, color: Colors.grey),
+              ),
             ),
             const SizedBox(height: 32),
             ElevatedButton.icon(
               onPressed: () => _openStoryViewer(context),
               icon: const Icon(Icons.play_circle_outline),
-              label: const Text('View Stories'),
+              label: const Text('View Stories with Carousel'),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 32,
                   vertical: 16,
                 ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 48),
+              child: Text(
+                '✨ Features:\n'
+                '• Horizontal swipe between groups\n'
+                '• Auto-pause during swipe\n'
+                '• All story types supported\n'
+                '• Reactions, gestures, and more!',
+                textAlign: TextAlign.left,
+                style: TextStyle(fontSize: 14, color: Colors.black87),
               ),
             ),
           ],

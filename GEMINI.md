@@ -1,38 +1,71 @@
-# CLAUDE.md
-
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+# Gemini Code Assistant Context
 
 ## Project Overview
 
-The v_story_viewer is a Flutter package for WhatsApp/Instagram-style story viewing with comprehensive gesture controls, media support, and cross-platform compatibility. The package uses a modern architecture with dependency injection and unidirectional data flow patterns.
+This project is a Flutter package named `v_story_viewer`. It provides a highly customizable widget for displaying stories, similar to those found in WhatsApp and Instagram. The package supports various media types, including images, videos, and text, and offers a rich set of features such as gesture-based navigation, media caching, and cross-platform compatibility.
 
-## Build & Development Commands
+### Key Technologies
+
+- **Flutter:** The core framework for building the UI and application logic.
+- **Dart:** The programming language used for Flutter development.
+- **`flutter_cache_manager`:** Used for caching network images and other media to improve performance.
+- **`video_player`:** Used for handling video playback within stories.
+- **`leancode_lint`:** A linting package that enforces a strict and consistent coding style.
+
+### Architecture
+
+The package is structured into several feature modules, each responsible for a specific aspect of the story viewing experience. The main widget, `VStoryViewer`, acts as an orchestrator, coordinating the different modules to create the final user experience. The architecture emphasizes modularity and separation of concerns, with a clear distinction between UI components, controllers, and models.
+
+## Building and Running
+
+### Prerequisites
+
+- Flutter SDK: `>=3.0.0`
+- Dart SDK: `^3.9.0`
+
+### Installation
+
+To use this package in a Flutter project, add the following to your `pubspec.yaml` file:
+
+```yaml
+dependencies:
+  v_story_viewer: ^1.0.0
+```
+
+Then, run the following command to install the package:
 
 ```bash
-# Get dependencies
 flutter pub get
-
-# Run tests
-flutter test
-
-# Run specific test file
-flutter test test/features/v_story_viewer/controllers/v_story_controller_test.dart
-
-# Analyze code
-flutter analyze
-
-# Check formatting
-dart format --set-exit-if-changed .
-
-# Run example app
-cd example && flutter run
-
-# Build APK (for testing compilation)
-cd example && flutter build apk
-
-# Generate coverage report
-flutter test --coverage
 ```
+
+### Running the Example
+
+The project includes a comprehensive example application that demonstrates the various features of the package. To run the example:
+
+1.  Navigate to the `example` directory:
+    ```bash
+    cd example
+    ```
+2.  Install the dependencies:
+    ```bash
+    flutter pub get
+    ```
+3.  Run the application:
+    ```bash
+    flutter run
+    ```
+
+## Development Conventions
+
+### Coding Style
+
+The project follows a strict coding style enforced by `leancode_lint`. Key conventions include:
+
+- **Strict Typing:** The code uses strict type checking to minimize runtime errors.
+- **Immutability:** The project favors immutable data structures and classes where possible.
+- **Clear Naming:** The code uses descriptive names for variables, functions, and classes.
+- **Comprehensive Linting:** The project has a large set of custom linting rules to ensure code quality and consistency.
+
 
 ## Architecture
 

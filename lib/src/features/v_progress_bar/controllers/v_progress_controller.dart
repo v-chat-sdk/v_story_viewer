@@ -103,6 +103,52 @@ class VProgressController extends ChangeNotifier {
     }
   }
 
+  /// Update the duration for the current progress bar
+  ///
+  /// This is useful when video duration becomes known after initialization.
+  /// If progress is currently running, it will restart with the new duration.
+  void updateDuration(Duration newDuration) {
+    if (_currentIndex == -1) return;
+
+    _currentDuration = newDuration;
+
+    // If progress is running, restart with new duration
+    if (isRunning) {
+      final currentProgress = _currentProgress;
+      _timer?.cancel();
+      _currentProgress = currentProgress;
+      _startTimer();
+    }
+
+    notifyListeners();
+  }
+
+  /// Manually update the current progress value
+  ///
+  /// This is useful for syncing progress with video playback position.
+  /// The progress value should be between 0.0 and 1.0.
+  void updateCurrentProgress(double progress) {
+    if (_currentIndex == -1) return;
+
+    assert(
+      progress >= 0 && progress <= 1,
+      'Progress must be between 0.0 and 1.0',
+    );
+
+    _currentProgress = progress;
+
+    // Check if progress reached 1.0
+    if (_currentProgress >= 1) {
+      _currentProgress = 1;
+      _timer?.cancel();
+      _timer = null;
+
+      // Notify completion
+      callbacks?.onBarComplete?.call(_currentIndex);
+    }
+
+    notifyListeners();
+  }
 
   /// Internal method to start the animation timer
   void _startTimer() {
