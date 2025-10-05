@@ -10,6 +10,10 @@ import '../../v_media_viewer/widgets/v_media_display.dart';
 import '../../v_progress_bar/controllers/v_progress_controller.dart';
 import '../../v_progress_bar/models/v_progress_callbacks.dart';
 import '../../v_progress_bar/widgets/v_segmented_progress.dart';
+import '../../v_reactions/controllers/v_reaction_controller.dart';
+import '../../v_reactions/models/v_reaction_callbacks.dart';
+import '../../v_reactions/models/v_reaction_config.dart';
+import '../../v_reactions/widgets/v_reaction_animation.dart';
 import '../../v_story_models/models/v_story_group.dart';
 import '../controllers/v_story_navigation_controller.dart';
 import '../models/v_story_viewer_callbacks.dart';
@@ -58,6 +62,7 @@ class _VStoryViewerState extends State<VStoryViewer> {
   late VProgressController _progressController;
   late VBaseMediaController _mediaController;
   late VCacheController _cacheController;
+  late VReactionController _reactionController;
   late VStoryViewerConfig _config;
   late VStoryViewerState _state;
 
@@ -91,8 +96,13 @@ class _VStoryViewerState extends State<VStoryViewer> {
     // Create progress controller with callbacks
     _progressController = VProgressController(
       barCount: currentGroup.stories.length,
-      barDuration: const Duration(seconds: 5),
       callbacks: VProgressCallbacks(onBarComplete: _handleProgressComplete),
+    );
+
+    // Create reaction controller with callbacks
+    _reactionController = VReactionController(
+      config: const VReactionConfig(),
+      callbacks: VReactionCallbacks(onReactionSent: _handleReactionSent),
     );
 
     // Create media controller with callbacks
@@ -113,11 +123,14 @@ class _VStoryViewerState extends State<VStoryViewer> {
     final currentStory = _navigationController.currentStory;
     final currentGroup = _navigationController.currentGroup;
 
-    // CRITICAL: Stop progress timer IMMEDIATELY to prevent race conditions
-    _progressController.pauseProgress();
+    // CRITICAL: Stop progress timer IMMEDIATELY  and set cursor at next story
+    _progressController.setCursorAt(_navigationController.currentStoryIndex);
 
     // Reset loading progress
     _mediaLoadingProgress = 0.0;
+
+    // Update reaction controller with current story
+    _reactionController.setCurrentStory(currentStory);
 
     // Update state to loading
     setState(() {
@@ -193,20 +206,17 @@ class _VStoryViewerState extends State<VStoryViewer> {
       _state = _state.copyWith(playbackState: VStoryPlaybackState.playing);
     });
 
-    // CRITICAL: Set progress bar position AFTER media is ready, not before load
-    // This prevents the old timer from interfering with the new story
-    _progressController.jumpToBar(_navigationController.currentStoryIndex);
-
     // Start progress animation ONLY after media is ready
-    _progressController.startProgress(_navigationController.currentStoryIndex);
+    final currentStory = _navigationController.currentStory;
+    _progressController.startProgress(
+      _navigationController.currentStoryIndex,
+      currentStory.duration ?? const Duration(seconds: 5),
+    );
   }
 
   /// Handle media error
   void _handleMediaError(String error) {
     widget.callbacks?.onError?.call(error);
-
-    // Skip to next story on error
-    _navigateToNextStory();
   }
 
   /// Handle duration known (for videos)
@@ -257,7 +267,7 @@ class _VStoryViewerState extends State<VStoryViewer> {
   /// Handle long press end (resume)
   void _handleLongPressEnd() {
     if (!_config.pauseOnLongPress) return;
-
+    //todo is current medai ready ????
     _progressController.resumeProgress();
     _mediaController.resume();
 
@@ -276,8 +286,13 @@ class _VStoryViewerState extends State<VStoryViewer> {
 
   /// Handle double tap (reaction)
   void _handleDoubleTap() {
-    // Reaction handling can be implemented here
-    // For now, this is a placeholder
+    _reactionController.triggerReaction();
+  }
+
+  /// Handle reaction sent
+  void _handleReactionSent(story, String reactionType) {
+    // You can notify parent or update story state here
+    debugPrint('Reaction sent: $reactionType for story ${story.id}');
   }
 
   // ==================== Navigation Helpers ====================
@@ -317,11 +332,12 @@ class _VStoryViewerState extends State<VStoryViewer> {
   /// Reinitialize progress controller when group changes
   void _reinitializeProgressController() {
     // CRITICAL: Stop timer BEFORE disposing to prevent callback race conditions
-    _progressController.pauseProgress();
-    _progressController.dispose();
+    _progressController
+      ..pauseProgress()
+      ..dispose();
     _progressController = VProgressController(
       barCount: _navigationController.currentGroup.stories.length,
-      barDuration: const Duration(seconds: 5),
+
       callbacks: VProgressCallbacks(onBarComplete: _handleProgressComplete),
     );
   }
@@ -350,7 +366,7 @@ class _VStoryViewerState extends State<VStoryViewer> {
 
               // Loading overlay (shown while media is downloading)
               if (_state.isLoading && _mediaLoadingProgress < 1.0)
-                Container(
+                ColoredBox(
                   color: Colors.black.withValues(alpha: 0.7),
                   child: Center(
                     child: Column(
@@ -361,14 +377,8 @@ class _VStoryViewerState extends State<VStoryViewer> {
                           color: Colors.white,
                           backgroundColor: Colors.white.withValues(alpha: 0.3),
                         ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Loading ${(_mediaLoadingProgress * 100).toInt()}%',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                          ),
-                        ),
+                        SizedBox(height: 5),
+                        Text(_mediaLoadingProgress.toString()),
                       ],
                     ),
                   ),
@@ -381,6 +391,9 @@ class _VStoryViewerState extends State<VStoryViewer> {
                 right: 8,
                 child: VSegmentedProgress(controller: _progressController),
               ),
+
+              // Reaction animation overlay
+              VReactionAnimation(controller: _reactionController),
             ],
           ),
         ),
@@ -393,6 +406,7 @@ class _VStoryViewerState extends State<VStoryViewer> {
     _navigationController.dispose();
     _progressController.dispose();
     _mediaController.dispose();
+    _reactionController.dispose();
     if (widget.cacheController == null) {
       _cacheController.dispose();
     }

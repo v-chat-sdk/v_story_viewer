@@ -9,8 +9,8 @@ import 'v_base_media_controller.dart';
 /// This controller validates the text content and immediately signals ready state.
 class VTextController extends VBaseMediaController {
   VTextController({
-    VMediaCallbacks? callbacks,
-  }) : super(callbacks: callbacks);
+    super.callbacks,
+  });
 
   @override
   Future<void> loadMedia(VBaseStory story) async {

@@ -32,7 +32,6 @@ class _ProgressTestScreenState extends State<ProgressTestScreen> {
   void _initController() {
     _controller = VProgressController(
       barCount: _barCount,
-      barDuration: const Duration(seconds: 5),
       callbacks: VProgressCallbacks(
         onBarComplete: (index) {
           setState(() {
@@ -41,7 +40,7 @@ class _ProgressTestScreenState extends State<ProgressTestScreen> {
 
           // Auto-advance to next bar
           if (index < _controller.barCount - 1) {
-            _controller.startProgress(index + 1);
+            _controller.startProgress(index + 1, const Duration(seconds: 5));
           }
         },
         onProgressUpdate: (progress) {
@@ -49,6 +48,7 @@ class _ProgressTestScreenState extends State<ProgressTestScreen> {
             _currentProgressValue = progress;
           });
         },
+
       ),
     );
   }
@@ -59,8 +59,8 @@ class _ProgressTestScreenState extends State<ProgressTestScreen> {
     super.dispose();
   }
 
-  void _startProgress(int index) {
-    _controller.startProgress(index);
+  void _startProgress(int index, Duration duration) {
+    _controller.startProgress(index, duration);
     setState(() {});
   }
 
@@ -206,7 +206,7 @@ class _ProgressTestScreenState extends State<ProgressTestScreen> {
                 (index) {
                   final isCurrentBar = _controller.currentIndex == index;
                   return ElevatedButton(
-                    onPressed: () => _startProgress(index),
+                    onPressed: () => _startProgress(index, const Duration(seconds: 5)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: isCurrentBar ? Colors.green : null,
                     ),

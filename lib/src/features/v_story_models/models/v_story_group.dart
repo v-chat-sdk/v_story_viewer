@@ -35,16 +35,6 @@ class VStoryGroup {
     return index != -1 ? index : 0;
   }
 
-  VStoryGroup? getNextGroup(String currentGroupId) {
-    // todo continue implement this
-    throw UnimplementedError();
-  }
-
-  VStoryGroup? getPreviousGroup(String currentGroupId) {
-    // todo continue implement this
-    throw UnimplementedError();
-  }
-
   /// Get story at index safely
   VBaseStory? storyAt(int index) =>
       index >= 0 && index < stories.length ? stories[index] : null;

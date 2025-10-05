@@ -6,17 +6,11 @@ import '../models/v_progress_callbacks.dart';
 
 /// Controller for managing story progress with count-based tracking
 class VProgressController extends ChangeNotifier {
-  VProgressController({
-    required this.barCount,
-    required this.barDuration,
-    this.callbacks,
-  }) : assert(barCount > 0, 'barCount must be greater than 0');
+  VProgressController({required this.barCount, this.callbacks})
+    : assert(barCount > 0, 'barCount must be greater than 0');
 
   /// Number of progress bars
   final int barCount;
-
-  /// Duration for each progress bar
-  final Duration barDuration;
 
   /// Callbacks for progress events
   final VProgressCallbacks? callbacks;
@@ -26,6 +20,9 @@ class VProgressController extends ChangeNotifier {
 
   /// Current progress value (0.0 to 1.0) for the current bar
   double _currentProgress = 0;
+
+  /// Current duration for the progress animation
+  Duration _currentDuration = const Duration(seconds: 5);
 
   /// Animation timer
   Timer? _timer;
@@ -54,7 +51,7 @@ class VProgressController extends ChangeNotifier {
 
   /// Start progress for a specific bar index
   /// This will start animating from 0.0
-  void startProgress(int index) {
+  void startProgress(int index, Duration duration) {
     assert(index >= 0 && index < barCount, 'Index out of bounds: $index');
 
     // Cancel existing timer
@@ -63,8 +60,26 @@ class VProgressController extends ChangeNotifier {
     // Update state
     _currentIndex = index;
     _currentProgress = 0;
+    _currentDuration = duration;
     // Start timer
     _startTimer();
+  }
+
+
+
+  /// Start progress for a specific bar index
+  /// This will start animating from 0.0
+  void setCursorAt(int index) {
+    assert(index >= 0 && index < barCount, 'Index out of bounds: $index');
+
+    // Cancel existing timer
+    _timer?.cancel();
+
+    // Update state
+    _currentIndex = index;
+    _currentProgress = 0;
+    notifyListeners();
+
   }
 
   /// Pause progress for current bar
@@ -88,21 +103,6 @@ class VProgressController extends ChangeNotifier {
     }
   }
 
-  /// Jump to a specific bar by index
-  /// This will cancel current progress and reset to 0.0
-  void jumpToBar(int index) {
-    assert(index >= 0 && index < barCount, 'Index out of bounds: $index');
-
-    // Cancel timer
-    _timer?.cancel();
-    _timer = null;
-
-    // Update state
-    _currentIndex = index;
-    _currentProgress = 0;
-
-    notifyListeners();
-  }
 
   /// Internal method to start the animation timer
   void _startTimer() {
@@ -115,7 +115,7 @@ class VProgressController extends ChangeNotifier {
         return;
       }
 
-      _currentProgress += 60 / barDuration.inMilliseconds;
+      _currentProgress += 60 / _currentDuration.inMilliseconds;
 
       if (_currentProgress >= 1) {
         _currentProgress = 1;

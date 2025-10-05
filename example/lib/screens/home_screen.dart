@@ -6,6 +6,7 @@ import 'gesture_detector_test_screen.dart';
 import 'localization_test_screen.dart';
 import 'media_viewer_test_screen.dart';
 import 'progress_test_screen.dart';
+import 'reactions_demo_screen.dart';
 import 'reply_system_test_screen.dart';
 import 'story_actions_test_screen.dart';
 import 'story_footer_test_screen.dart';
@@ -123,6 +124,14 @@ class HomeScreen extends StatelessWidget {
             icon: Icons.play_circle_filled,
             color: Colors.blue.shade700,
             onTap: () => _navigate(context, const StoryViewerExampleScreen()),
+          ),
+          _buildFeatureCard(
+            context,
+            title: '❤️ Reactions Demo (NEW)',
+            description: 'NEW: Double-tap reactions with animation',
+            icon: Icons.favorite,
+            color: Colors.red,
+            onTap: () => _navigate(context, const ReactionsDemoScreen()),
           ),
           _buildFeatureCard(
             context,

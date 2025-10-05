@@ -33,41 +33,64 @@ class VGestureWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
     return Stack(
       fit: StackFit.expand,
       children: [
         // Story content at the bottom
         child,
 
-        // Swipe detector layer
-        Positioned.fill(
-          child: VSwipeDetector(
-            config: config,
-            callbacks: callbacks,
+        // Left tap zone for previous story (20% of screen width)
+        Align(
+          alignment: Alignment.centerLeft,
+          child: SizedBox(
+            width: size.width * config.leftTapZoneWidth,
+            height: size.height,
+            child: GestureDetector(
+              onTap: callbacks.onTapPrevious,
+              behavior: HitTestBehavior.translucent,
+            ),
           ),
         ),
 
-        // Long press detector layer
-        Positioned.fill(
-          child: VLongPressDetector(
-            config: config,
-            callbacks: callbacks,
+        // Right tap zone for next story (20% of screen width)
+        Align(
+          alignment: Alignment.centerRight,
+          child: SizedBox(
+            width: size.width * config.rightTapZoneWidth,
+            height: size.height,
+            child: GestureDetector(
+              onTap: callbacks.onTapNext,
+              behavior: HitTestBehavior.translucent,
+            ),
           ),
         ),
 
-        // Double tap detector layer
-        Positioned.fill(
-          child: VDoubleTapDetector(
-            config: config,
-            callbacks: callbacks,
+
+        // Full screen overlay for long press pause/resume and vertical swipe
+        Align(
+          child: SizedBox(
+            width: size.width,
+            height: size.height,
+            child: GestureDetector(
+              onDoubleTap: callbacks.onDoubleTap,
+              onLongPressDown: (_) => callbacks.onLongPressStart?.call(),
+              onLongPressUp:() =>  callbacks.onLongPressEnd?.call(),
+              onLongPressEnd: (_) =>callbacks.onLongPressEnd?.call(),
+              onLongPressCancel:() => callbacks.onLongPressEnd?.call(),
+
+              onVerticalDragEnd: (details) {
+                final velocity = details.velocity.pixelsPerSecond.dy;
+                if (velocity > config.swipeVelocityThreshold) {
+                  callbacks.onSwipeDown?.call();
+                }
+              },
+              behavior: HitTestBehavior.translucent,
+
+            ),
           ),
         ),
 
-        // Tap zones layer (on top to have priority)
-        VTapZones(
-          config: config,
-          callbacks: callbacks,
-        ),
       ],
     );
   }
