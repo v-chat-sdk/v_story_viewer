@@ -169,8 +169,6 @@ class _CubePageViewExampleState extends State<CubePageViewExample> {
                 });
                 print('📄 Page changed to: $index');
               },
-              // Optional parameters
-              perspective: 0.001, // Adjust 3D depth
               pageSnapping: true,
               physics: const BouncingScrollPhysics(),
               itemBuilder: (context, index) {

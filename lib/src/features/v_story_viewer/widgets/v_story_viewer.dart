@@ -1,30 +1,9 @@
 import 'dart:async';
 
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../v_story_viewer.dart';
-import '../../v_cache_manager/controllers/v_cache_controller.dart';
-import '../../v_gesture_detector/widgets/v_gesture_callbacks.dart';
-import '../../v_gesture_detector/widgets/v_gesture_wrapper.dart';
-import '../../v_media_viewer/controllers/v_base_media_controller.dart';
-import '../../v_media_viewer/controllers/v_media_controller_factory.dart';
-import '../../v_media_viewer/controllers/v_video_controller.dart';
-import '../../v_media_viewer/models/v_media_callbacks.dart';
-import '../../v_media_viewer/widgets/v_media_display.dart';
-import '../../v_story_models/models/v_video_story.dart';
-import '../../v_progress_bar/controllers/v_progress_controller.dart';
-import '../../v_progress_bar/models/v_progress_callbacks.dart';
-import '../../v_progress_bar/widgets/v_segmented_progress.dart';
-import '../../v_reactions/controllers/v_reaction_controller.dart';
-import '../../v_reactions/models/v_reaction_callbacks.dart';
-import '../../v_reactions/models/v_reaction_config.dart';
-import '../../v_reactions/widgets/v_reaction_animation.dart';
-import '../../v_story_models/models/v_story_group.dart';
-import '../controllers/v_story_navigation_controller.dart';
-import '../models/v_story_viewer_callbacks.dart';
-import '../models/v_story_viewer_config.dart';
-import '../models/v_story_viewer_state.dart';
+import 'advanced_cube_story_transition.dart';
 
 /// Main orchestrator widget for story viewing
 ///
@@ -77,8 +56,8 @@ class _VStoryViewerState extends State<VStoryViewer> {
   late VStoryViewerConfig _config;
   late VStoryViewerState _state;
 
-  /// Carousel controller for group navigation (only used in carousel mode)
-  CarouselSliderController? _carouselController;
+  /// Page controller for group navigation (only used in carousel mode)
+  PageController? _pageController;
 
   /// Track media loading progress (0.0 to 1.0)
   double _mediaLoadingProgress = 0;
@@ -105,7 +84,8 @@ class _VStoryViewerState extends State<VStoryViewer> {
 
     // Initialize carousel controller if in carousel mode
     if (_isCarouselMode) {
-      _carouselController = CarouselSliderController();
+      _pageController = PageController(initialPage: widget.initialGroupIndex);
+      _pageController!.addListener(_handleCarouselScrolled);
     }
 
     _initializeControllers();
@@ -255,7 +235,7 @@ class _VStoryViewerState extends State<VStoryViewer> {
     } else if (_navigationController.hasPreviousGroup) {
       // In carousel mode, use carousel navigation
       if (_isCarouselMode) {
-        _carouselController?.previousPage(
+        _pageController?.previousPage(
           duration: _config.carouselAnimationDuration,
           curve: Curves.easeInOut,
         );
@@ -308,12 +288,12 @@ class _VStoryViewerState extends State<VStoryViewer> {
   }
 
   /// Handle reaction sent
-  void _handleReactionSent(story, String reactionType) {
+  void _handleReactionSent(VBaseStory story, String reactionType) {
     debugPrint('Reaction sent: $reactionType for story ${story.id}');
   }
 
   /// Handle carousel page changed (only called in carousel mode)
-  void _handleCarouselPageChanged(int index, CarouselPageChangedReason reason) {
+  void _handleCarouselPageChanged(int index) {
     // Prevent concurrent navigation
     if (_isNavigating) return;
     _isNavigating = true;
@@ -335,10 +315,10 @@ class _VStoryViewerState extends State<VStoryViewer> {
   }
 
   /// Handle carousel scroll events (only called in carousel mode)
-  void _handleCarouselScrolled(double? value) {
+  void _handleCarouselScrolled() {
     if (!_config.pauseOnCarouselScroll) return;
 
-    final isScrolling = value != null && value > 0;
+    final isScrolling = _pageController!.position.isScrollingNotifier.value;
 
     // Only update if state changed
     if (_isCarouselScrolling == isScrolling) return;
@@ -400,7 +380,7 @@ class _VStoryViewerState extends State<VStoryViewer> {
       // Move to next group
       if (_isCarouselMode) {
         // Use carousel navigation
-        _carouselController?.nextPage(
+        _pageController?.nextPage(
           duration: _config.carouselAnimationDuration,
           curve: Curves.easeInOut,
         );
@@ -447,18 +427,12 @@ class _VStoryViewerState extends State<VStoryViewer> {
       return Scaffold(
         backgroundColor: Colors.black,
         body: SafeArea(
-          child: CarouselSlider.builder(
-            carouselController: _carouselController,
+          child: CubePageView(
+
+            controller: _pageController!,
             itemCount: widget.storyGroups.length,
-            options: CarouselOptions(
-              height: MediaQuery.of(context).size.height,
-              viewportFraction: 1,
-              enableInfiniteScroll: false,
-              initialPage: widget.initialGroupIndex,
-              onPageChanged: _handleCarouselPageChanged,
-              onScrolled: _handleCarouselScrolled,
-            ),
-            itemBuilder: (context, index, realIndex) {
+            onPageChanged: _handleCarouselPageChanged,
+            itemBuilder: (context, index) {
               // Only build content for current group to avoid multiple controllers
               if (index == _navigationController.currentGroupIndex) {
                 return storyContent;
@@ -580,6 +554,8 @@ class _VStoryViewerState extends State<VStoryViewer> {
     _progressController.dispose();
     _mediaController.dispose();
     _reactionController.dispose();
+    _pageController?.removeListener(_handleCarouselScrolled);
+    _pageController?.dispose();
     if (widget.cacheController == null) {
       _cacheController.dispose();
     }
