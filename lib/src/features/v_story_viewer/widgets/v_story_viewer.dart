@@ -3,6 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../../../v_story_viewer.dart';
+import '../../../core/callbacks/v_reply_callbacks.dart';
+import '../../v_reply_system/v_reply_system.dart';
+import '../../v_story_header/v_story_header.dart';
 import 'advanced_cube_story_transition.dart';
 
 /// Main orchestrator widget for story viewing
@@ -452,6 +455,15 @@ class _VStoryViewerState extends State<VStoryViewer> {
     );
   }
 
+  /// Handle reply input focus change
+  void _handleReplyFocusChanged(bool isFocused) {
+    if (isFocused) {
+      _pauseStory();
+    } else {
+      _resumeStory();
+    }
+  }
+
   /// Build story content (used in both carousel and non-carousel modes)
   Widget _buildStoryContent() {
     return VGestureWrapper(
@@ -501,8 +513,34 @@ class _VStoryViewerState extends State<VStoryViewer> {
             child: VSegmentedProgress(controller: _progressController),
           ),
 
+          // Header view with user info and close button
+          Positioned(
+            top: 24,
+            left: 8,
+            right: 8,
+            child: VHeaderView(
+              user: _navigationController.currentGroup.user,
+              createdAt: _navigationController.currentStory.createdAt,
+              onClosePressed: () => Navigator.of(context).pop(),
+            ),
+          ),
+
           // Reaction animation overlay
           VReactionAnimation(controller: _reactionController),
+
+          // Reply view at bottom
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: VReplyView(
+              story: _navigationController.currentStory,
+              callbacks: VReplyCallbacks(
+                onFocusChanged: _handleReplyFocusChanged,
+                onReplySubmitted: widget.callbacks?.replyCallbacks?.onReplySubmitted,
+              ),
+            ),
+          ),
         ],
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import '../../../core/callbacks/v_reply_callbacks.dart';
 import '../../v_story_models/models/v_base_story.dart';
 import '../../v_story_models/models/v_story_group.dart';
 
@@ -14,6 +15,7 @@ class VStoryViewerCallbacks {
     this.onComplete,
     this.onDismiss,
     this.onError,
+    this.replyCallbacks,
   });
 
   /// Called when current story changes
@@ -31,6 +33,9 @@ class VStoryViewerCallbacks {
 
   /// Called when an error occurs
   final void Function(String error)? onError;
+
+  /// Callbacks for reply actions
+  final VReplyCallbacks? replyCallbacks;
 
   /// Empty callbacks instance
   static const empty = VStoryViewerCallbacks();
