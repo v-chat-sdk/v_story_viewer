@@ -4,8 +4,6 @@ import 'package:flutter/material.dart';
 
 import '../../../../v_story_viewer.dart';
 import '../../../core/callbacks/v_reply_callbacks.dart';
-import '../../v_reply_system/v_reply_system.dart';
-import '../../v_story_header/v_story_header.dart';
 import 'advanced_cube_story_transition.dart';
 
 /// Main orchestrator widget for story viewing
@@ -57,7 +55,7 @@ class _VStoryViewerState extends State<VStoryViewer> {
   late VCacheController _cacheController;
   late VReactionController _reactionController;
   late VStoryViewerConfig _config;
-  late VStoryViewerState _state;
+  VStoryState _state = VStoryState.initial();
 
   /// Page controller for group navigation (only used in carousel mode)
   PageController? _pageController;
@@ -82,7 +80,6 @@ class _VStoryViewerState extends State<VStoryViewer> {
   void initState() {
     super.initState();
     _config = widget.config ?? VStoryViewerConfig.defaultConfig;
-    _state = VStoryViewerState.initial();
     _cacheController = widget.cacheController ?? VCacheController();
 
     // Initialize carousel controller if in carousel mode
@@ -273,7 +270,6 @@ class _VStoryViewerState extends State<VStoryViewer> {
   /// Handle long press end (resume)
   void _handleLongPressEnd() {
     if (!_config.pauseOnLongPress) return;
-
     _resumeStory();
   }
 
@@ -350,6 +346,7 @@ class _VStoryViewerState extends State<VStoryViewer> {
 
   /// Resume current story (progress and media)
   void _resumeStory() {
+    if(_mediaController.isLoading) return;
     // Only resume if media is ready (not loading)
     if (_mediaLoadingProgress < 1.0) return;
 
@@ -431,7 +428,6 @@ class _VStoryViewerState extends State<VStoryViewer> {
         backgroundColor: Colors.black,
         body: SafeArea(
           child: CubePageView(
-
             controller: _pageController!,
             itemCount: widget.storyGroups.length,
             onPageChanged: _handleCarouselPageChanged,
@@ -473,9 +469,9 @@ class _VStoryViewerState extends State<VStoryViewer> {
         onLongPressStart: _mediaController.isLoading
             ? null
             : _handleLongPressStart,
-        onLongPressEnd: _mediaController.isLoading ? null : _handleLongPressEnd,
+        onLongPressEnd: _handleLongPressEnd,
         onSwipeDown: _handleSwipeDown,
-        onDoubleTap: _mediaController.isLoading ? null : _handleDoubleTap,
+        onDoubleTap: _handleDoubleTap,
       ),
       child: Stack(
         children: [
@@ -499,7 +495,10 @@ class _VStoryViewerState extends State<VStoryViewer> {
                       backgroundColor: Colors.white.withValues(alpha: 0.3),
                     ),
                     const SizedBox(height: 5),
-                    Text(_mediaLoadingProgress.toString()),
+                    Text(
+                      _mediaLoadingProgress.toString(),
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ],
                 ),
               ),
@@ -537,7 +536,8 @@ class _VStoryViewerState extends State<VStoryViewer> {
               story: _navigationController.currentStory,
               callbacks: VReplyCallbacks(
                 onFocusChanged: _handleReplyFocusChanged,
-                onReplySubmitted: widget.callbacks?.replyCallbacks?.onReplySubmitted,
+                onReplySubmitted:
+                    widget.callbacks?.replyCallbacks?.onReplySubmitted,
               ),
             ),
           ),

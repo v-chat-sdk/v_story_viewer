@@ -27,25 +27,21 @@ class VMediaControllerFactory {
   /// Throws [ArgumentError] if story type is unknown.
   static VBaseMediaController createController({
     required VBaseStory story,
-    VMediaCallbacks? callbacks,
-    VCacheController? cacheController,
+    required VCacheController  cacheController, VMediaCallbacks? callbacks,
   }) {
     return switch (story) {
       VImageStory() => VImageController(
-          callbacks: callbacks,
-          cacheController: cacheController,
-        ),
+        callbacks: callbacks,
+        cacheController: cacheController,
+      ),
       VVideoStory() => VVideoController(
           callbacks: callbacks,
-        ),
-      VTextStory() => VTextController(
-          callbacks: callbacks,
-        ),
-      VCustomStory() => VCustomController(
-          callbacks: callbacks,
-        ),
+        cacheController: cacheController,
+      ),
+      VTextStory() => VTextController(callbacks: callbacks),
+      VCustomStory() => VCustomController(callbacks: callbacks),
       _ => throw ArgumentError('Unknown story type: ${story.runtimeType}'),
     };
   }
-  var _x ;
+  var x;
 }

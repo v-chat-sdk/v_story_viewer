@@ -23,8 +23,8 @@ enum VStoryPlaybackState {
 
 /// State model for story viewer
 @immutable
-class VStoryViewerState {
-  const VStoryViewerState({
+class VStoryState {
+  const VStoryState({
     required this.playbackState,
     this.currentGroup,
     this.currentStory,
@@ -34,25 +34,18 @@ class VStoryViewerState {
   });
 
   /// Initial/default state
-  factory VStoryViewerState.initial() {
-    return const VStoryViewerState(
-      playbackState: VStoryPlaybackState.stopped,
-    );
+  factory VStoryState.initial() {
+    return const VStoryState(playbackState: VStoryPlaybackState.stopped);
   }
 
   /// Loading state
-  factory VStoryViewerState.loading() {
-    return const VStoryViewerState(
-      playbackState: VStoryPlaybackState.loading,
-    );
+  factory VStoryState.loading() {
+    return const VStoryState(playbackState: VStoryPlaybackState.loading);
   }
 
   /// Error state
-  factory VStoryViewerState.error(String error) {
-    return VStoryViewerState(
-      playbackState: VStoryPlaybackState.error,
-      error: error,
-    );
+  factory VStoryState.error(String error) {
+    return VStoryState(playbackState: VStoryPlaybackState.error, error: error);
   }
 
   /// Current playback state
@@ -85,7 +78,7 @@ class VStoryViewerState {
   /// Check if viewer has error
   bool get hasError => playbackState == VStoryPlaybackState.error;
 
-  VStoryViewerState copyWith({
+  VStoryState copyWith({
     VStoryPlaybackState? playbackState,
     VStoryGroup? currentGroup,
     VBaseStory? currentStory,
@@ -93,7 +86,7 @@ class VStoryViewerState {
     int? currentStoryIndex,
     String? error,
   }) {
-    return VStoryViewerState(
+    return VStoryState(
       playbackState: playbackState ?? this.playbackState,
       currentGroup: currentGroup ?? this.currentGroup,
       currentStory: currentStory ?? this.currentStory,
@@ -106,7 +99,7 @@ class VStoryViewerState {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is VStoryViewerState &&
+      other is VStoryState &&
           runtimeType == other.runtimeType &&
           playbackState == other.playbackState &&
           currentGroupIndex == other.currentGroupIndex &&
@@ -120,6 +113,6 @@ class VStoryViewerState {
 
   @override
   String toString() {
-    return 'VStoryViewerState(state: $playbackState, group: $currentGroupIndex, story: $currentStoryIndex)';
+    return 'VStoryState(state: $playbackState, group: $currentGroupIndex, story: $currentStoryIndex)';
   }
 }

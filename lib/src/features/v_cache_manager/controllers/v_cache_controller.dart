@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:io';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:v_platform/v_platform.dart';
+
 import '../models/v_cache_callbacks.dart';
 import '../models/v_cache_config.dart';
 import '../models/v_cache_error.dart';
@@ -159,7 +161,7 @@ class VCacheController extends ChangeNotifier {
       _safeCallOnDownloadStart(url);
       _emitProgress(url, 0, 0, null, VDownloadStatus.downloading);
 
-      final stream = _cacheManager.getFileStream(url,withProgress: true,);
+      final stream = _cacheManager.getFileStream(url, withProgress: true);
       await for (final result in stream) {
         if (_isDisposed) return null;
 
@@ -200,7 +202,7 @@ class VCacheController extends ChangeNotifier {
   }
 
   /// Handle errors safely with proper error types
-  void _handleError(VCacheError error) {
+  void _handleError(VCacheManagerError error) {
     if (_isDisposed) return;
 
     _emitProgress(error.url, 0, 0, null, VDownloadStatus.error, error.message);

@@ -10,13 +10,10 @@ import 'v_base_media_controller.dart';
 /// Images are preloaded using the cache controller, and actual rendering
 /// is handled by CachedNetworkImage widget in the UI layer.
 class VImageController extends VBaseMediaController {
-  VImageController({
-    VMediaCallbacks? callbacks,
-    VCacheController? cacheController,
-  })  : _cacheController = cacheController,
-        super(callbacks: callbacks);
+  VImageController({required VCacheController cacheController, super.callbacks})
+    : _cacheController = cacheController;
 
-  final VCacheController? _cacheController;
+  final VCacheController _cacheController;
 
   @override
   Future<void> loadMedia(VBaseStory story) async {
@@ -25,9 +22,9 @@ class VImageController extends VBaseMediaController {
     }
 
     // If cache controller is provided, preload the image
-    if (_cacheController != null && story.media.networkUrl != null) {
+    if (story.media.networkUrl != null) {
       // Subscribe to progress updates
-      final subscription = _cacheController!.progressStream.listen((progress) {
+      final subscription = _cacheController.progressStream.listen((progress) {
         if (progress.url == story.media.networkUrl) {
           updateProgress(progress.progress);
         }
@@ -35,7 +32,7 @@ class VImageController extends VBaseMediaController {
 
       try {
         // Preload image file through cache
-        await _cacheController!.getFile(story.media);
+        await _cacheController.getFile(story.media);
       } finally {
         // Clean up subscription
         await subscription.cancel();

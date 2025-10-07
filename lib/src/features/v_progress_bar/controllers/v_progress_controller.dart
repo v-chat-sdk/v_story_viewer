@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import '../../../core/constants/v_story_constants.dart';
 import '../models/v_progress_callbacks.dart';
 
 /// Controller for managing story progress with count-based tracking
@@ -65,8 +66,6 @@ class VProgressController extends ChangeNotifier {
     _startTimer();
   }
 
-
-
   /// Start progress for a specific bar index
   /// This will start animating from 0.0
   void setCursorAt(int index) {
@@ -79,7 +78,6 @@ class VProgressController extends ChangeNotifier {
     _currentIndex = index;
     _currentProgress = 0;
     notifyListeners();
-
   }
 
   /// Pause progress for current bar
@@ -154,14 +152,18 @@ class VProgressController extends ChangeNotifier {
   void _startTimer() {
     _timer?.cancel();
 
-    _timer = Timer.periodic(const Duration(milliseconds: 60), (timer) {
+    _timer = Timer.periodic(VStoryAnimationConstants.legacyFrameInterval, (
+      timer,
+    ) {
       // Safety check: if timer was cancelled or controller disposed, stop execution
       if (_timer == null || _timer != timer) {
         timer.cancel();
         return;
       }
 
-      _currentProgress += 60 / _currentDuration.inMilliseconds;
+      _currentProgress +=
+          VStoryAnimationConstants.legacyFrameInterval.inMilliseconds /
+          _currentDuration.inMilliseconds;
 
       if (_currentProgress >= 1) {
         _currentProgress = 1;

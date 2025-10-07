@@ -2,9 +2,9 @@ import 'dart:io';
 
 import 'package:video_player/video_player.dart';
 
+import '../../../../v_story_viewer.dart';
 import '../../v_story_models/models/v_base_story.dart';
 import '../../v_story_models/models/v_video_story.dart';
-import '../models/v_media_callbacks.dart';
 import 'v_base_media_controller.dart';
 
 /// Controller for video story playback
@@ -13,10 +13,9 @@ import 'v_base_media_controller.dart';
 /// pause/resume functionality, and duration notification.
 /// Uses single controller instance with init/dispose per story for performance.
 class VVideoController extends VBaseMediaController {
-  VVideoController({
-    super.callbacks,
-  });
+  VVideoController({required this.cacheController, super.callbacks});
 
+  final VCacheController cacheController;
   VideoPlayerController? _videoPlayerController;
 
   /// Get the video player controller for UI access

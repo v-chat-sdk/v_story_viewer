@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:v_platform/v_platform.dart';
 import 'package:v_story_viewer/v_story_viewer.dart';
@@ -44,16 +43,18 @@ class _CacheManagerTestScreenState extends State<CacheManagerTestScreen> {
     TestMedia(
       name: 'Video Sample',
       url:
-      'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+          'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
       type: 'Video',
     ),
     TestMedia(
       name: 'Video Sample 2',
       url: 'https://www.w3schools.com/html/mov_bbb.mp4',
       type: 'Video',
-    ),   TestMedia(
+    ),
+    TestMedia(
       name: 'Video Sample 3',
-      url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4',
+      url:
+          'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4',
       type: 'Video',
     ),
   ];
@@ -70,7 +71,6 @@ class _CacheManagerTestScreenState extends State<CacheManagerTestScreen> {
         maxRetries: 3,
         retryPolicy: VRetryPolicy.exponential(),
       ),
-
     );
 
     // Listen to progress stream
@@ -92,8 +92,6 @@ class _CacheManagerTestScreenState extends State<CacheManagerTestScreen> {
       }
     });
   }
-
-
 
   Future<void> _downloadSingle(TestMedia media) async {
     _addLog('🚀 Requesting: ${media.name}');

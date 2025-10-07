@@ -1,8 +1,9 @@
 import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 /// A PageView with 3D cube transition effect
-/// 
+///
 /// Usage:
 /// ```dart
 /// CubePageView(
@@ -188,9 +189,9 @@ class _CubePageViewExampleState extends State<CubePageViewExample> {
                   ElevatedButton.icon(
                     onPressed: _currentPage > 0
                         ? () => _controller.previousPage(
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                    )
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                          )
                         : null,
                     icon: const Icon(Icons.arrow_back),
                     label: const Text('Previous'),
@@ -200,9 +201,9 @@ class _CubePageViewExampleState extends State<CubePageViewExample> {
                   ElevatedButton.icon(
                     onPressed: _currentPage < 4
                         ? () => _controller.nextPage(
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                    )
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                          )
                         : null,
                     icon: const Icon(Icons.arrow_forward),
                     label: const Text('Next'),
@@ -231,10 +232,7 @@ class _CubePageViewExampleState extends State<CubePageViewExample> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            colors[index],
-            colors[index].withOpacity(0.7),
-          ],
+          colors: [colors[index], colors[index].withValues(alpha: 0.7)],
         ),
         borderRadius: BorderRadius.circular(20),
       ),
@@ -245,7 +243,7 @@ class _CubePageViewExampleState extends State<CubePageViewExample> {
             Icon(
               Icons.pages,
               size: 100,
-              color: Colors.white.withOpacity(0.8),
+              color: Colors.white.withValues(alpha: 0.8),
             ),
             const SizedBox(height: 20),
             Text(
@@ -261,7 +259,7 @@ class _CubePageViewExampleState extends State<CubePageViewExample> {
               'Swipe to navigate',
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.white.withOpacity(0.8),
+                color: Colors.white.withValues(alpha: 0.9),
               ),
             ),
           ],

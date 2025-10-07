@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/v_gesture_config.dart';
-import 'v_double_tap_detector.dart';
 import 'v_gesture_callbacks.dart';
-import 'v_long_press_detector.dart';
-import 'v_swipe_detector.dart';
-import 'v_tap_zones.dart';
 
 /// Main gesture wrapper that combines all gesture detectors
 ///
@@ -66,7 +62,6 @@ class VGestureWrapper extends StatelessWidget {
           ),
         ),
 
-
         // Full screen overlay for long press pause/resume and vertical swipe
         Align(
           child: SizedBox(
@@ -75,9 +70,9 @@ class VGestureWrapper extends StatelessWidget {
             child: GestureDetector(
               onDoubleTap: callbacks.onDoubleTap,
               onLongPressDown: (_) => callbacks.onLongPressStart?.call(),
-              onLongPressUp:() =>  callbacks.onLongPressEnd?.call(),
-              onLongPressEnd: (_) =>callbacks.onLongPressEnd?.call(),
-              onLongPressCancel:() => callbacks.onLongPressEnd?.call(),
+              onLongPressUp: () => callbacks.onLongPressEnd?.call(),
+              onLongPressEnd: (_) => callbacks.onLongPressEnd?.call(),
+              onLongPressCancel: () => callbacks.onLongPressEnd?.call(),
 
               onVerticalDragEnd: (details) {
                 final velocity = details.velocity.pixelsPerSecond.dy;
@@ -86,11 +81,9 @@ class VGestureWrapper extends StatelessWidget {
                 }
               },
               behavior: HitTestBehavior.translucent,
-
             ),
           ),
         ),
-
       ],
     );
   }

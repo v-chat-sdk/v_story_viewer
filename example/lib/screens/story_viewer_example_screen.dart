@@ -112,7 +112,18 @@ class StoryViewerExampleScreen extends StatelessWidget {
         stories: [
           VTextStory(
             id: 'story_1',
-            text: 'Hello from Alice! 👋\n\nThis is a text story.',
+            text: 'story_1',
+            backgroundColor: Colors.purple,
+            duration: const Duration(seconds: 3),
+            createdAt: DateTime.now(),
+            isViewed: false,
+            isReacted: false,
+          ),
+
+
+          VTextStory(
+            id: 'story_11',
+            text: 'Story number 2.',
             backgroundColor: Colors.purple,
             duration: const Duration(seconds: 3),
             createdAt: DateTime.now(),
@@ -129,6 +140,15 @@ class StoryViewerExampleScreen extends StatelessWidget {
             isViewed: false,
             isReacted: false,
           ),
+          VTextStory(
+            id: 'story_112',
+            text: 'Story number 4.',
+            backgroundColor: Colors.purple,
+            duration: const Duration(seconds: 8),
+            createdAt: DateTime.now(),
+            isViewed: false,
+            isReacted: false,
+          ),
           VVideoStory(
             id: 'story_3',
             media: VPlatformFile.fromUrl(
@@ -136,6 +156,15 @@ class StoryViewerExampleScreen extends StatelessWidget {
                   'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
             ),
             duration: const Duration(seconds: 15),
+            createdAt: DateTime.now(),
+            isViewed: false,
+            isReacted: false,
+          ),
+          VTextStory(
+            id: 'story_1121',
+            text: 'Story number 5 END.',
+            backgroundColor: Colors.purple,
+            duration: const Duration(seconds: 13),
             createdAt: DateTime.now(),
             isViewed: false,
             isReacted: false,

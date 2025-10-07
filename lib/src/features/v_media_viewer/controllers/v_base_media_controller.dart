@@ -12,7 +12,7 @@ import '../models/v_media_callbacks.dart';
 abstract class VBaseMediaController extends ChangeNotifier {
   VBaseMediaController({
     VMediaCallbacks? callbacks,
-  }) : _callbacks = callbacks ?? const VMediaCallbacks();
+  }) : _callbacks = callbacks ?? VMediaCallbacks.empty;
 
   final VMediaCallbacks _callbacks;
 

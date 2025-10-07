@@ -8,7 +8,29 @@ abstract class VStoryError implements Exception {
     this.code,
     this.stackTrace,
     this.originalError,
+    this.isRetryable = true,
+    this.requiresUserAction = false,
   });
+
+  // Factory constructors for common error types
+  const factory VStoryError.unknown({
+    required String message,
+    String? code,
+    StackTrace? stackTrace,
+    Object? originalError,
+  }) = VGenericError.unknown;
+
+  const factory VStoryError.storyNotFound(String message) =
+      VGenericError.storyNotFound;
+
+  const factory VStoryError.indexOutOfBounds(String message) =
+      VGenericError.indexOutOfBounds;
+
+  const factory VStoryError.invalidConfiguration(String message) =
+      VGenericError.invalidConfiguration;
+
+  const factory VStoryError.invalidArgument(String message) =
+      VGenericError.invalidArgument;
 
   /// Error message
   final String message;
@@ -21,6 +43,12 @@ abstract class VStoryError implements Exception {
 
   /// Original error that caused this error
   final Object? originalError;
+
+  /// Whether this error can be retried
+  final bool isRetryable;
+
+  /// Whether this error requires user intervention
+  final bool requiresUserAction;
 
   @override
   String toString() =>
@@ -63,7 +91,8 @@ class VNetworkError extends VStoryError {
   final int? statusCode;
 
   @override
-  String toString() => 'VNetworkError: $message${statusCode != null ? ' (status: $statusCode)' : ''}';
+  String toString() =>
+      'VNetworkError: $message${statusCode != null ? ' (status: $statusCode)' : ''}';
 }
 
 /// Error related to cache operations
@@ -109,5 +138,53 @@ class VGenericError extends VStoryError {
     super.code,
     super.stackTrace,
     super.originalError,
+    super.isRetryable,
+    super.requiresUserAction,
   });
+
+  const VGenericError.unknown({
+    required String message,
+    String? code,
+    StackTrace? stackTrace,
+    Object? originalError,
+  }) : super(
+         message: message,
+         code: code ?? 'UNKNOWN_ERROR',
+         stackTrace: stackTrace,
+         originalError: originalError,
+         isRetryable: true,
+         requiresUserAction: false,
+       );
+
+  const VGenericError.storyNotFound(String message)
+    : super(
+        message: message,
+        code: 'STORY_NOT_FOUND',
+        isRetryable: false,
+        requiresUserAction: true,
+      );
+
+  const VGenericError.indexOutOfBounds(String message)
+    : super(
+        message: message,
+        code: 'INDEX_OUT_OF_BOUNDS',
+        isRetryable: false,
+        requiresUserAction: true,
+      );
+
+  const VGenericError.invalidConfiguration(String message)
+    : super(
+        message: message,
+        code: 'INVALID_CONFIGURATION',
+        isRetryable: false,
+        requiresUserAction: true,
+      );
+
+  const VGenericError.invalidArgument(String message)
+    : super(
+        message: message,
+        code: 'INVALID_ARGUMENT',
+        isRetryable: false,
+        requiresUserAction: true,
+      );
 }

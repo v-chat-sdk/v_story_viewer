@@ -12,20 +12,19 @@ class VStoryNavigationController extends ChangeNotifier {
     required List<VStoryGroup> storyGroups,
     int initialGroupIndex = 0,
     int initialStoryIndex = 0,
-  })  : _storyGroups = storyGroups,
-        _currentGroupIndex = initialGroupIndex,
-        _currentStoryIndex = initialStoryIndex {
-    assert(storyGroups.isNotEmpty, 'Story groups cannot be empty');
-    assert(
-      initialGroupIndex >= 0 && initialGroupIndex < storyGroups.length,
-      'Initial group index out of bounds',
-    );
-    assert(
-      initialStoryIndex >= 0 &&
-          initialStoryIndex < storyGroups[initialGroupIndex].stories.length,
-      'Initial story index out of bounds',
-    );
-  }
+  }) : assert(storyGroups.isNotEmpty, 'Story groups cannot be empty'),
+       assert(
+         initialGroupIndex >= 0 && initialGroupIndex < storyGroups.length,
+         'Initial group index out of bounds',
+       ),
+       assert(
+         initialStoryIndex >= 0 &&
+             initialStoryIndex < storyGroups[initialGroupIndex].stories.length,
+         'Initial story index out of bounds',
+       ),
+       _storyGroups = storyGroups,
+       _currentGroupIndex = initialGroupIndex,
+       _currentStoryIndex = initialStoryIndex;
 
   final List<VStoryGroup> _storyGroups;
   int _currentGroupIndex;
@@ -42,8 +41,7 @@ class VStoryNavigationController extends ChangeNotifier {
   VStoryGroup get currentGroup => _storyGroups[_currentGroupIndex];
 
   /// Get current story
-  VBaseStory get currentStory =>
-      currentGroup.stories[_currentStoryIndex];
+  VBaseStory get currentStory => currentGroup.stories[_currentStoryIndex];
 
   /// Get all story groups
   List<VStoryGroup> get storyGroups => _storyGroups;
@@ -141,7 +139,8 @@ class VStoryNavigationController extends ChangeNotifier {
       if (hasPreviousGroup) {
         _currentGroupIndex--;
         // Go to last story of previous group
-        _currentStoryIndex = _storyGroups[_currentGroupIndex].stories.length - 1;
+        _currentStoryIndex =
+            _storyGroups[_currentGroupIndex].stories.length - 1;
         notifyListeners();
         return true;
       }

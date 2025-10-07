@@ -4,10 +4,7 @@ import '../controllers/v_reaction_controller.dart';
 
 /// Widget that displays reaction animation overlay
 class VReactionAnimation extends StatefulWidget {
-  const VReactionAnimation({
-    required this.controller,
-    super.key,
-  });
+  const VReactionAnimation({required this.controller, super.key});
 
   final VReactionController controller;
 
@@ -32,39 +29,37 @@ class _VReactionAnimationState extends State<VReactionAnimation>
 
     _scaleAnimation = TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween<double>(begin: 0.0, end: 1.2)
-            .chain(CurveTween(curve: Curves.easeOut)),
+        tween: Tween<double>(
+          begin: 0,
+          end: 1.2,
+        ).chain(CurveTween(curve: Curves.easeOut)),
         weight: 50,
       ),
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.2, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeInOut)),
+        tween: Tween<double>(
+          begin: 1.2,
+          end: 1,
+        ).chain(CurveTween(curve: Curves.easeInOut)),
         weight: 50,
       ),
     ]).animate(_animationController);
 
     _opacityAnimation = TweenSequence<double>([
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 0.0, end: 1.0),
-        weight: 20,
-      ),
-      TweenSequenceItem(
-        tween: ConstantTween<double>(1.0),
-        weight: 60,
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 1.0, end: 0.0),
-        weight: 20,
-      ),
+      TweenSequenceItem(tween: Tween<double>(begin: 0, end: 1), weight: 20),
+      TweenSequenceItem(tween: ConstantTween<double>(1.0), weight: 60),
+      TweenSequenceItem(tween: Tween<double>(begin: 1, end: 0), weight: 80),
     ]).animate(_animationController);
 
-    _slideAnimation = Tween<Offset>(
-      begin: Offset.zero,
-      end: const Offset(0, -0.3),
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOut,
-    ));
+    _slideAnimation =
+        Tween<Offset>(
+          begin: const Offset(0, 0.2),
+          end: const Offset(0, -1),
+        ).animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: Curves.easeOutBack,
+          ),
+        );
 
     widget.controller.addListener(_onControllerUpdate);
   }
@@ -100,9 +95,7 @@ class _VReactionAnimationState extends State<VReactionAnimation>
                 opacity: _opacityAnimation,
                 child: Text(
                   widget.controller.config.reactionType,
-                  style: TextStyle(
-                    fontSize: widget.controller.config.iconSize,
-                  ),
+                  style: TextStyle(fontSize: widget.controller.config.iconSize),
                 ),
               ),
             ),
