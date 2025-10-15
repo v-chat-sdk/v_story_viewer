@@ -55,81 +55,9 @@ abstract class VStoryError implements Exception {
       'VStoryError: $message${code != null ? ' (code: $code)' : ''}';
 }
 
-/// Error related to media loading
-class VMediaLoadError extends VStoryError {
-  const VMediaLoadError({
-    required super.message,
-    super.code,
-    super.stackTrace,
-    super.originalError,
-    this.url,
-    this.mediaType,
-  });
 
-  /// URL or path that failed to load
-  final String? url;
 
-  /// Type of media (image, video)
-  final String? mediaType;
 
-  @override
-  String toString() =>
-      'VMediaLoadError: $message${url != null ? ' (url: $url)' : ''}';
-}
-
-/// Error related to network operations
-class VNetworkError extends VStoryError {
-  const VNetworkError({
-    required super.message,
-    super.code,
-    super.stackTrace,
-    super.originalError,
-    this.statusCode,
-  });
-
-  /// HTTP status code if applicable
-  final int? statusCode;
-
-  @override
-  String toString() =>
-      'VNetworkError: $message${statusCode != null ? ' (status: $statusCode)' : ''}';
-}
-
-/// Error related to cache operations
-class VCacheError extends VStoryError {
-  const VCacheError({
-    required super.message,
-    super.code,
-    super.stackTrace,
-    super.originalError,
-    this.operation,
-  });
-
-  /// Cache operation that failed (read, write, delete)
-  final String? operation;
-
-  @override
-  String toString() =>
-      'VCacheError: $message${operation != null ? ' (operation: $operation)' : ''}';
-}
-
-/// Error related to permissions
-class VPermissionError extends VStoryError {
-  const VPermissionError({
-    required super.message,
-    super.code,
-    super.stackTrace,
-    super.originalError,
-    this.permission,
-  });
-
-  /// Permission that was denied
-  final String? permission;
-
-  @override
-  String toString() =>
-      'VPermissionError: $message${permission != null ? ' (permission: $permission)' : ''}';
-}
 
 /// Generic error for unexpected failures
 class VGenericError extends VStoryError {
@@ -143,15 +71,11 @@ class VGenericError extends VStoryError {
   });
 
   const VGenericError.unknown({
-    required String message,
-    String? code,
-    StackTrace? stackTrace,
-    Object? originalError,
+    required super.message,
+    super.code = 'UNKNOWN_ERROR',
+    super.stackTrace,
+    super.originalError,
   }) : super(
-         message: message,
-         code: code ?? 'UNKNOWN_ERROR',
-         stackTrace: stackTrace,
-         originalError: originalError,
          isRetryable: true,
          requiresUserAction: false,
        );

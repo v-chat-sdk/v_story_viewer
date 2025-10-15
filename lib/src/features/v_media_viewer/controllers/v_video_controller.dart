@@ -3,9 +3,6 @@ import 'dart:io';
 import 'package:video_player/video_player.dart';
 
 import '../../../../v_story_viewer.dart';
-import '../../v_story_models/models/v_base_story.dart';
-import '../../v_story_models/models/v_video_story.dart';
-import 'v_base_media_controller.dart';
 
 /// Controller for video story playback
 ///
@@ -27,42 +24,42 @@ class VVideoController extends VBaseMediaController {
       throw ArgumentError('VVideoController requires VVideoStory');
     }
 
-    // Dispose previous controller
-    await _videoPlayerController?.dispose();
-
-    // Create new video controller based on source
+    // Trigger cache download for network videos
+    // Progress tracking happens in VStoryViewer via global stream listener
     if (story.media.networkUrl != null) {
-      _videoPlayerController = VideoPlayerController.networkUrl(
-        Uri.parse(story.media.networkUrl!),
-      );
-    } else if (story.media.fileLocalPath != null) {
-      _videoPlayerController = VideoPlayerController.file(
-        File(story.media.fileLocalPath!),
-      );
-    } else if (story.media.assetsPath != null) {
-      _videoPlayerController = VideoPlayerController.asset(
-        story.media.assetsPath!,
-      );
-    } else {
-      throw ArgumentError('VVideoStory must have a valid media source');
+      await cacheController.getFile(story.media, story.id);
     }
 
-    // Initialize video
+    await _videoPlayerController?.dispose();
+    _videoPlayerController = _createVideoController(story);
+    await _initializeAndConfigureVideo(story);
+  }
+
+  VideoPlayerController _createVideoController(VVideoStory story) {
+    if (story.media.networkUrl != null) {
+      return VideoPlayerController.networkUrl(
+        Uri.parse(story.media.networkUrl!),
+      );
+    }
+    if (story.media.fileLocalPath != null) {
+      return VideoPlayerController.file(File(story.media.fileLocalPath!));
+    }
+    if (story.media.assetsPath != null) {
+      return VideoPlayerController.asset(story.media.assetsPath!);
+    }
+    throw ArgumentError('VVideoStory must have a valid media source');
+  }
+
+  Future<void> _initializeAndConfigureVideo(VVideoStory story) async {
     await _videoPlayerController!.initialize();
-
-    // Set muted state
     await _videoPlayerController!.setVolume(story.muted ? 0 : 1);
-
-    // Set looping
     await _videoPlayerController!.setLooping(story.looping);
 
-    // Notify duration
     final duration = _videoPlayerController!.value.duration;
     if (duration != Duration.zero) {
       notifyDuration(duration);
     }
 
-    // Auto-play if enabled
     if (story.autoPlay) {
       await _videoPlayerController!.play();
     }
@@ -94,4 +91,5 @@ class VVideoController extends VBaseMediaController {
     _videoPlayerController?.dispose();
     super.dispose();
   }
+
 }

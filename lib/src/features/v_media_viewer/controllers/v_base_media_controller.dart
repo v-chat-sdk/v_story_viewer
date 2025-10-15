@@ -42,23 +42,35 @@ abstract class VBaseMediaController extends ChangeNotifier {
   /// This is the main entry point called by VStoryViewer.
   /// Uses template method pattern to delegate specific loading to subclasses.
   Future<void> loadStory(VBaseStory story) async {
+    _setLoadingState(story);
+    try {
+      await loadMedia(story);
+      _setReadyState();
+    } catch (e) {
+      _setErrorState(e.toString());
+    }
+  }
+
+  void _setLoadingState(VBaseStory story) {
     _currentStory = story;
     _isLoading = true;
     _hasError = false;
     _errorMessage = null;
     notifyListeners();
-    try {
-      await loadMedia(story);
-      _isLoading = false;
-      notifyListeners();
-      _callbacks.onMediaReady?.call();
-    } catch (e) {
-      _isLoading = false;
-      _hasError = true;
-      _errorMessage = e.toString();
-      notifyListeners();
-      _callbacks.onMediaError?.call(e.toString());
-    }
+  }
+
+  void _setReadyState() {
+    _isLoading = false;
+    notifyListeners();
+    _callbacks.onMediaReady?.call();
+  }
+
+  void _setErrorState(String error) {
+    _isLoading = false;
+    _hasError = true;
+    _errorMessage = error;
+    notifyListeners();
+    _callbacks.onMediaError?.call(error);
   }
 
   /// Pause media playback (if applicable)
@@ -89,12 +101,6 @@ abstract class VBaseMediaController extends ChangeNotifier {
     _hasError = false;
     _errorMessage = null;
     notifyListeners();
-  }
-
-  /// Update loading progress (0.0 to 1.0)
-  @protected
-  void updateProgress(double progress) {
-    _callbacks.onLoadingProgress?.call(progress);
   }
 
   /// Notify that video duration is known

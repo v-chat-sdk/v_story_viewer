@@ -3,18 +3,16 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../../../v_story_viewer.dart';
-import '../../../core/callbacks/v_reply_callbacks.dart';
-import 'advanced_cube_story_transition.dart';
+import '../utils/v_carousel_manager.dart';
+import '../utils/v_controller_initializer.dart';
+import '../utils/v_story_gesture_handler.dart';
+import 'builders/v_story_content_builder.dart';
+import 'cube_page_view.dart' show CubePageView;
 
-/// Main orchestrator widget for story viewing
+/// Main orchestrator widget for story viewing (Refactored)
 ///
 /// Coordinates all feature controllers using callback-based mediator pattern.
-/// This is the single entry point for displaying stories.
-///
-/// **Carousel Mode** (when multiple groups):
-/// - Horizontal swipe navigation between groups
-/// - Automatic pause/resume during swipe
-/// - Edge handling (no infinite scroll)
+/// Responsibilities are delegated to specialized managers.
 class VStoryViewer extends StatefulWidget {
   const VStoryViewer({
     required this.storyGroups,
@@ -26,22 +24,11 @@ class VStoryViewer extends StatefulWidget {
     super.key,
   }) : assert(storyGroups.length > 0, 'Story groups cannot be empty');
 
-  /// List of story groups to display
   final List<VStoryGroup> storyGroups;
-
-  /// Initial group index to start from
   final int initialGroupIndex;
-
-  /// Initial story index within group
   final int initialStoryIndex;
-
-  /// Configuration options
   final VStoryViewerConfig? config;
-
-  /// Callbacks for viewer events
   final VStoryViewerCallbacks? callbacks;
-
-  /// Optional cache controller (creates default if not provided)
   final VCacheController? cacheController;
 
   @override
@@ -50,371 +37,289 @@ class VStoryViewer extends StatefulWidget {
 
 class _VStoryViewerState extends State<VStoryViewer> {
   late VStoryNavigationController _navigationController;
-  late VProgressController _progressController;
-  late VBaseMediaController _mediaController;
+  VProgressController? _progressController;
+  VBaseMediaController? _mediaController;
   late VCacheController _cacheController;
   late VReactionController _reactionController;
   late VStoryViewerConfig _config;
+  late VCubePageManager _cubePageManager;
+  late VStoryGestureHandler _gestureHandler;
+
   VStoryState _state = VStoryState.initial();
-
-  /// Page controller for group navigation (only used in carousel mode)
-  PageController? _pageController;
-
-  /// Track media loading progress (0.0 to 1.0)
+  StreamSubscription<VDownloadProgress>? _progressSubscription;
   double _mediaLoadingProgress = 0;
 
-  /// Prevent concurrent navigation operations
-  bool _isNavigating = false;
-
-  /// Track carousel scroll state for pause/resume
-  bool _isCarouselScrolling = false;
-
-  /// Timer for syncing video progress with progress bar
-  Timer? _videoProgressSyncTimer;
-
-  /// Check if carousel mode is enabled
-  bool get _isCarouselMode =>
+  bool get _isCubePageMode =>
       _config.enableCarousel && widget.storyGroups.length > 1;
 
   @override
   void initState() {
     super.initState();
-    _config = widget.config ?? VStoryViewerConfig.defaultConfig;
-    _cacheController = widget.cacheController ?? VCacheController();
-
-    // Initialize carousel controller if in carousel mode
-    if (_isCarouselMode) {
-      _pageController = PageController(initialPage: widget.initialGroupIndex);
-      _pageController!.addListener(_handleCarouselScrolled);
-    }
-
+    _initializeConfiguration();
+    _initializeManagers();
     _initializeControllers();
+    _setupProgressListener();
     _loadCurrentStory();
   }
 
-  /// Initialize all feature controllers with wired callbacks
+  void _initializeConfiguration() {
+    _config = widget.config ?? VStoryViewerConfig.defaultConfig;
+    _cacheController = widget.cacheController ?? VCacheController();
+  }
+
+  void _initializeManagers() {
+    _cubePageManager = VCubePageManager(
+      config: _config,
+      onScrollStateChanged: _handleCarouselScrollStateChanged,
+    );
+
+    if (_isCubePageMode) {
+      _cubePageManager.initializePageController(widget.initialGroupIndex);
+    }
+  }
+
   void _initializeControllers() {
     final currentGroup = widget.storyGroups[widget.initialGroupIndex];
 
-    // Create navigation controller
-    _navigationController = VStoryNavigationController(
+    _navigationController = VControllerInitializer.createNavigationController(
       storyGroups: widget.storyGroups,
       initialGroupIndex: widget.initialGroupIndex,
       initialStoryIndex: widget.initialStoryIndex,
     );
 
-    // Create progress controller with callbacks
-    _progressController = VProgressController(
+    _progressController = VControllerInitializer.createProgressController(
       barCount: currentGroup.stories.length,
-      callbacks: VProgressCallbacks(onBarComplete: _handleProgressComplete),
+      onBarComplete: _handleProgressComplete,
     );
-
-    // Create reaction controller with callbacks
-    _reactionController = VReactionController(
-      config: const VReactionConfig(),
-      callbacks: VReactionCallbacks(onReactionSent: _handleReactionSent),
+    _reactionController = VControllerInitializer.createReactionController(
+      onReactionSent: _handleReactionSent,
     );
-
-    _initMediaController(_navigationController.currentStory);
+    _initializeGestureHandler();
   }
 
-  /// Load current story
+  void _initMediaController(VBaseStory story) {
+    _mediaController = VControllerInitializer.createMediaController(
+      story: story,
+      cacheController: _cacheController,
+      onMediaReady: _handleMediaReady,
+      onMediaError: _handleMediaError,
+      onDurationKnown: _handleDurationKnown,
+    );
+  }
+
+  void _initializeGestureHandler() {
+    _gestureHandler = VStoryGestureHandler(
+      config: _config,
+      reactionController: _reactionController,
+      onTapPrevious: _handleTapPrevious,
+      onTapNext: _handleTapNext,
+      onPauseStory: _handlePause,
+      onResumeStory: _handleResume,
+      callbacks: widget.callbacks,
+    );
+  }
+
+  void _setupProgressListener() {
+    _progressSubscription = _cacheController.progressStream.listen((progress) {
+      if (!mounted) return;
+
+      final currentStory = _navigationController.currentStory;
+
+      // Match progress by story ID
+      if (progress.storyId == currentStory.id) {
+        setState(() {
+          _mediaLoadingProgress = progress.progress;
+        });
+      }
+    });
+  }
+
+  void _updateState(VStoryState newState) {
+    if (!mounted) return;
+    setState(() {
+      _state = newState;
+    });
+  }
+
   Future<void> _loadCurrentStory() async {
     final currentStory = _navigationController.currentStory;
+    final currentStoryIndex = _navigationController.currentStoryIndex;
     final currentGroup = _navigationController.currentGroup;
+    final currentGroupIndex = _navigationController.currentGroupIndex;
 
-    // CRITICAL: Stop progress timer IMMEDIATELY  and set cursor at next story
-    _progressController.setCursorAt(_navigationController.currentStoryIndex);
-
-    // Stop video progress sync
-    _stopVideoProgressSync();
-
-    // Reset loading progress
-    _mediaLoadingProgress = 0.0;
-
-    // Update reaction controller with current story
-    _reactionController.setCurrentStory(currentStory);
-
-    // Update state to loading
     setState(() {
-      _state = _state.copyWith(
+      _mediaLoadingProgress = 0;
+    });
+    _mediaController?.dispose();
+    _initMediaController(currentStory);
+
+    // Set progress cursor and update state
+    _progressController!.setCursorAt(currentStoryIndex + 1);
+    _reactionController.setCurrentStory(currentStory);
+    _updateState(
+      _state.copyWith(
         playbackState: VStoryPlaybackState.loading,
         currentGroup: currentGroup,
         currentStory: currentStory,
-        currentGroupIndex: _navigationController.currentGroupIndex,
-        currentStoryIndex: _navigationController.currentStoryIndex,
-      );
-    });
+        currentGroupIndex: currentGroupIndex,
+        currentStoryIndex: currentStoryIndex,
+      ),
+    );
 
-    // Dispose old media controller
-    _mediaController.dispose();
+    // Load media
+    await _mediaController!.loadStory(currentStory);
 
-    // Create new media controller for current story
-    _initMediaController(currentStory);
-
-    // Load media (progress will be set when media is ready)
-    await _mediaController.loadStory(currentStory);
-
-    // Notify parent of story change
+    // Notify callback
     widget.callbacks?.onStoryChanged?.call(
       currentGroup,
       currentStory,
-      _navigationController.currentStoryIndex,
+      currentStoryIndex,
     );
-
-    // Release navigation lock
-    _isNavigating = false;
   }
 
-  // ==================== Callback Handlers ====================
-
-  /// Handle progress bar completion
   void _handleProgressComplete(int barIndex) {
-    // Prevent concurrent navigation
-    if (_isNavigating) return;
-
-    _navigateToNextStory();
+    _handleTapNext();
   }
 
-  /// Handle media loading progress
-  ///
-  /// Called during media download with progress updates (0.0 to 1.0).
-  /// Story remains in loading state and does NOT start until media is ready.
-  void _handleLoadingProgress(double progress) {
-    setState(() {
-      _mediaLoadingProgress = progress;
-    });
-  }
-
-  /// Handle media ready
-  ///
-  /// Called when media is fully loaded and ready to display.
-  /// This is when we transition from loading to playing state
-  /// and start the progress bar animation.
   void _handleMediaReady() {
-    // Ensure we're at 100% before starting
-    _mediaLoadingProgress = 1.0;
+    final currentStory = _navigationController.currentStory;
+    final currentStoryIndex = _navigationController.currentStoryIndex;
 
     // Update state to playing
-    setState(() {
-      _state = _state.copyWith(playbackState: VStoryPlaybackState.playing);
-    });
-
-    // Start progress animation ONLY after media is ready
-    final currentStory = _navigationController.currentStory;
-    _progressController.startProgress(
-      _navigationController.currentStoryIndex,
-      currentStory.duration ?? const Duration(seconds: 5),
+    _updateState(
+      _state.copyWith(playbackState: VStoryPlaybackState.playing),
     );
 
-    // Start video progress sync if this is a video story
-    if (currentStory is VVideoStory) {
-      _startVideoProgressSync();
-    }
+    // Start progress animation
+    _progressController!.startProgress(
+      currentStoryIndex,
+      currentStory.duration ?? const Duration(seconds: 5),
+    );
   }
 
-  /// Handle media error
   void _handleMediaError(String error) {
     widget.callbacks?.onError?.call(error);
   }
 
-  /// Handle duration known (for videos)
   void _handleDurationKnown(Duration duration) {
-    _progressController.updateDuration(duration);
+    _progressController!.updateDuration(duration);
   }
 
-  /// Handle tap previous
-  void _handleTapPrevious() {
-    // Prevent concurrent navigation
-    if (_isNavigating) return;
-    _isNavigating = true;
+  void _handleReactionSent(VBaseStory story, String reactionType) {
+    debugPrint('Reaction: $reactionType for story ${story.id}');
+  }
 
-    if (_navigationController.hasPreviousStory) {
+  void _handleCarouselScrollStateChanged(bool isScrolling) {
+    setState(() {
+      if (isScrolling) {
+      } else {}
+    });
+  }
+
+  void _handleTapPrevious() {
+    final currentProgress = _progressController?.currentProgress ?? 0;
+    final threshold = 0.1;
+    if (currentProgress < threshold && _navigationController.hasPreviousStory) {
       _navigationController.previousStory();
       _loadCurrentStory();
-    } else if (_navigationController.hasPreviousGroup) {
-      // In carousel mode, use carousel navigation
-      if (_isCarouselMode) {
-        _pageController?.previousPage(
-          duration: _config.carouselAnimationDuration,
-          curve: Curves.easeInOut,
-        );
-        _isNavigating = false; // Carousel will handle navigation
-      } else {
-        _navigationController.previousGroup();
-        _reinitializeProgressController();
-        _loadCurrentStory();
-        widget.callbacks?.onGroupChanged?.call(
-          _navigationController.currentGroup,
-          _navigationController.currentGroupIndex,
-        );
-      }
+    } else if (currentProgress < threshold &&
+        _navigationController.hasPreviousGroup) {
+      _handlePreviousGroup();
     } else {
-      // No previous story, release lock
-      _isNavigating = false;
+      _progressController?.resetProgress();
+      _mediaController?.loadStory(_navigationController.currentStory);
     }
   }
 
-  /// Handle tap next
+  void _handlePreviousGroup() {
+    if (_isCubePageMode) {
+      _cubePageManager.previousPage();
+    } else {
+      _navigationController.previousGroup();
+      _reinitializeProgressController();
+      _loadCurrentStory();
+      widget.callbacks?.onGroupChanged?.call(
+        _navigationController.currentGroup,
+        _navigationController.currentGroupIndex,
+      );
+    }
+  }
+
   void _handleTapNext() {
-    _navigateToNextStory();
-  }
-
-  /// Handle long press start (pause)
-  void _handleLongPressStart() {
-    if (!_config.pauseOnLongPress) return;
-
-    _pauseStory();
-  }
-
-  /// Handle long press end (resume)
-  void _handleLongPressEnd() {
-    if (!_config.pauseOnLongPress) return;
-    _resumeStory();
-  }
-
-  /// Handle swipe down (dismiss)
-  void _handleSwipeDown() {
-    if (!_config.dismissOnSwipeDown) return;
-
-    widget.callbacks?.onDismiss?.call();
-    Navigator.of(context).pop();
-  }
-
-  /// Handle double tap (reaction)
-  void _handleDoubleTap() {
-    _reactionController.triggerReaction();
-  }
-
-  /// Handle reaction sent
-  void _handleReactionSent(VBaseStory story, String reactionType) {
-    debugPrint('Reaction sent: $reactionType for story ${story.id}');
-  }
-
-  /// Handle carousel page changed (only called in carousel mode)
-  void _handleCarouselPageChanged(int index) {
-    // Prevent concurrent navigation
-    if (_isNavigating) return;
-    _isNavigating = true;
-
-    // Update navigation controller to new group
-    _navigationController.jumpTo(groupIndex: index, storyIndex: 0);
-
-    // Reinitialize progress for new group
-    _reinitializeProgressController();
-
-    // Load first story of new group
-    _loadCurrentStory();
-
-    // Notify parent of group change
-    widget.callbacks?.onGroupChanged?.call(
-      _navigationController.currentGroup,
-      _navigationController.currentGroupIndex,
-    );
-  }
-
-  /// Handle carousel scroll events (only called in carousel mode)
-  void _handleCarouselScrolled() {
-    if (!_config.pauseOnCarouselScroll) return;
-
-    final isScrolling = _pageController!.position.isScrollingNotifier.value;
-
-    // Only update if state changed
-    if (_isCarouselScrolling == isScrolling) return;
-
-    setState(() {
-      _isCarouselScrolling = isScrolling;
-    });
-
-    if (isScrolling) {
-      _pauseStory();
-    } else {
-      _resumeStory();
-    }
-  }
-
-  /// Pause current story (progress and media)
-  void _pauseStory() {
-    _progressController.pauseProgress();
-    _mediaController.pause();
-    _stopVideoProgressSync();
-
-    setState(() {
-      _state = _state.copyWith(playbackState: VStoryPlaybackState.paused);
-    });
-  }
-
-  /// Resume current story (progress and media)
-  void _resumeStory() {
-    if(_mediaController.isLoading) return;
-    // Only resume if media is ready (not loading)
-    if (_mediaLoadingProgress < 1.0) return;
-
-    _progressController.resumeProgress();
-    _mediaController.resume();
-
-    // Restart video progress sync if this is a video story
-    if (_navigationController.currentStory is VVideoStory) {
-      _startVideoProgressSync();
-    }
-
-    setState(() {
-      _state = _state.copyWith(playbackState: VStoryPlaybackState.playing);
-    });
-  }
-
-  // ==================== Navigation Helpers ====================
-
-  /// Navigate to next story
-  void _navigateToNextStory() {
-    // Prevent concurrent navigation
-    if (_isNavigating) return;
-    _isNavigating = true;
-
     if (_navigationController.hasNextStory) {
-      // Move to next story in current group
       _navigationController.nextStory();
       _loadCurrentStory();
     } else if (_navigationController.hasNextGroup &&
         _config.autoMoveToNextGroup) {
-      // Move to next group
-      if (_isCarouselMode) {
-        // Use carousel navigation
-        _pageController?.nextPage(
-          duration: _config.carouselAnimationDuration,
-          curve: Curves.easeInOut,
-        );
-        _isNavigating = false; // Carousel will handle navigation
-      } else {
-        _navigationController.nextGroup();
-        _reinitializeProgressController();
-        _loadCurrentStory();
-        widget.callbacks?.onGroupChanged?.call(
-          _navigationController.currentGroup,
-          _navigationController.currentGroupIndex,
-        );
-      }
+      _handleNextGroup();
     } else if (_config.restartGroupWhenAllViewed) {
-      // Restart current group
       _navigationController.restartGroup();
       _loadCurrentStory();
     } else {
-      // All stories completed
-      _isNavigating = false; // Release lock before popping
-      widget.callbacks?.onComplete?.call();
-      Navigator.of(context).pop();
+      _completeViewing();
     }
   }
 
-  /// Reinitialize progress controller when group changes
+  void _handleNextGroup() {
+    if (_isCubePageMode) {
+      _cubePageManager.nextPage();
+    } else {
+      _navigationController.nextGroup();
+      _reinitializeProgressController();
+      _loadCurrentStory();
+      widget.callbacks?.onGroupChanged?.call(
+        _navigationController.currentGroup,
+        _navigationController.currentGroupIndex,
+      );
+    }
+  }
+
+  void _completeViewing() {
+    widget.callbacks?.onComplete?.call();
+    Navigator.of(context).pop();
+  }
+
+  void _handlePause() {
+    if (!_state.isPaused && _state.isPlaying) {
+      _progressController?.pauseProgress();
+      _mediaController?.pause();
+      _updateState(_state.copyWith(playbackState: VStoryPlaybackState.paused));
+    }
+  }
+
+  void _handleResume() {
+    if (_state.isPaused) {
+      _progressController?.resumeProgress();
+      _mediaController?.resume();
+      _updateState(_state.copyWith(playbackState: VStoryPlaybackState.playing));
+    }
+  }
+
   void _reinitializeProgressController() {
-    // CRITICAL: Stop timer BEFORE disposing to prevent callback race conditions
-    _progressController
+    _progressController!
       ..pauseProgress()
       ..dispose();
-    _progressController = VProgressController(
+
+    _progressController = VControllerInitializer.createProgressController(
       barCount: _navigationController.currentGroup.stories.length,
-      callbacks: VProgressCallbacks(onBarComplete: _handleProgressComplete),
+      onBarComplete: _handleProgressComplete,
+    );
+  }
+
+  void _handleCarouselPageChanged(int index) {
+    final jumpRes = _navigationController.jumpTo(
+      groupIndex: index,
+      storyIndex: 0,
+    );
+    if (jumpRes == false) {
+      // this means he can not move to next group!
+    }
+    _reinitializeProgressController();
+    _loadCurrentStory();
+
+    widget.callbacks?.onGroupChanged?.call(
+      _navigationController.currentGroup,
+      _navigationController.currentGroupIndex,
     );
   }
 
@@ -422,21 +327,18 @@ class _VStoryViewerState extends State<VStoryViewer> {
   Widget build(BuildContext context) {
     final storyContent = _buildStoryContent();
 
-    // Wrap in carousel if carousel mode is enabled
-    if (_isCarouselMode) {
+    if (_isCubePageMode) {
       return Scaffold(
         backgroundColor: Colors.black,
         body: SafeArea(
           child: CubePageView(
-            controller: _pageController!,
+            controller: _cubePageManager.pageController!,
             itemCount: widget.storyGroups.length,
             onPageChanged: _handleCarouselPageChanged,
             itemBuilder: (context, index) {
-              // Only build content for current group to avoid multiple controllers
               if (index == _navigationController.currentGroupIndex) {
                 return storyContent;
               }
-              // Return placeholder for other pages
               return const ColoredBox(color: Colors.black);
             },
           ),
@@ -444,172 +346,45 @@ class _VStoryViewerState extends State<VStoryViewer> {
       );
     }
 
-    // Non-carousel mode (single group or carousel disabled)
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(child: storyContent),
     );
   }
 
-  /// Handle reply input focus change
-  void _handleReplyFocusChanged(bool isFocused) {
-    if (isFocused) {
-      _pauseStory();
-    } else {
-      _resumeStory();
-    }
-  }
-
-  /// Build story content (used in both carousel and non-carousel modes)
   Widget _buildStoryContent() {
-    return VGestureWrapper(
-      callbacks: VGestureCallbacks(
-        onTapPrevious: _handleTapPrevious,
-        onTapNext: _handleTapNext,
-        onLongPressStart: _mediaController.isLoading
-            ? null
-            : _handleLongPressStart,
-        onLongPressEnd: _handleLongPressEnd,
-        onSwipeDown: _handleSwipeDown,
-        onDoubleTap: _handleDoubleTap,
+    return VStoryContentBuilder.build(
+      gestureCallbacks: VGestureCallbacks(
+        onTapPrevious: _gestureHandler.handleTapPrevious,
+        onTapNext: _gestureHandler.handleTapNext,
+        onLongPressStart: _gestureHandler.handleLongPressStart,
+        onLongPressEnd: _gestureHandler.handleLongPressEnd,
+        onSwipeDown: () => _gestureHandler.handleSwipeDown(context),
+        onDoubleTap: _gestureHandler.handleDoubleTap,
       ),
-      child: Stack(
-        children: [
-          // Media content
-          VMediaDisplay(
-            controller: _mediaController,
-            story: _navigationController.currentStory,
-          ),
-
-          // Loading overlay (shown while media is downloading)
-          if (_state.isLoading && _mediaLoadingProgress < 1.0)
-            ColoredBox(
-              color: Colors.black.withValues(alpha: 0.7),
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(
-                      value: _mediaLoadingProgress,
-                      color: Colors.white,
-                      backgroundColor: Colors.white.withValues(alpha: 0.3),
-                    ),
-                    const SizedBox(height: 5),
-                    Text(
-                      _mediaLoadingProgress.toString(),
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-          // Progress bars at top
-          Positioned(
-            top: 8,
-            left: 8,
-            right: 8,
-            child: VSegmentedProgress(controller: _progressController),
-          ),
-
-          // Header view with user info and close button
-          Positioned(
-            top: 24,
-            left: 8,
-            right: 8,
-            child: VHeaderView(
-              user: _navigationController.currentGroup.user,
-              createdAt: _navigationController.currentStory.createdAt,
-              onClosePressed: () => Navigator.of(context).pop(),
-            ),
-          ),
-
-          // Reaction animation overlay
-          VReactionAnimation(controller: _reactionController),
-
-          // Reply view at bottom
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: VReplyView(
-              story: _navigationController.currentStory,
-              callbacks: VReplyCallbacks(
-                onFocusChanged: _handleReplyFocusChanged,
-                onReplySubmitted:
-                    widget.callbacks?.replyCallbacks?.onReplySubmitted,
-              ),
-            ),
-          ),
-        ],
-      ),
+      mediaController: _mediaController!,
+      currentStory: _navigationController.currentStory,
+      state: _state,
+      mediaLoadingProgress: _mediaLoadingProgress,
+      progressController: _progressController!,
+      currentGroup: _navigationController.currentGroup,
+      reactionController: _reactionController,
+      context: context,
+      callbacks: widget.callbacks,
     );
-  }
-
-  /// Start syncing video progress with progress bar
-  ///
-  /// This creates a periodic timer that updates the progress bar based on
-  /// the actual video playback position.
-  void _startVideoProgressSync() {
-    _stopVideoProgressSync();
-
-    if (_mediaController is! VVideoController) return;
-
-    final videoController = _mediaController as VVideoController;
-    final videoPlayer = videoController.videoPlayerController;
-
-    if (videoPlayer == null) return;
-
-    _videoProgressSyncTimer = Timer.periodic(
-      const Duration(milliseconds: 100),
-      (timer) {
-        if (!mounted) {
-          timer.cancel();
-          return;
-        }
-
-        final position = videoPlayer.value.position;
-        final duration = videoPlayer.value.duration;
-
-        if (duration != Duration.zero) {
-          final progress = position.inMilliseconds / duration.inMilliseconds;
-          _progressController.updateCurrentProgress(progress.clamp(0.0, 1.0));
-        }
-      },
-    );
-  }
-
-  /// Stop video progress sync timer
-  void _stopVideoProgressSync() {
-    _videoProgressSyncTimer?.cancel();
-    _videoProgressSyncTimer = null;
   }
 
   @override
   void dispose() {
-    _stopVideoProgressSync();
+    _progressSubscription?.cancel();
     _navigationController.dispose();
-    _progressController.dispose();
-    _mediaController.dispose();
+    _progressController?.dispose();
+    _mediaController?.dispose();
     _reactionController.dispose();
-    _pageController?.removeListener(_handleCarouselScrolled);
-    _pageController?.dispose();
+    _cubePageManager.dispose();
     if (widget.cacheController == null) {
       _cacheController.dispose();
     }
     super.dispose();
-  }
-
-  void _initMediaController(VBaseStory currentStory) {
-    _mediaController = VMediaControllerFactory.createController(
-      story: currentStory,
-      cacheController: _cacheController,
-      callbacks: VMediaCallbacks(
-        onLoadingProgress: _handleLoadingProgress,
-        onMediaReady: _handleMediaReady,
-        onMediaError: _handleMediaError,
-        onDurationKnown: _handleDurationKnown,
-      ),
-    );
   }
 }

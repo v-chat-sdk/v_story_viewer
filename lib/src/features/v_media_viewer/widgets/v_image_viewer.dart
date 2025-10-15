@@ -56,9 +56,10 @@ class VImageViewer extends StatelessWidget {
 
     // Bytes image
     if (story.media.bytes != null) {
-      final bytes = story.media.bytes is Uint8List
-          ? story.media.bytes as Uint8List
-          : Uint8List.fromList(story.media.bytes!);
+      final rawBytes = story.media.bytes!;
+      final bytes = rawBytes is Uint8List
+          ? rawBytes
+          : Uint8List.fromList(rawBytes);
       return Image.memory(
         bytes,
         fit: story.fit,

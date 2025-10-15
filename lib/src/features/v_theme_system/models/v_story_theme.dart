@@ -25,6 +25,46 @@ class VStoryTheme {
     this.enableHapticFeedback = false,
   });
 
+  /// Default light theme
+  factory VStoryTheme.light() {
+    return VStoryTheme(
+      colorScheme: VColorScheme.light,
+      typography: VTypography.defaultTypography(textColor: Colors.black),
+      iconTheme: VIconTheme.light,
+    );
+  }
+
+  /// Default dark theme
+  factory VStoryTheme.dark() {
+    return VStoryTheme(
+      typography: VTypography.defaultTypography(),
+      colorScheme: VColorScheme.dark,
+    );
+  }
+
+  /// WhatsApp-style theme
+  factory VStoryTheme.whatsapp() {
+    return VStoryTheme(
+      colorScheme: const VColorScheme(
+        primary: Color(0xFF075E54),
+        secondary: Color(0xFF25D366),
+      ),
+      typography: VTypography.defaultTypography(),
+    );
+  }
+
+  /// Instagram-style theme
+  factory VStoryTheme.instagram() {
+    return VStoryTheme(
+      colorScheme: const VColorScheme(
+        primary: Color(0xFFE4405F),
+        secondary: Color(0xFF833AB4),
+      ),
+      typography: VTypography.defaultTypography(),
+      borderRadius: 12,
+    );
+  }
+
   /// Color scheme
   final VColorScheme colorScheme;
 
@@ -104,48 +144,6 @@ class VStoryTheme {
       enableShadows: enableShadows ?? this.enableShadows,
       enableRippleEffect: enableRippleEffect ?? this.enableRippleEffect,
       enableHapticFeedback: enableHapticFeedback ?? this.enableHapticFeedback,
-    );
-  }
-
-  /// Default light theme
-  static VStoryTheme light() {
-    return VStoryTheme(
-      colorScheme: VColorScheme.light,
-      typography: VTypography.defaultTypography(textColor: Colors.black),
-      iconTheme: VIconTheme.light,
-    );
-  }
-
-  /// Default dark theme
-  static VStoryTheme dark() {
-    return VStoryTheme(
-      typography: VTypography.defaultTypography(),
-      colorScheme: VColorScheme.dark,
-    );
-  }
-
-  /// WhatsApp-style theme
-  static VStoryTheme whatsapp() {
-    return VStoryTheme(
-      colorScheme: const VColorScheme(
-        primary: Color(0xFF075E54),
-        secondary: Color(0xFF25D366),
-      ),
-      typography: VTypography.defaultTypography(),
-      iconTheme: VIconTheme.dark,
-    );
-  }
-
-  /// Instagram-style theme
-  static VStoryTheme instagram() {
-    return VStoryTheme(
-      colorScheme: const VColorScheme(
-        primary: Color(0xFFE4405F),
-        secondary: Color(0xFF833AB4),
-      ),
-      typography: VTypography.defaultTypography(),
-      iconTheme: VIconTheme.dark,
-      borderRadius: 12,
     );
   }
 }

@@ -1,7 +1,6 @@
 import '../../v_cache_manager/controllers/v_cache_controller.dart';
 import '../../v_story_models/models/v_base_story.dart';
 import '../../v_story_models/models/v_image_story.dart';
-import '../models/v_media_callbacks.dart';
 import 'v_base_media_controller.dart';
 
 /// Controller for image story display
@@ -21,22 +20,10 @@ class VImageController extends VBaseMediaController {
       throw ArgumentError('VImageController requires VImageStory');
     }
 
-    // If cache controller is provided, preload the image
+    // Trigger cache download for network images
+    // Progress tracking happens in VStoryViewer via global stream listener
     if (story.media.networkUrl != null) {
-      // Subscribe to progress updates
-      final subscription = _cacheController.progressStream.listen((progress) {
-        if (progress.url == story.media.networkUrl) {
-          updateProgress(progress.progress);
-        }
-      });
-
-      try {
-        // Preload image file through cache
-        await _cacheController.getFile(story.media);
-      } finally {
-        // Clean up subscription
-        await subscription.cancel();
-      }
+      await _cacheController.getFile(story.media, story.id);
     }
 
     // Image is ready (actual rendering happens in widget via cached_network_image)

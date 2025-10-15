@@ -1,23 +1,26 @@
-/// Download progress information with URL for UI filtering
+/// Download progress information with story ID for UI filtering
 ///
 /// When multiple stories are downloading simultaneously, the UI can filter
-/// progress updates by matching the URL with the current story's media URL.
+/// progress updates by matching the story ID with the current story.
 class VDownloadProgress {
   /// Creates a download progress instance
   ///
   /// Validates input parameters:
+  /// - [storyId] must not be empty
   /// - [url] must not be empty
   /// - [progress] must be between 0.0 and 1.0
   /// - [downloadedBytes] must be non-negative
   /// - [totalBytes] if provided must be non-negative and >= downloadedBytes
   const VDownloadProgress({
+    required this.storyId,
     required this.url,
     required this.progress,
     required this.downloadedBytes,
     required this.status,
     this.totalBytes,
     this.error,
-  })  : assert(url != '', 'url must not be empty'),
+  })  : assert(storyId != '', 'storyId must not be empty'),
+        assert(url != '', 'url must not be empty'),
         assert(
           progress >= 0.0 && progress <= 1.0,
           'progress must be between 0.0 and 1.0',
@@ -32,10 +35,13 @@ class VDownloadProgress {
           'totalBytes must be >= downloadedBytes',
         );
 
-  /// URL of the downloading file (critical for UI filtering)
+  /// Story ID for matching progress to specific story
   ///
   /// Example: When user navigates story1 → story2 → story3 quickly,
-  /// the UI widget for story1 filters by `progress.url == story1.media.networkUrl`
+  /// the UI filters by `progress.storyId == currentStory.id`
+  final String storyId;
+
+  /// URL of the downloading file (for backwards compatibility)
   final String url;
 
   /// Download progress from 0.0 to 1.0
@@ -83,6 +89,7 @@ class VDownloadProgress {
 
   /// Creates a copy with updated values
   VDownloadProgress copyWith({
+    String? storyId,
     String? url,
     double? progress,
     int? downloadedBytes,
@@ -91,6 +98,7 @@ class VDownloadProgress {
     String? error,
   }) {
     return VDownloadProgress(
+      storyId: storyId ?? this.storyId,
       url: url ?? this.url,
       progress: progress ?? this.progress,
       downloadedBytes: downloadedBytes ?? this.downloadedBytes,
@@ -102,7 +110,7 @@ class VDownloadProgress {
 
   @override
   String toString() {
-    return 'VDownloadProgress(url: $url, progress: $percentageText, '
+    return 'VDownloadProgress(storyId: $storyId, url: $url, progress: $percentageText, '
         'size: $sizeText, status: $status)';
   }
 
@@ -111,6 +119,7 @@ class VDownloadProgress {
     if (identical(this, other)) return true;
 
     return other is VDownloadProgress &&
+        other.storyId == storyId &&
         other.url == url &&
         other.progress == progress &&
         other.downloadedBytes == downloadedBytes &&
@@ -122,6 +131,7 @@ class VDownloadProgress {
   @override
   int get hashCode {
     return Object.hash(
+      storyId,
       url,
       progress,
       downloadedBytes,

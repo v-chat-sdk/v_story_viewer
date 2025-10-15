@@ -76,7 +76,7 @@ class _CacheManagerTestScreenState extends State<CacheManagerTestScreen> {
     // Listen to progress stream
     _cacheController.progressStream.listen((progress) {
       setState(() {
-        _progressMap[progress.url] = progress;
+        _progressMap[progress.storyId] = progress;
       });
     });
   }
@@ -96,7 +96,7 @@ class _CacheManagerTestScreenState extends State<CacheManagerTestScreen> {
   Future<void> _downloadSingle(TestMedia media) async {
     _addLog('🚀 Requesting: ${media.name}');
     final platformFile = VPlatformFile.fromUrl(networkUrl: media.url);
-    final file = await _cacheController.getFile(platformFile);
+    final file = await _cacheController.getFile(platformFile, 'test_${media.name}');
     if (file != null) {
       _addLog('💾 File ready: ${file.path}');
     }
@@ -104,9 +104,11 @@ class _CacheManagerTestScreenState extends State<CacheManagerTestScreen> {
 
   Future<void> _downloadMultiple() async {
     _addLog('🚀 Starting BATCH download (${_testMedia.length} files)');
-    final futures = _testMedia.map((media) {
+    final futures = _testMedia.asMap().entries.map((entry) {
+      final index = entry.key;
+      final media = entry.value;
       final platformFile = VPlatformFile.fromUrl(networkUrl: media.url);
-      return _cacheController.getFile(platformFile);
+      return _cacheController.getFile(platformFile, 'test_batch_$index');
     }).toList();
     await Future.wait(futures);
     _addLog('✅ BATCH download complete!');
@@ -115,7 +117,7 @@ class _CacheManagerTestScreenState extends State<CacheManagerTestScreen> {
   Future<void> _testCacheHit() async {
     _addLog('🔄 Testing cache hit (downloading same file)...');
     final platformFile = VPlatformFile.fromUrl(networkUrl: _testMedia[0].url);
-    await _cacheController.getFile(platformFile);
+    await _cacheController.getFile(platformFile, 'test_cache_hit');
   }
 
   Future<void> _clearCache() async {
@@ -132,7 +134,7 @@ class _CacheManagerTestScreenState extends State<CacheManagerTestScreen> {
     final platformFile = VPlatformFile.fromUrl(
       networkUrl: 'https://invalid-url-that-does-not-exist-12345.com/image.jpg',
     );
-    await _cacheController.getFile(platformFile);
+    await _cacheController.getFile(platformFile, 'test_invalid_url');
   }
 
   @override
@@ -234,7 +236,7 @@ class _CacheManagerTestScreenState extends State<CacheManagerTestScreen> {
                       separatorBuilder: (context, index) => const Divider(),
                       itemBuilder: (context, index) {
                         final media = _testMedia[index];
-                        final progress = _progressMap[media.url];
+                        final progress = _progressMap['test_${media.name}'];
                         return MediaItem(
                           media: media,
                           progress: progress,

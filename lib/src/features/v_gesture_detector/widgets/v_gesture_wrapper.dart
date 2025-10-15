@@ -36,27 +36,35 @@ class VGestureWrapper extends StatelessWidget {
         // Story content at the bottom
         child,
 
-        // Left tap zone for previous story (20% of screen width)
+        // Left tap zone for previous story
         Align(
           alignment: Alignment.centerLeft,
           child: SizedBox(
             width: size.width * config.leftTapZoneWidth,
             height: size.height,
             child: GestureDetector(
-              onTap: callbacks.onTapPrevious,
+              onTapDown: (details) {
+
+                print("Left tap zone for previous story Left tap zone for previous story $details");
+
+                callbacks.onTapPrevious?.call();
+              },
               behavior: HitTestBehavior.translucent,
             ),
           ),
         ),
 
-        // Right tap zone for next story (20% of screen width)
+        // Right tap zone for next story
         Align(
           alignment: Alignment.centerRight,
           child: SizedBox(
             width: size.width * config.rightTapZoneWidth,
             height: size.height,
             child: GestureDetector(
-              onTap: callbacks.onTapNext,
+              onTapDown: (details) {
+                print("Right tap zone for next story Right tap zone for next story $details");
+                callbacks.onTapNext?.call();
+              },
               behavior: HitTestBehavior.translucent,
             ),
           ),

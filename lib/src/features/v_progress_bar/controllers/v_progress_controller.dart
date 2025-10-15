@@ -1,99 +1,68 @@
-import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 
-import '../../../core/constants/v_story_constants.dart';
 import '../models/v_progress_callbacks.dart';
+import '../utils/v_progress_timer.dart';
 
 /// Controller for managing story progress with count-based tracking
+///
+/// Refactored to delegate timer logic to VProgressTimer for better separation of concerns.
 class VProgressController extends ChangeNotifier {
   VProgressController({required this.barCount, this.callbacks})
-    : assert(barCount > 0, 'barCount must be greater than 0');
+      : assert(barCount > 0, 'barCount must be greater than 0') {
+    _timer = VProgressTimer(
+      onTick: _handleProgressTick,
+      onComplete: _handleProgressComplete,
+    );
+  }
 
-  /// Number of progress bars
   final int barCount;
-
-  /// Callbacks for progress events
   final VProgressCallbacks? callbacks;
 
-  /// Current index in the progress bar list
+  late final VProgressTimer _timer;
   int _currentIndex = -1;
-
-  /// Current progress value (0.0 to 1.0) for the current bar
   double _currentProgress = 0;
 
-  /// Current duration for the progress animation
-  Duration _currentDuration = const Duration(seconds: 5);
-
-  /// Animation timer
-  Timer? _timer;
-
-  /// Get current index
   int get currentIndex => _currentIndex;
 
-  /// Get current progress
   double get currentProgress => _currentProgress;
 
-  /// Check if progress is running
-  bool get isRunning => _timer != null && _timer!.isActive;
+  bool get isRunning => _timer.isActive;
 
-  /// Get progress value for a specific bar index
-  /// Returns:
-  /// - 1.0 for completed bars (before current)
-  /// - Current progress (0.0-1.0) for current bar
-  /// - 0.0 for future bars (after current)
   double getProgress(int index) {
     assert(index >= 0 && index < barCount, 'Index out of bounds: $index');
 
-    if (index < _currentIndex) return 1; // Completed bars
-    if (index == _currentIndex) return _currentProgress; // Current bar
-    return 0; // Future bars
+    if (index < _currentIndex) return 1;
+    if (index == _currentIndex) return _currentProgress;
+    return 0;
   }
 
-  /// Start progress for a specific bar index
-  /// This will start animating from 0.0
   void startProgress(int index, Duration duration) {
     assert(index >= 0 && index < barCount, 'Index out of bounds: $index');
 
-    // Cancel existing timer
-    _timer?.cancel();
-
-    // Update state
     _currentIndex = index;
     _currentProgress = 0;
-    _currentDuration = duration;
-    // Start timer
-    _startTimer();
+    _timer.start(duration);
   }
 
-  /// Start progress for a specific bar index
-  /// This will start animating from 0.0
   void setCursorAt(int index) {
     assert(index >= 0 && index < barCount, 'Index out of bounds: $index');
 
-    // Cancel existing timer
-    _timer?.cancel();
-
-    // Update state
+    _timer.pause();
     _currentIndex = index;
     _currentProgress = 0;
     notifyListeners();
   }
 
-  /// Pause progress for current bar
   void pauseProgress() {
-    _timer?.cancel();
-    _timer = null;
+    _timer.pause();
   }
 
-  /// Resume progress for current bar
   void resumeProgress() {
     if (_currentIndex != -1 && !isRunning) {
-      _startTimer();
+      _timer.resume();
     }
   }
 
-  /// Reset progress for current bar to 0.0
   void resetProgress() {
     if (_currentIndex != -1) {
       _currentProgress = 0;
@@ -101,90 +70,32 @@ class VProgressController extends ChangeNotifier {
     }
   }
 
-  /// Update the duration for the current progress bar
-  ///
-  /// This is useful when video duration becomes known after initialization.
-  /// If progress is currently running, it will restart with the new duration.
   void updateDuration(Duration newDuration) {
     if (_currentIndex == -1) return;
 
-    _currentDuration = newDuration;
-
-    // If progress is running, restart with new duration
     if (isRunning) {
       final currentProgress = _currentProgress;
-      _timer?.cancel();
-      _currentProgress = currentProgress;
-      _startTimer();
+      _timer.start(newDuration, initialProgress: currentProgress);
     }
 
     notifyListeners();
   }
 
-  /// Manually update the current progress value
-  ///
-  /// This is useful for syncing progress with video playback position.
-  /// The progress value should be between 0.0 and 1.0.
-  void updateCurrentProgress(double progress) {
-    if (_currentIndex == -1) return;
 
-    assert(
-      progress >= 0 && progress <= 1,
-      'Progress must be between 0.0 and 1.0',
-    );
 
+  void _handleProgressTick(double progress) {
     _currentProgress = progress;
-
-    // Check if progress reached 1.0
-    if (_currentProgress >= 1) {
-      _currentProgress = 1;
-      _timer?.cancel();
-      _timer = null;
-
-      // Notify completion
-      callbacks?.onBarComplete?.call(_currentIndex);
-    }
-
+    callbacks?.onProgressUpdate?.call(progress);
     notifyListeners();
   }
 
-  /// Internal method to start the animation timer
-  void _startTimer() {
-    _timer?.cancel();
-
-    _timer = Timer.periodic(VStoryAnimationConstants.legacyFrameInterval, (
-      timer,
-    ) {
-      // Safety check: if timer was cancelled or controller disposed, stop execution
-      if (_timer == null || _timer != timer) {
-        timer.cancel();
-        return;
-      }
-
-      _currentProgress +=
-          VStoryAnimationConstants.legacyFrameInterval.inMilliseconds /
-          _currentDuration.inMilliseconds;
-
-      if (_currentProgress >= 1) {
-        _currentProgress = 1;
-        timer.cancel();
-        _timer = null;
-
-        // Notify completion
-        callbacks?.onBarComplete?.call(_currentIndex);
-      }
-
-      // Notify progress update
-      callbacks?.onProgressUpdate?.call(_currentProgress);
-
-      notifyListeners();
-    });
+  void _handleProgressComplete() {
+    callbacks?.onBarComplete?.call(_currentIndex);
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
-    _timer = null;
+    _timer.dispose();
     super.dispose();
   }
 }

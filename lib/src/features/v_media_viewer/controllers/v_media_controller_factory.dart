@@ -43,5 +43,4 @@ class VMediaControllerFactory {
       _ => throw ArgumentError('Unknown story type: ${story.runtimeType}'),
     };
   }
-  var x;
 }

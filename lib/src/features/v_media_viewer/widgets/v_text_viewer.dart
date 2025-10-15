@@ -16,7 +16,7 @@ class VTextViewer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return DecoratedBox(
       decoration: _buildDecoration(),
       child: Center(
         child: Padding(

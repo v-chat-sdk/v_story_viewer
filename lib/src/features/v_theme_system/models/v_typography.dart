@@ -24,6 +24,106 @@ class VTypography {
     this.errorText,
   });
 
+  /// Default typography
+  factory VTypography.defaultTypography({Color textColor = Colors.white}) {
+    return VTypography(
+      headline1: TextStyle(
+        fontSize: 32,
+        fontWeight: FontWeight.bold,
+        color: textColor,
+      ),
+      headline2: TextStyle(
+        fontSize: 28,
+        fontWeight: FontWeight.bold,
+        color: textColor,
+      ),
+      headline3: TextStyle(
+        fontSize: 24,
+        fontWeight: FontWeight.bold,
+        color: textColor,
+      ),
+      headline4: TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.w600,
+        color: textColor,
+      ),
+      headline5: TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.w600,
+        color: textColor,
+      ),
+      headline6: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+        color: textColor,
+      ),
+      subtitle1: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w500,
+        color: textColor,
+      ),
+      subtitle2: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        color: textColor,
+      ),
+      body1: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.normal,
+        color: textColor,
+      ),
+      body2: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.normal,
+        color: textColor,
+      ),
+      caption: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.normal,
+        color: textColor.withValues(alpha: 0.7),
+      ),
+      button: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: textColor,
+        letterSpacing: 1.25,
+      ),
+      overline: TextStyle(
+        fontSize: 10,
+        fontWeight: FontWeight.w500,
+        color: textColor,
+        letterSpacing: 1.5,
+      ),
+      storyText: TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.normal,
+        color: textColor,
+        height: 1.5,
+      ),
+      userName: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+        color: textColor,
+      ),
+      timestamp: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.normal,
+        color: textColor.withValues(alpha: 0.7),
+      ),
+      replyHint: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.normal,
+        color: textColor.withValues(alpha: 0.5),
+        fontStyle: FontStyle.italic,
+      ),
+      errorText: const TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        color: Color(0xFFCF6679),
+      ),
+    );
+  }
+
   /// Headline 1 style
   final TextStyle? headline1;
 
@@ -118,106 +218,6 @@ class VTypography {
       timestamp: timestamp ?? this.timestamp,
       replyHint: replyHint ?? this.replyHint,
       errorText: errorText ?? this.errorText,
-    );
-  }
-
-  /// Default typography
-  static VTypography defaultTypography({Color textColor = Colors.white}) {
-    return VTypography(
-      headline1: TextStyle(
-        fontSize: 32,
-        fontWeight: FontWeight.bold,
-        color: textColor,
-      ),
-      headline2: TextStyle(
-        fontSize: 28,
-        fontWeight: FontWeight.bold,
-        color: textColor,
-      ),
-      headline3: TextStyle(
-        fontSize: 24,
-        fontWeight: FontWeight.bold,
-        color: textColor,
-      ),
-      headline4: TextStyle(
-        fontSize: 20,
-        fontWeight: FontWeight.w600,
-        color: textColor,
-      ),
-      headline5: TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.w600,
-        color: textColor,
-      ),
-      headline6: TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.w600,
-        color: textColor,
-      ),
-      subtitle1: TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.w500,
-        color: textColor,
-      ),
-      subtitle2: TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.w500,
-        color: textColor,
-      ),
-      body1: TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.normal,
-        color: textColor,
-      ),
-      body2: TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.normal,
-        color: textColor,
-      ),
-      caption: TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.normal,
-        color: textColor.withValues(alpha: 0.7),
-      ),
-      button: TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-        color: textColor,
-        letterSpacing: 1.25,
-      ),
-      overline: TextStyle(
-        fontSize: 10,
-        fontWeight: FontWeight.w500,
-        color: textColor,
-        letterSpacing: 1.5,
-      ),
-      storyText: TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.normal,
-        color: textColor,
-        height: 1.5,
-      ),
-      userName: TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.w600,
-        color: textColor,
-      ),
-      timestamp: TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.normal,
-        color: textColor.withValues(alpha: 0.7),
-      ),
-      replyHint: TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.normal,
-        color: textColor.withValues(alpha: 0.5),
-        fontStyle: FontStyle.italic,
-      ),
-      errorText: TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.w500,
-        color: const Color(0xFFCF6679),
-      ),
     );
   }
 }

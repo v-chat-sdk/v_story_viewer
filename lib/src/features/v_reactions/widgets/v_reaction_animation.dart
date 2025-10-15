@@ -46,7 +46,7 @@ class _VReactionAnimationState extends State<VReactionAnimation>
 
     _opacityAnimation = TweenSequence<double>([
       TweenSequenceItem(tween: Tween<double>(begin: 0, end: 1), weight: 20),
-      TweenSequenceItem(tween: ConstantTween<double>(1.0), weight: 60),
+      TweenSequenceItem(tween: ConstantTween<double>(1), weight: 60),
       TweenSequenceItem(tween: Tween<double>(begin: 1, end: 0), weight: 80),
     ]).animate(_animationController);
 
@@ -66,7 +66,7 @@ class _VReactionAnimationState extends State<VReactionAnimation>
 
   void _onControllerUpdate() {
     if (widget.controller.isAnimating) {
-      _animationController.forward(from: 0.0);
+      _animationController.forward(from: 0);
     }
   }
 

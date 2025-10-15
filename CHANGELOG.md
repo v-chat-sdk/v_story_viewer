@@ -12,4 +12,3 @@
 * Customizable UI components and styling
 * Built-in error handling and recovery
 * ID-based navigation system
-* Sealed class hierarchy for type safety
