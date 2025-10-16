@@ -1,0 +1,7 @@
+hello i need you to see about the callback chains
+which is not good for tracking i decide to change this entire callback pass system
+to the stream so i have created the events and stream manager class you can see and understand
+now your task it to change all callbacks to use this classes i have created and reduce
+the complexity make the code more readable more clean
+you can direct update the code in this package it still not in production state
+so no detracted things done direct update the code deep search and tell me what you will do
