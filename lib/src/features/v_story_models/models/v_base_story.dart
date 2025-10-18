@@ -9,6 +9,7 @@ abstract class VBaseStory {
     required this.id,
     required this.createdAt,
     required this.storyType,
+    required this.groupId,
     this.duration,
     this.isViewed = false,
     this.isReacted = false,
@@ -17,6 +18,9 @@ abstract class VBaseStory {
 
   /// Unique identifier for the story
   final String id;
+
+  /// groupId for the story
+  final String groupId;
 
   /// Duration for how long the story should be displayed
   /// If null, defaults will be calculated based on story type
@@ -42,6 +46,7 @@ abstract class VBaseStory {
     DateTime? createdAt,
     bool? isViewed,
     bool? isReacted,
+    String? groupId,
     Map<String, dynamic>? metadata,
   });
 

@@ -25,7 +25,7 @@ class VStoryContentBuilder {
     required VGestureCallbacks gestureCallbacks,
     required VBaseMediaController mediaController,
     required VBaseStory currentStory,
-    required VStoryState state,
+    required bool isLoading,
     required double mediaLoadingProgress,
     required VProgressController progressController,
     required VStoryGroup currentGroup,
@@ -42,7 +42,7 @@ class VStoryContentBuilder {
           _buildHeader(currentGroup, currentStory, context),
           VReactionAnimation(controller: reactionController),
           _buildReplyView(currentStory, context, callbacks),
-          if (state.isLoading)
+          if ( isLoading)
             VLoadingOverlayBuilder.build(mediaLoadingProgress),
         ],
       ),

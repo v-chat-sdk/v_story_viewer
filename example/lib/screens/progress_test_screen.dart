@@ -32,24 +32,7 @@ class _ProgressTestScreenState extends State<ProgressTestScreen> {
   void _initController() {
     _controller = VProgressController(
       barCount: _barCount,
-      callbacks: VProgressCallbacks(
-        onBarComplete: (index) {
-          setState(() {
-            _lastCompletedBar = index;
-          });
 
-          // Auto-advance to next bar
-          if (index < _controller.barCount - 1) {
-            _controller.startProgress(index + 1, const Duration(seconds: 5));
-          }
-        },
-        onProgressUpdate: (progress) {
-          setState(() {
-            _currentProgressValue = progress;
-          });
-        },
-
-      ),
     );
   }
 

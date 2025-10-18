@@ -14,6 +14,7 @@ final class VVideoStory extends VMediaStory {
     required super.isReacted,
     required super.duration,
     required super.createdAt,
+    required super.groupId,
     this.thumbnail,
     this.aspectRatio,
     this.autoPlay = true,
@@ -59,6 +60,7 @@ final class VVideoStory extends VMediaStory {
     Duration? duration,
     DateTime? createdAt,
     bool? isViewed,
+    String? groupId,
     bool? isReacted,
     Map<String, dynamic>? metadata,
   }) {
@@ -66,7 +68,7 @@ final class VVideoStory extends VMediaStory {
       id: id ?? this.id,
       media: media ?? this.media,
       duration: duration ?? this.duration,
-
+      groupId: groupId ?? this.groupId,
       thumbnail: this.thumbnail,
       aspectRatio: this.aspectRatio,
       autoPlay: this.autoPlay,

@@ -10,6 +10,7 @@ class VTextStory extends VBaseStory {
     required super.id,
     required this.text,
     required super.createdAt,
+    required super.groupId,
     this.backgroundColor = Colors.blue,
     super.duration = const Duration(seconds: 3),
     super.isViewed,
@@ -55,6 +56,7 @@ class VTextStory extends VBaseStory {
     Duration? duration,
     DateTime? createdAt,
     bool? isViewed,
+    String? groupId,
     int? maxLines,
     bool? isReacted,
 
@@ -70,7 +72,7 @@ class VTextStory extends VBaseStory {
       text: text ?? this.text,
       backgroundColor: backgroundColor ?? this.backgroundColor,
       duration: duration ?? this.duration,
-
+      groupId: groupId ?? this.groupId,
       createdAt: createdAt ?? this.createdAt,
       maxLines: maxLines ?? this.maxLines,
       isViewed: isViewed ?? this.isViewed,

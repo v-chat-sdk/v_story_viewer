@@ -1,20 +1,17 @@
 import 'package:v_platform/v_platform.dart';
 
-import '../models/v_cache_callbacks.dart';
 import '../models/v_cache_error.dart';
 import '../models/v_download_progress.dart';
 import 'v_progress_streamer.dart';
 
 /// Handles error scenarios for cache operations
+/// Errors are emitted via progress stream for monitoring
 class VCacheErrorHandler {
   VCacheErrorHandler({
     required VProgressStreamer progressStreamer,
-    required VCacheCallbacks callbacks,
-  })  : _progressStreamer = progressStreamer,
-        _callbacks = callbacks;
+  }) : _progressStreamer = progressStreamer;
 
   final VProgressStreamer _progressStreamer;
-  final VCacheCallbacks _callbacks;
   bool _isDisposed = false;
 
   void handleFileError(Object error, VPlatformFile platformFile, String storyId) {
@@ -43,8 +40,6 @@ class VCacheErrorHandler {
       status: VDownloadStatus.error,
       error: error.message,
     );
-
-    _safeCallOnError(error.url, error.message);
   }
 
   String _extractUrl(VPlatformFile platformFile) {
@@ -52,12 +47,6 @@ class VCacheErrorHandler {
         platformFile.fileLocalPath ??
         platformFile.assetsPath ??
         'bytes';
-  }
-
-  void _safeCallOnError(String url, String error) {
-    if (!_isDisposed) {
-      _callbacks.onError?.call(url, error);
-    }
   }
 
   void markDisposed() {

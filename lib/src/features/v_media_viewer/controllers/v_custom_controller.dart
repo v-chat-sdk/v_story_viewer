@@ -7,7 +7,7 @@ import 'v_base_media_controller.dart';
 /// Custom stories use user-provided builder functions to render arbitrary widgets.
 /// No loading is required as the builder is invoked synchronously by the widget layer.
 class VCustomController extends VBaseMediaController {
-  VCustomController({super.callbacks});
+  VCustomController();
 
   @override
   Future<void> loadMedia(VBaseStory story) async {

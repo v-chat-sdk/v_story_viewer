@@ -1,19 +1,18 @@
 import 'package:flutter/foundation.dart';
 
+import '../../../core/models/v_story_events.dart';
 import '../../v_story_models/models/v_base_story.dart';
-import '../models/v_reaction_callbacks.dart';
+import '../../v_story_viewer/utils/v_story_event_manager.dart';
 import '../models/v_reaction_config.dart';
 
 /// Controller for managing story reactions
+/// Uses event-based communication via VStoryEventManager singleton
 class VReactionController extends ChangeNotifier {
   VReactionController({
     VReactionConfig? config,
-    VReactionCallbacks? callbacks,
-  })  : _config = config ?? const VReactionConfig(),
-        _callbacks = callbacks ?? const VReactionCallbacks();
+  }) : _config = config ?? const VReactionConfig();
 
   final VReactionConfig _config;
-  final VReactionCallbacks _callbacks;
 
   bool _isAnimating = false;
   VBaseStory? _currentStory;
@@ -36,16 +35,19 @@ class VReactionController extends ChangeNotifier {
     }
 
     _isAnimating = true;
-    _callbacks.onReactionAnimationStart?.call();
     notifyListeners();
 
-    // Send reaction callback
-    _callbacks.onReactionSent?.call(_currentStory!, _config.reactionType);
+    // Emit reaction sent event
+    VStoryEventManager.instance.enqueue(
+      VReactionSentEvent(
+        reactionType: _config.reactionType,
+        story: _currentStory!,
+      ),
+    );
 
     // Animation will complete after duration in widget
     Future.delayed(_config.animationDuration, () {
       _isAnimating = false;
-      _callbacks.onReactionAnimationComplete?.call();
       notifyListeners();
     });
   }

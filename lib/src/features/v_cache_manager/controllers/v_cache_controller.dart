@@ -4,7 +4,6 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:v_platform/v_platform.dart';
 
-import '../models/v_cache_callbacks.dart';
 import '../models/v_cache_config.dart';
 import '../models/v_download_progress.dart';
 import '../utils/v_cache_error_handler.dart';
@@ -12,13 +11,13 @@ import '../utils/v_download_manager.dart';
 import '../utils/v_file_handler.dart';
 import '../utils/v_progress_streamer.dart';
 
-/// Controller for cache management with progress streaming (Refactored)
+/// Controller for cache management with progress streaming
 ///
 /// Handles all VPlatformFile source types with delegated responsibilities.
+/// Cache events are emitted via progressStream for UI integration.
 class VCacheController extends ChangeNotifier {
-  VCacheController({VCacheConfig? config, VCacheCallbacks? callbacks})
-      : _config = config ?? VCacheConfig.defaultConfig,
-        _callbacks = callbacks ?? VCacheCallbacks.empty {
+  VCacheController({VCacheConfig? config})
+      : _config = config ?? VCacheConfig.defaultConfig {
     _initializeCacheManager();
     _progressStreamer = VProgressStreamer();
     _downloadManager = VDownloadManager(
@@ -27,12 +26,10 @@ class VCacheController extends ChangeNotifier {
     );
     _errorHandler = VCacheErrorHandler(
       progressStreamer: _progressStreamer,
-      callbacks: _callbacks,
     );
   }
 
   final VCacheConfig _config;
-  final VCacheCallbacks _callbacks;
   late final CacheManager _cacheManager;
   late final VProgressStreamer _progressStreamer;
   late final VDownloadManager _downloadManager;
@@ -116,7 +113,6 @@ class VCacheController extends ChangeNotifier {
   }
 
   File _handleCacheHit(String url, File file, String storyId) {
-    _safeCallOnCacheHit(url, file);
     _progressStreamer.emit(
       storyId: storyId,
       url: url,
@@ -129,16 +125,11 @@ class VCacheController extends ChangeNotifier {
   }
 
   Future<File?> _downloadWithProgress(String url, String storyId) async {
-    _safeCallOnDownloadStart(url);
-
     return _downloadManager.downloadWithProgress(
       url,
       storyId,
       onProgress: (progress) {
         _progressStreamer.emitProgress(progress);
-        if (progress.status == VDownloadStatus.completed) {
-          _safeCallOnComplete(url, File(url));
-        }
       },
       onError: (error) {
         _progressStreamer.emit(
@@ -149,33 +140,8 @@ class VCacheController extends ChangeNotifier {
           status: VDownloadStatus.error,
           error: error.message,
         );
-        _safeCallOnError(error.url, error.message);
       },
     );
-  }
-
-  void _safeCallOnDownloadStart(String url) {
-    if (!_isDisposed) {
-      _callbacks.onDownloadStart?.call(url);
-    }
-  }
-
-  void _safeCallOnCacheHit(String url, File file) {
-    if (!_isDisposed) {
-      _callbacks.onCacheHit?.call(url, file);
-    }
-  }
-
-  void _safeCallOnComplete(String url, File file) {
-    if (!_isDisposed) {
-      _callbacks.onComplete?.call(url, file);
-    }
-  }
-
-  void _safeCallOnError(String url, String error) {
-    if (!_isDisposed) {
-      _callbacks.onError?.call(url, error);
-    }
   }
 
   Future<void> clearCache() async {

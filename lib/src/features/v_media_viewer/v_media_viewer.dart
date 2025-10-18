@@ -12,9 +12,6 @@ export 'controllers/v_media_controller_factory.dart';
 export 'controllers/v_text_controller.dart';
 export 'controllers/v_video_controller.dart';
 
-// Models
-export 'models/v_media_callbacks.dart';
-
 // Widgets
 export 'widgets/v_custom_viewer.dart';
 export 'widgets/v_image_viewer.dart';

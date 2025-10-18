@@ -29,9 +29,7 @@ class VMediaDisplay extends StatelessWidget {
   Widget build(BuildContext context) {
     // Show loading indicator
     if (controller.isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     // Show error
@@ -53,19 +51,21 @@ class VMediaDisplay extends StatelessWidget {
     }
 
     // Display appropriate viewer based on story type
-    return switch (story) {
-      VImageStory() => VImageViewer(story: story as VImageStory),
-      VVideoStory() => VVideoViewer(
+    return Center(
+      child: switch (story) {
+        VImageStory() => VImageViewer(story: story as VImageStory),
+        VVideoStory() => VVideoViewer(
           controller: controller as VVideoController,
         ),
-      VTextStory() => VTextViewer(story: story as VTextStory),
-      VCustomStory() => VCustomViewer(story: story as VCustomStory),
-      _ => const Center(
+        VTextStory() => VTextViewer(story: story as VTextStory),
+        VCustomStory() => VCustomViewer(story: story as VCustomStory),
+        _ => const Center(
           child: Text(
-            'Unknown story type',
+            'Unknown story type please update the app to latest version',
             style: TextStyle(color: Colors.white),
           ),
         ),
-    };
+      },
+    );
   }
 }

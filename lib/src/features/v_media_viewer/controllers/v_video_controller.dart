@@ -10,7 +10,7 @@ import '../../../../v_story_viewer.dart';
 /// pause/resume functionality, and duration notification.
 /// Uses single controller instance with init/dispose per story for performance.
 class VVideoController extends VBaseMediaController {
-  VVideoController({required this.cacheController, super.callbacks});
+  VVideoController({required this.cacheController});
 
   final VCacheController cacheController;
   VideoPlayerController? _videoPlayerController;

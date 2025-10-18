@@ -12,11 +12,19 @@ import '../../../core/models/v_story_events.dart';
 /// 2. Processing events sequentially (no concurrent callbacks)
 /// 3. Supporting event priorities (critical events first)
 /// 4. Providing clean error handling and logging
+///
+/// This is a singleton - access via [VStoryEventManager.instance]
 class VStoryEventManager {
-  /// Create event manager with optional custom event bus
-  VStoryEventManager({EventBus? eventBus})
-      : _eventBus = eventBus ?? EventBus(),
+  /// Private constructor for singleton pattern
+  VStoryEventManager._internal()
+      : _eventBus = EventBus(),
         _eventQueue = [];
+
+  /// Singleton instance - access from anywhere in the app
+  static final VStoryEventManager _instance = VStoryEventManager._internal();
+
+  /// Get the singleton instance
+  static VStoryEventManager get instance => _instance;
 
   final EventBus _eventBus;
   final List<_QueuedEvent> _eventQueue;
@@ -60,7 +68,7 @@ class VStoryEventManager {
         _eventBus.fire(queued.event);
 
         // Wait for event to complete before next
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
       } catch (e, stackTrace) {
         debugPrintStack(
           label: 'Error processing event: ${queued.event.runtimeType}',
@@ -87,6 +95,7 @@ class VStoryEventManager {
   static int getPriority(VStoryEvent event) {
     return switch (event) {
       VMediaErrorEvent() => 100, // Critical - errors first
+      VCacheErrorEvent() => 100, // Critical - cache errors
       VMediaReadyEvent() => 90, // High - ready state
       VProgressCompleteEvent() => 80, // Medium-high - progress
       VDurationKnownEvent() => 70, // Medium - duration
@@ -94,8 +103,12 @@ class VStoryEventManager {
       VNavigateToNextStoryEvent() => 60, // Medium
       VNavigateToPreviewsStoryEvent() => 60, // Medium
       VStoryPauseStateChangedEvent() => 50, // Medium-low
+      VReplyFocusChangedEvent() => 50, // Medium-low - pause on reply
       VReactionSentEvent() => 40, // Low - reactions
       VCarouselScrollStateChangedEvent() => 30, // Low - scroll
+      VCacheDownloadStartEvent() => 25, // Very low - cache start
+      VCacheHitEvent() => 25, // Very low - cache hit
+      VCacheDownloadCompleteEvent() => 25, // Very low - cache complete
       VMediaLoadingProgressEvent() => 20, // Very low - progress updates
       _ => 10, // Default - lowest priority
     };

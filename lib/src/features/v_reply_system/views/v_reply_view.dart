@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/callbacks/v_reply_callbacks.dart';
+import '../../../core/models/v_story_events.dart';
 import '../../v_story_models/v_story_models.dart';
+import '../../v_story_viewer/utils/v_story_event_manager.dart';
 import '../controllers/v_reply_controller.dart';
 import '../models/v_reply_config.dart';
 import '../widgets/v_reply_input.dart';
 
 /// The main view for the reply system.
+/// Focus changes are emitted as events for story pause/resume coordination.
 class VReplyView extends StatefulWidget {
   /// Creates a new instance of [VReplyView].
   const VReplyView({
@@ -53,7 +56,12 @@ class _VReplyViewState extends State<VReplyView> {
   }
 
   void _onFocusChange() {
-    widget.callbacks?.onFocusChanged?.call(_focusNode.hasFocus);
+    VStoryEventManager.instance.enqueue(
+      VReplyFocusChangedEvent(
+        hasFocus: _focusNode.hasFocus,
+        story: widget.story,
+      ),
+    );
   }
 
   @override

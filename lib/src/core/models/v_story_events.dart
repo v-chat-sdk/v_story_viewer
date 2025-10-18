@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 
 import '../../features/v_story_models/models/v_base_story.dart';
-import '../../features/v_story_models/models/v_story_group.dart';
 
 /// Base class for all story viewer events
 @immutable
@@ -131,4 +130,61 @@ class VMediaLoadingProgressEvent extends VStoryEvent {
   });
 
   final double progress;
+}
+
+/// Event fired when cache download starts
+@immutable
+class VCacheDownloadStartEvent extends VStoryEvent {
+  const VCacheDownloadStartEvent({
+    required this.url,
+    required super.story,
+  });
+
+  final String url;
+}
+
+/// Event fired when cache hit occurs
+@immutable
+class VCacheHitEvent extends VStoryEvent {
+  const VCacheHitEvent({
+    required this.url,
+    required super.story,
+  });
+
+  final String url;
+}
+
+/// Event fired when cache download completes
+@immutable
+class VCacheDownloadCompleteEvent extends VStoryEvent {
+  const VCacheDownloadCompleteEvent({
+    required this.url,
+    required super.story,
+  });
+
+  final String url;
+}
+
+/// Event fired when cache error occurs
+@immutable
+class VCacheErrorEvent extends VStoryEvent {
+  const VCacheErrorEvent({
+    required this.url,
+    required this.error,
+    required super.story,
+  });
+
+  final String url;
+  final String error;
+}
+
+/// Event fired when reply input focus changes
+@immutable
+class VReplyFocusChangedEvent extends VStoryEvent {
+  const VReplyFocusChangedEvent({
+    required this.hasFocus,
+    required super.story,
+  });
+
+  final bool hasFocus;
 }

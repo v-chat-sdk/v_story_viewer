@@ -1,7 +1,8 @@
 import 'package:flutter/foundation.dart';
 
+import '../../../core/models/v_story_events.dart';
 import '../../v_story_models/models/v_base_story.dart';
-import '../models/v_media_callbacks.dart';
+import '../../v_story_viewer/utils/v_story_event_manager.dart';
 
 /// Abstract base controller for all media types
 ///
@@ -9,12 +10,9 @@ import '../models/v_media_callbacks.dart';
 /// Subclasses implement specific media loading logic via [loadMedia] method.
 ///
 /// Uses Template Method pattern for lifecycle management.
+/// Uses event-based communication via VStoryEventManager singleton.
 abstract class VBaseMediaController extends ChangeNotifier {
-  VBaseMediaController({
-    VMediaCallbacks? callbacks,
-  }) : _callbacks = callbacks ?? VMediaCallbacks.empty;
-
-  final VMediaCallbacks _callbacks;
+  VBaseMediaController();
 
   VBaseStory? _currentStory;
   bool _isLoading = false;
@@ -62,7 +60,11 @@ abstract class VBaseMediaController extends ChangeNotifier {
   void _setReadyState() {
     _isLoading = false;
     notifyListeners();
-    _callbacks.onMediaReady?.call();
+    if (_currentStory != null) {
+      VStoryEventManager.instance.enqueue(
+        VMediaReadyEvent(story: _currentStory!),
+      );
+    }
   }
 
   void _setErrorState(String error) {
@@ -70,7 +72,11 @@ abstract class VBaseMediaController extends ChangeNotifier {
     _hasError = true;
     _errorMessage = error;
     notifyListeners();
-    _callbacks.onMediaError?.call(error);
+    if (_currentStory != null) {
+      VStoryEventManager.instance.enqueue(
+        VMediaErrorEvent(error: error, story: _currentStory!),
+      );
+    }
   }
 
   /// Pause media playback (if applicable)
@@ -79,7 +85,11 @@ abstract class VBaseMediaController extends ChangeNotifier {
       _isPaused = true;
       notifyListeners();
       pauseMedia();
-      _callbacks.onPaused?.call();
+      if (_currentStory != null) {
+        VStoryEventManager.instance.enqueue(
+          VStoryPauseStateChangedEvent(isPaused: true, story: _currentStory!),
+        );
+      }
     }
   }
 
@@ -89,7 +99,11 @@ abstract class VBaseMediaController extends ChangeNotifier {
       _isPaused = false;
       notifyListeners();
       resumeMedia();
-      _callbacks.onResumed?.call();
+      if (_currentStory != null) {
+        VStoryEventManager.instance.enqueue(
+          VStoryPauseStateChangedEvent(isPaused: false, story: _currentStory!),
+        );
+      }
     }
   }
 
@@ -106,21 +120,33 @@ abstract class VBaseMediaController extends ChangeNotifier {
   /// Notify that video duration is known
   @protected
   void notifyDuration(Duration duration) {
-    _callbacks.onDurationKnown?.call(duration);
+    if (_currentStory != null) {
+      VStoryEventManager.instance.enqueue(
+        VDurationKnownEvent(duration: duration, story: _currentStory!),
+      );
+    }
   }
 
-  /// Manually trigger ready callback (for synchronous media like text)
+  /// Manually trigger ready event (for synchronous media like text)
   @protected
   void notifyReady() {
-    _callbacks.onMediaReady?.call();
+    if (_currentStory != null) {
+      VStoryEventManager.instance.enqueue(
+        VMediaReadyEvent(story: _currentStory!),
+      );
+    }
   }
 
-  /// Manually trigger error callback
+  /// Manually trigger error event
   @protected
   void notifyError(String error) {
     _hasError = true;
     _errorMessage = error;
-    _callbacks.onMediaError?.call(error);
+    if (_currentStory != null) {
+      VStoryEventManager.instance.enqueue(
+        VMediaErrorEvent(error: error, story: _currentStory!),
+      );
+    }
     notifyListeners();
   }
 

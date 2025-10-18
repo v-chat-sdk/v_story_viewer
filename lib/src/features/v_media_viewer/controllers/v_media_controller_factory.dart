@@ -4,7 +4,6 @@ import '../../v_story_models/models/v_custom_story.dart';
 import '../../v_story_models/models/v_image_story.dart';
 import '../../v_story_models/models/v_text_story.dart';
 import '../../v_story_models/models/v_video_story.dart';
-import '../models/v_media_callbacks.dart';
 import 'v_base_media_controller.dart';
 import 'v_custom_controller.dart';
 import 'v_image_controller.dart';
@@ -15,6 +14,7 @@ import 'v_video_controller.dart';
 ///
 /// Uses pattern matching to select the correct controller implementation.
 /// Each controller is optimized for its specific media type.
+/// Controllers communicate via VStoryEventManager singleton.
 class VMediaControllerFactory {
   /// Create controller based on story type
   ///
@@ -27,19 +27,17 @@ class VMediaControllerFactory {
   /// Throws [ArgumentError] if story type is unknown.
   static VBaseMediaController createController({
     required VBaseStory story,
-    required VCacheController  cacheController, VMediaCallbacks? callbacks,
+    required VCacheController cacheController,
   }) {
     return switch (story) {
       VImageStory() => VImageController(
-        callbacks: callbacks,
         cacheController: cacheController,
       ),
       VVideoStory() => VVideoController(
-          callbacks: callbacks,
         cacheController: cacheController,
       ),
-      VTextStory() => VTextController(callbacks: callbacks),
-      VCustomStory() => VCustomController(callbacks: callbacks),
+      VTextStory() => VTextController(),
+      VCustomStory() => VCustomController(),
       _ => throw ArgumentError('Unknown story type: ${story.runtimeType}'),
     };
   }

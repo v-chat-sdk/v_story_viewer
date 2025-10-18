@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../../../v_story_viewer.dart';
+import '../../../core/models/v_story_events.dart';
 import '../utils/v_carousel_manager.dart';
 import '../utils/v_controller_initializer.dart';
+import '../utils/v_story_event_manager.dart';
 import '../utils/v_story_gesture_handler.dart';
 import 'builders/v_story_content_builder.dart';
 import 'cube_page_view.dart' show CubePageView;
@@ -47,6 +49,7 @@ class _VStoryViewerState extends State<VStoryViewer> {
 
   VStoryState _state = VStoryState.initial();
   StreamSubscription<VDownloadProgress>? _progressSubscription;
+  StreamSubscription<VStoryEvent>? _eventSubscription;
   double _mediaLoadingProgress = 0;
 
   bool get _isCubePageMode =>
@@ -59,6 +62,7 @@ class _VStoryViewerState extends State<VStoryViewer> {
     _initializeManagers();
     _initializeControllers();
     _setupProgressListener();
+    _setupEventListener();
     _loadCurrentStory();
   }
 
@@ -89,11 +93,10 @@ class _VStoryViewerState extends State<VStoryViewer> {
 
     _progressController = VControllerInitializer.createProgressController(
       barCount: currentGroup.stories.length,
-      onBarComplete: _handleProgressComplete,
+      currentBar: widget.initialStoryIndex,
+      callbacks: VProgressCallbacks(onBarComplete: _handleProgressComplete),
     );
-    _reactionController = VControllerInitializer.createReactionController(
-      onReactionSent: _handleReactionSent,
-    );
+    _reactionController = VControllerInitializer.createReactionController();
     _initializeGestureHandler();
   }
 
@@ -101,9 +104,6 @@ class _VStoryViewerState extends State<VStoryViewer> {
     _mediaController = VControllerInitializer.createMediaController(
       story: story,
       cacheController: _cacheController,
-      onMediaReady: _handleMediaReady,
-      onMediaError: _handleMediaError,
-      onDurationKnown: _handleDurationKnown,
     );
   }
 
@@ -134,6 +134,36 @@ class _VStoryViewerState extends State<VStoryViewer> {
     });
   }
 
+  void _setupEventListener() {
+    _eventSubscription = VStoryEventManager.instance.on<VStoryEvent>((event) {
+      if (!mounted) return;
+
+      switch (event) {
+        case VMediaReadyEvent():
+          _handleMediaReady();
+        case VMediaErrorEvent():
+          widget.callbacks?.onError?.call(event.error);
+        case VDurationKnownEvent():
+          _progressController?.updateDuration(event.duration);
+        case VReactionSentEvent():
+          debugPrint(
+            'Reaction: ${event.reactionType} for story ${event.story.id}',
+          );
+        case VReplyFocusChangedEvent():
+          if (event.hasFocus) {
+            _handlePause();
+          } else {
+            _handleResume();
+          }
+        case VStoryPauseStateChangedEvent():
+          // Handled by media controller itself
+          break;
+        default:
+          break;
+      }
+    });
+  }
+
   void _updateState(VStoryState newState) {
     if (!mounted) return;
     setState(() {
@@ -154,7 +184,7 @@ class _VStoryViewerState extends State<VStoryViewer> {
     _initMediaController(currentStory);
 
     // Set progress cursor and update state
-    _progressController!.setCursorAt(currentStoryIndex + 1);
+    _progressController!.setCursorAt(currentStoryIndex  );
     _reactionController.setCurrentStory(currentStory);
     _updateState(
       _state.copyWith(
@@ -186,27 +216,13 @@ class _VStoryViewerState extends State<VStoryViewer> {
     final currentStoryIndex = _navigationController.currentStoryIndex;
 
     // Update state to playing
-    _updateState(
-      _state.copyWith(playbackState: VStoryPlaybackState.playing),
-    );
+    _updateState(_state.copyWith(playbackState: VStoryPlaybackState.playing));
 
     // Start progress animation
     _progressController!.startProgress(
       currentStoryIndex,
       currentStory.duration ?? const Duration(seconds: 5),
     );
-  }
-
-  void _handleMediaError(String error) {
-    widget.callbacks?.onError?.call(error);
-  }
-
-  void _handleDurationKnown(Duration duration) {
-    _progressController!.updateDuration(duration);
-  }
-
-  void _handleReactionSent(VBaseStory story, String reactionType) {
-    debugPrint('Reaction: $reactionType for story ${story.id}');
   }
 
   void _handleCarouselScrollStateChanged(bool isScrolling) {
@@ -217,17 +233,11 @@ class _VStoryViewerState extends State<VStoryViewer> {
   }
 
   void _handleTapPrevious() {
-    final currentProgress = _progressController?.currentProgress ?? 0;
-    final threshold = 0.1;
-    if (currentProgress < threshold && _navigationController.hasPreviousStory) {
+    if (_navigationController.hasPreviousStory) {
       _navigationController.previousStory();
       _loadCurrentStory();
-    } else if (currentProgress < threshold &&
-        _navigationController.hasPreviousGroup) {
+    } else if (_navigationController.hasPreviousGroup) {
       _handlePreviousGroup();
-    } else {
-      _progressController?.resetProgress();
-      _mediaController?.loadStory(_navigationController.currentStory);
     }
   }
 
@@ -302,7 +312,8 @@ class _VStoryViewerState extends State<VStoryViewer> {
 
     _progressController = VControllerInitializer.createProgressController(
       barCount: _navigationController.currentGroup.stories.length,
-      onBarComplete: _handleProgressComplete,
+      currentBar: widget.initialStoryIndex,
+      callbacks: VProgressCallbacks(onBarComplete: _handleProgressComplete),
     );
   }
 
@@ -364,7 +375,7 @@ class _VStoryViewerState extends State<VStoryViewer> {
       ),
       mediaController: _mediaController!,
       currentStory: _navigationController.currentStory,
-      state: _state,
+      isLoading: _state.isLoading,
       mediaLoadingProgress: _mediaLoadingProgress,
       progressController: _progressController!,
       currentGroup: _navigationController.currentGroup,
@@ -377,6 +388,7 @@ class _VStoryViewerState extends State<VStoryViewer> {
   @override
   void dispose() {
     _progressSubscription?.cancel();
+    _eventSubscription?.cancel();
     _navigationController.dispose();
     _progressController?.dispose();
     _mediaController?.dispose();

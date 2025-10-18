@@ -10,8 +10,10 @@ abstract class VMediaStory extends VBaseStory {
     required super.id,
     required super.createdAt,
     required super.storyType,
+    required super.groupId,
     super.duration,
     super.isViewed,
+
     super.isReacted,
     super.metadata,
   });
@@ -24,6 +26,7 @@ abstract class VMediaStory extends VBaseStory {
     String? id,
     VPlatformFile? media,
     Duration? duration,
+    String? groupId,
     DateTime? createdAt,
     bool? isViewed,
     bool? isReacted,

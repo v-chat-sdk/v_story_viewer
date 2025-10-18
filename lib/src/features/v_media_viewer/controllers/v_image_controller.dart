@@ -9,7 +9,7 @@ import 'v_base_media_controller.dart';
 /// Images are preloaded using the cache controller, and actual rendering
 /// is handled by CachedNetworkImage widget in the UI layer.
 class VImageController extends VBaseMediaController {
-  VImageController({required VCacheController cacheController, super.callbacks})
+  VImageController({required VCacheController cacheController})
     : _cacheController = cacheController;
 
   final VCacheController _cacheController;

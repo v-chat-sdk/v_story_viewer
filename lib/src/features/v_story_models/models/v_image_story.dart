@@ -13,6 +13,7 @@ final class VImageStory extends VMediaStory {
     required super.isReacted,
     required this.media,
     required super.duration,
+    required super.groupId,
     required super.createdAt,
     this.fit = BoxFit.contain,
     this.caption,
@@ -64,6 +65,7 @@ final class VImageStory extends VMediaStory {
     String? id,
     VPlatformFile? media,
     Duration? duration,
+    String? groupId,
     DateTime? createdAt,
     bool? isViewed,
     bool? isReacted,
@@ -80,6 +82,7 @@ final class VImageStory extends VMediaStory {
       createdAt: createdAt ?? this.createdAt,
       isViewed: isViewed ?? this.isViewed,
       isReacted: isReacted ?? this.isReacted,
+      groupId: groupId ?? this.groupId,
       metadata: metadata ?? this.metadata,
     );
   }

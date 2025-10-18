@@ -7,7 +7,7 @@ import 'v_base_media_controller.dart';
 /// Text stories are synchronous and require no loading time.
 /// This controller validates the text content and immediately signals ready state.
 class VTextController extends VBaseMediaController {
-  VTextController({super.callbacks});
+  VTextController();
 
   @override
   Future<void> loadMedia(VBaseStory story) async {

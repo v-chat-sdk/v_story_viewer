@@ -159,6 +159,7 @@ class HomeScreen extends StatelessWidget {
         stories: [
           VTextStory(
             id: 'story_1',
+            groupId: "user_1",
             text: 'story_1',
             backgroundColor: Colors.purple,
             duration: const Duration(seconds: 3),
@@ -170,6 +171,7 @@ class HomeScreen extends StatelessWidget {
 
           VTextStory(
             id: 'story_11',
+            groupId: "user_1",
             text: 'Story number 2.',
             backgroundColor: Colors.purple,
             duration: const Duration(seconds: 3),
@@ -179,6 +181,7 @@ class HomeScreen extends StatelessWidget {
           ),
           VVideoStory(
             id: 'story_2',
+            groupId: "user_1",
             media: VPlatformFile.fromUrl(
               networkUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4',
             ),
@@ -190,6 +193,7 @@ class HomeScreen extends StatelessWidget {
           VTextStory(
             id: 'story_112',
             text: 'Story number 4.',
+            groupId: "user_1",
             backgroundColor: Colors.purple,
             duration: const Duration(seconds: 8),
             createdAt: DateTime.now(),
@@ -198,6 +202,7 @@ class HomeScreen extends StatelessWidget {
           ),
           VVideoStory(
             id: 'story_3',
+            groupId: "user_1",
             media: VPlatformFile.fromUrl(
               networkUrl:
               'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
@@ -209,6 +214,7 @@ class HomeScreen extends StatelessWidget {
           ),
           VTextStory(
             id: 'story_1121',
+            groupId: "user_1",
             text: 'Story number 5 END.',
             backgroundColor: Colors.purple,
             duration: const Duration(seconds: 13),
@@ -229,6 +235,7 @@ class HomeScreen extends StatelessWidget {
         stories: [
           VCustomStory(
             id: 'story_4',
+            groupId: "user_2",
             builder: (context) => Container(
               color: Colors.orange,
               child: const Center(
@@ -256,6 +263,7 @@ class HomeScreen extends StatelessWidget {
           ),
           VVideoStory(
             id: 'story_5',
+            groupId: "user_2",
             media: VPlatformFile.fromUrl(
               networkUrl:
               'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
@@ -267,6 +275,7 @@ class HomeScreen extends StatelessWidget {
           ),
           VTextStory(
             id: 'story_6',
+            groupId: "user_2",
             text: 'This is Bob\'s story\n\nSwipe left to see more! 👉',
             backgroundColor: Colors.teal,
             duration: const Duration(seconds: 3),
@@ -287,6 +296,7 @@ class HomeScreen extends StatelessWidget {
         stories: [
           VImageStory(
             id: 'story_7',
+            groupId: "user_3",
             media: VPlatformFile.fromUrl(
               networkUrl: 'https://picsum.photos/400/600?random=2',
             ),
@@ -297,6 +307,7 @@ class HomeScreen extends StatelessWidget {
           ),
           VImageStory(
             id: 'story_8',
+            groupId: "user_3",
             media: VPlatformFile.fromUrl(
               networkUrl: 'https://picsum.photos/400/600?random=3',
             ),
@@ -307,6 +318,7 @@ class HomeScreen extends StatelessWidget {
           ),
           VTextStory(
             id: 'story_9',
+            groupId: "user_3",
             text: 'Thanks for watching! 🎉',
             backgroundColor: Colors.green,
             duration: const Duration(seconds: 3),
@@ -327,6 +339,7 @@ class HomeScreen extends StatelessWidget {
         stories: [
           VTextStory(
             id: 'story_10',
+            groupId: "user_4",
             text: 'Check out these cool videos! 🎥',
             backgroundColor: Colors.deepPurple,
             duration: const Duration(seconds: 3),
@@ -336,6 +349,7 @@ class HomeScreen extends StatelessWidget {
           ),
           VVideoStory(
             id: 'story_11',
+            groupId: "user_4",
             media: VPlatformFile.fromUrl(
               networkUrl:
               'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
@@ -347,6 +361,7 @@ class HomeScreen extends StatelessWidget {
           ),
           VVideoStory(
             id: 'story_12',
+            groupId: "user_4",
             media: VPlatformFile.fromUrl(
               networkUrl:
               'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4',
@@ -358,6 +373,7 @@ class HomeScreen extends StatelessWidget {
           ),
           VVideoStory(
             id: 'story_13',
+            groupId: "user_4",
             media: VPlatformFile.fromUrl(
               networkUrl:
               'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
@@ -369,6 +385,7 @@ class HomeScreen extends StatelessWidget {
           ),
           VTextStory(
             id: 'story_14',
+            groupId: "user_4",
             text: 'Hope you enjoyed! 🌟',
             backgroundColor: Colors.indigo,
             duration: const Duration(seconds: 3),
