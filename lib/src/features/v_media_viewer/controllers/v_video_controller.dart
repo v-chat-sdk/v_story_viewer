@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:v_platform/v_platform.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../../../v_story_viewer.dart';
@@ -24,30 +25,35 @@ class VVideoController extends VBaseMediaController {
       throw ArgumentError('VVideoController requires VVideoStory');
     }
 
-    // Trigger cache download for network videos
-    // Progress tracking happens in VStoryViewer via global stream listener
+    await _videoPlayerController?.dispose();
+
+
+
+    VPlatformFile? mediaToLoad = story.media;
     if (story.media.networkUrl != null) {
-      await cacheController.getFile(story.media, story.id);
+      final cachedFile = await cacheController.getFile(story.media, story.id);
+      if (cachedFile != null) {
+        mediaToLoad = cachedFile;
+      }
     }
 
-    await _videoPlayerController?.dispose();
-    _videoPlayerController = _createVideoController(story);
+    _videoPlayerController = _createVideoController(mediaToLoad);
     await _initializeAndConfigureVideo(story);
   }
 
-  VideoPlayerController _createVideoController(VVideoStory story) {
-    if (story.media.networkUrl != null) {
+  VideoPlayerController _createVideoController(VPlatformFile media) {
+    if (media.fileLocalPath != null) {
+      return VideoPlayerController.file(File(media.fileLocalPath!));
+    }
+    if (media.networkUrl != null) {
       return VideoPlayerController.networkUrl(
-        Uri.parse(story.media.networkUrl!),
+        Uri.parse(media.networkUrl!),
       );
     }
-    if (story.media.fileLocalPath != null) {
-      return VideoPlayerController.file(File(story.media.fileLocalPath!));
+    if (media.assetsPath != null) {
+      return VideoPlayerController.asset(media.assetsPath!);
     }
-    if (story.media.assetsPath != null) {
-      return VideoPlayerController.asset(story.media.assetsPath!);
-    }
-    throw ArgumentError('VVideoStory must have a valid media source');
+    throw ArgumentError('VPlatformFile must have a valid media source');
   }
 
   Future<void> _initializeAndConfigureVideo(VVideoStory story) async {
@@ -91,5 +97,4 @@ class VVideoController extends VBaseMediaController {
     _videoPlayerController?.dispose();
     super.dispose();
   }
-
 }

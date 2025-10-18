@@ -120,7 +120,7 @@ class _VStoryViewerState extends State<VStoryViewer> {
   }
 
   void _setupProgressListener() {
-    _progressSubscription = _cacheController.progressStream.listen((progress) {
+    _progressSubscription = _cacheController.mediaDownloadProgressStream.listen((progress) {
       if (!mounted) return;
 
       final currentStory = _navigationController.currentStory;
@@ -184,7 +184,7 @@ class _VStoryViewerState extends State<VStoryViewer> {
     _initMediaController(currentStory);
 
     // Set progress cursor and update state
-    _progressController!.setCursorAt(currentStoryIndex  );
+    _progressController!.setCursorAt(currentStoryIndex);
     _reactionController.setCurrentStory(currentStory);
     _updateState(
       _state.copyWith(

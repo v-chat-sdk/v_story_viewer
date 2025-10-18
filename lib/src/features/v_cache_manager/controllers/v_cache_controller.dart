@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:flutter/widgets.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:v_platform/v_platform.dart';
 
@@ -18,26 +18,28 @@ import '../utils/v_progress_streamer.dart';
 class VCacheController extends ChangeNotifier {
   VCacheController({VCacheConfig? config})
       : _config = config ?? VCacheConfig.defaultConfig {
-    _initializeCacheManager();
     _progressStreamer = VProgressStreamer();
-    _downloadManager = VDownloadManager(
-      cacheManager: _cacheManager,
-      config: _config,
-    );
+    _initializeCacheManager();
     _errorHandler = VCacheErrorHandler(
       progressStreamer: _progressStreamer,
     );
   }
 
   final VCacheConfig _config;
-  late final CacheManager _cacheManager;
+  late final CacheManager? _cacheManager;
   late final VProgressStreamer _progressStreamer;
-  late final VDownloadManager _downloadManager;
+  late final VDownloadManager? _downloadManager;
   late final VCacheErrorHandler _errorHandler;
 
   bool _isDisposed = false;
 
   void _initializeCacheManager() {
+    if (kIsWeb) {
+      _cacheManager = null;
+      _downloadManager = null;
+      return;
+    }
+
     const key = 'v_story_sdk';
     _cacheManager = CacheManager(
       Config(
@@ -49,12 +51,16 @@ class VCacheController extends ChangeNotifier {
         fileService: HttpFileService(),
       ),
     );
+    _downloadManager = VDownloadManager(
+      cacheManager: _cacheManager!,
+      config: _config,
+    );
   }
 
-  Stream<VDownloadProgress> get progressStream => _progressStreamer.stream;
+  Stream<VDownloadProgress> get mediaDownloadProgressStream => _progressStreamer.stream;
 
   /// Get file from VPlatformFile with story ID for progress tracking
-  Future<File?> getFile(VPlatformFile platformFile, String storyId) async {
+  Future<VPlatformFile?> getFile(VPlatformFile platformFile, String storyId) async {
     if (_isDisposed) return null;
 
     try {
@@ -65,41 +71,69 @@ class VCacheController extends ChangeNotifier {
     }
   }
 
-  Future<File?> _getFileByType(VPlatformFile platformFile, String storyId) async {
+  Future<VPlatformFile?> _getFileByType(VPlatformFile platformFile, String storyId) async {
     if (platformFile.networkUrl != null) {
       return _getFromNetwork(platformFile.networkUrl!, storyId);
     }
 
     if (platformFile.fileLocalPath != null) {
-      return File(platformFile.fileLocalPath!);
+      if (kIsWeb) {
+        return null;
+      }
+      return VPlatformFile.fromPath(fileLocalPath: platformFile.fileLocalPath!);
     }
 
     if (platformFile.assetsPath != null) {
-      return VFileHandler.loadFromAssets(platformFile.assetsPath!);
+      if (kIsWeb) {
+        return platformFile;
+      }
+      final file = await VFileHandler.loadFromAssets(platformFile.assetsPath!);
+      return VPlatformFile.fromPath(fileLocalPath: file.path);
     }
 
     if (platformFile.bytes != null) {
+      if (kIsWeb) {
+        return platformFile;
+      }
       final bytes = VFileHandler.toUint8List(platformFile.bytes!);
-      return VFileHandler.saveBytesToFile(bytes);
+      final file = await VFileHandler.saveBytesToFile(bytes);
+      return VPlatformFile.fromPath(fileLocalPath: file.path);
     }
 
     return null;
   }
 
-  Future<File?> _getFromNetwork(String url, String storyId) async {
+  Future<VPlatformFile?> _getFromNetwork(String url, String storyId) async {
     if (_isDisposed) return null;
 
-    final existingDownload = _downloadManager.getActiveDownload(url);
-    if (existingDownload != null) {
-      return existingDownload;
+    if (kIsWeb) {
+      _progressStreamer.emit(
+        storyId: storyId,
+        url: url,
+        progress: 1,
+        downloaded: 0,
+        total: 0,
+        status: VDownloadStatus.completed,
+      );
+      return VPlatformFile.fromUrl(networkUrl: url);
     }
 
-    return _downloadManager.startDownload(url, () => _performNetworkFetch(url, storyId));
+    final existingDownloadFuture = _downloadManager!.getActiveDownload(url);
+    if (existingDownloadFuture != null) {
+      final existingFile = await existingDownloadFuture;
+      if (existingFile != null) {
+        return VPlatformFile.fromPath(fileLocalPath: existingFile.path);
+      }
+    }
+
+    final file = await _downloadManager.startDownload(url, () => _performNetworkFetch(url, storyId));
+    if (file == null) return null;
+    return VPlatformFile.fromPath(fileLocalPath: file.path);
   }
 
   Future<File?> _performNetworkFetch(String url, String storyId) async {
     try {
-      final cachedFile = await _downloadManager.getFromCache(url);
+      final cachedFile = await _downloadManager!.getFromCache(url);
 
       if (cachedFile != null && !_downloadManager.isCacheStale(cachedFile)) {
         return _handleCacheHit(url, cachedFile.file, storyId);
@@ -125,7 +159,7 @@ class VCacheController extends ChangeNotifier {
   }
 
   Future<File?> _downloadWithProgress(String url, String storyId) async {
-    return _downloadManager.downloadWithProgress(
+    return _downloadManager!.downloadWithProgress(
       url,
       storyId,
       onProgress: (progress) {
@@ -145,12 +179,14 @@ class VCacheController extends ChangeNotifier {
   }
 
   Future<void> clearCache() async {
-    await _cacheManager.emptyCache();
+    if (kIsWeb) return;
+    await _cacheManager!.emptyCache();
     notifyListeners();
   }
 
   Future<void> removeFile(String url) async {
-    await _cacheManager.removeFile(url);
+    if (kIsWeb) return;
+    await _cacheManager!.removeFile(url);
     notifyListeners();
   }
 
@@ -158,7 +194,7 @@ class VCacheController extends ChangeNotifier {
   void dispose() {
     _isDisposed = true;
     _errorHandler.markDisposed();
-    _downloadManager.dispose();
+    _downloadManager?.dispose();
     _progressStreamer.dispose();
     super.dispose();
   }

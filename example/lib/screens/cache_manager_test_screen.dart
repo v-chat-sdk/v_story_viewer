@@ -74,7 +74,7 @@ class _CacheManagerTestScreenState extends State<CacheManagerTestScreen> {
     );
 
     // Listen to progress stream
-    _cacheController.progressStream.listen((progress) {
+    _cacheController.mediaDownloadProgressStream.listen((progress) {
       setState(() {
         _progressMap[progress.storyId] = progress;
       });
@@ -98,7 +98,7 @@ class _CacheManagerTestScreenState extends State<CacheManagerTestScreen> {
     final platformFile = VPlatformFile.fromUrl(networkUrl: media.url);
     final file = await _cacheController.getFile(platformFile, 'test_${media.name}');
     if (file != null) {
-      _addLog('💾 File ready: ${file.path}');
+      _addLog('💾 File ready: ${file.fileLocalPath ?? file.networkUrl ?? "unknown"}');
     }
   }
 

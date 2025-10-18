@@ -6,6 +6,7 @@ import '../../v_story_models/models/v_image_story.dart';
 import '../../v_story_models/models/v_text_story.dart';
 import '../../v_story_models/models/v_video_story.dart';
 import '../controllers/v_base_media_controller.dart';
+import '../controllers/v_image_controller.dart';
 import '../controllers/v_video_controller.dart';
 import 'v_custom_viewer.dart';
 import 'v_image_viewer.dart';
@@ -53,7 +54,9 @@ class VMediaDisplay extends StatelessWidget {
     // Display appropriate viewer based on story type
     return Center(
       child: switch (story) {
-        VImageStory() => VImageViewer(story: story as VImageStory),
+        VImageStory() => VImageViewer(
+          controller: controller as VImageController,
+        ),
         VVideoStory() => VVideoViewer(
           controller: controller as VVideoController,
         ),
