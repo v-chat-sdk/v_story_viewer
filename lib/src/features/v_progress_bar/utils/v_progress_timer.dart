@@ -2,8 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
-import '../../../core/constants/v_story_constants.dart';
-
 /// Handles timer logic for progress animation
 class VProgressTimer {
   VProgressTimer({required this.onTick, required this.onComplete});
@@ -40,14 +38,19 @@ class VProgressTimer {
       'Progress must be between 0.0 and 1.0',
     );
     _currentProgress = progress;
-
     if (_currentProgress >= 1) {
       _currentProgress = 1;
       cancel();
+      onTick(_currentProgress);
       onComplete();
+      return;
     }
-
     onTick(_currentProgress);
+  }
+
+  /// Set duration without restarting timer (use before timer starts)
+  void setDuration(Duration duration) {
+    _duration = duration;
   }
 
   void cancel() {
@@ -64,17 +67,16 @@ class VProgressTimer {
       timer.cancel();
       return;
     }
-
     _currentProgress +=
         Duration(milliseconds: 60).inMilliseconds / _duration.inMilliseconds;
-
     if (_currentProgress >= 1) {
       _currentProgress = 1;
       timer.cancel();
       _timer = null;
+      onTick(_currentProgress);
       onComplete();
+      return;
     }
-
     onTick(_currentProgress);
   }
 

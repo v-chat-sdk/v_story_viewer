@@ -14,10 +14,7 @@ class VCustomController extends VBaseMediaController {
     if (story is! VCustomStory) {
       throw ArgumentError('VCustomController requires VCustomStory');
     }
-
-    // Custom widgets are built by user-provided builder
-    // No loading needed - immediately ready
-    // The builder will be invoked in the widget layer
+    notifyReady();
   }
 
   // Custom widgets handle their own pause/resume if needed (use default implementations)

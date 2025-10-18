@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
 import 'dart:ui';
+
+import 'package:flutter/material.dart';
 
 /// Builder for loading overlay with progress indicator and blurred background
 class VLoadingOverlayBuilder {
@@ -7,7 +8,7 @@ class VLoadingOverlayBuilder {
 
   static Widget build(double progress) {
     return BackdropFilter(
-      filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+      filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
       child: ColoredBox(
         color: Colors.black.withValues(alpha: 0.3),
         child: Center(

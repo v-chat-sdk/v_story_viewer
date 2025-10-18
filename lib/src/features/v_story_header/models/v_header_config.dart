@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'v_story_action.dart';
+
 /// Configuration for the story header.
 class VHeaderConfig {
   /// Creates a new instance of [VHeaderConfig].
@@ -10,6 +12,9 @@ class VHeaderConfig {
     this.spacing,
     this.closeButtonColor,
     this.actionButtonColor,
+    this.actions,
+    this.showPlaybackControls = false,
+    this.controlButtonColor,
   });
 
   /// The text style for the user's name.
@@ -29,4 +34,13 @@ class VHeaderConfig {
 
   /// The color of the action buttons.
   final Color? actionButtonColor;
+
+  /// List of custom actions to display in the action menu
+  final List<VStoryAction>? actions;
+
+  /// Whether to show playback controls (pause/play and mute) in the header
+  final bool showPlaybackControls;
+
+  /// The color of playback control buttons
+  final Color? controlButtonColor;
 }

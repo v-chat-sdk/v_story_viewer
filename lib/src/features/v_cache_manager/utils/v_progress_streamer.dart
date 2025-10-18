@@ -18,10 +18,12 @@ class VProgressStreamer {
   /// Emit progress update with optimization checks
   void emitProgress(VDownloadProgress progress) {
     if (_isDisposed || _controller.isClosed) return;
-
     if (!_controller.hasListener) return;
-
-    _controller.add(progress);
+    try {
+      _controller.add(progress);
+    } catch (e) {
+      // Stream already closed or disposed
+    }
   }
 
   /// Create and emit progress update

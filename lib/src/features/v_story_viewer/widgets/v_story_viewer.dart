@@ -1,6 +1,8 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../../v_story_viewer.dart';
 import '../../../core/models/v_story_events.dart';
@@ -46,6 +48,8 @@ class _VStoryViewerState extends State<VStoryViewer> {
   late VStoryViewerConfig _config;
   late VCubePageManager _cubePageManager;
   late VStoryGestureHandler _gestureHandler;
+  final _keyboardFocusNode = FocusNode();
+  final _replyTextFieldFocusNode = FocusNode();
 
   VStoryState _state = VStoryState.initial();
   StreamSubscription<VDownloadProgress>? _progressSubscription;
@@ -120,18 +124,19 @@ class _VStoryViewerState extends State<VStoryViewer> {
   }
 
   void _setupProgressListener() {
-    _progressSubscription = _cacheController.mediaDownloadProgressStream.listen((progress) {
-      if (!mounted) return;
-
-      final currentStory = _navigationController.currentStory;
-
-      // Match progress by story ID
-      if (progress.storyId == currentStory.id) {
-        setState(() {
-          _mediaLoadingProgress = progress.progress;
-        });
-      }
-    });
+    _progressSubscription = _cacheController.mediaDownloadProgressStream.listen(
+      (progress) {
+        if (!mounted) return;
+        final currentStory = _navigationController.currentStory;
+        if (progress.storyId == currentStory.id) {
+          if (mounted) {
+            setState(() {
+              _mediaLoadingProgress = progress.progress;
+            });
+          }
+        }
+      },
+    );
   }
 
   void _setupEventListener() {
@@ -176,14 +181,15 @@ class _VStoryViewerState extends State<VStoryViewer> {
     final currentStoryIndex = _navigationController.currentStoryIndex;
     final currentGroup = _navigationController.currentGroup;
     final currentGroupIndex = _navigationController.currentGroupIndex;
-
+    if (!mounted) return;
     setState(() {
       _mediaLoadingProgress = 0;
     });
-    _mediaController?.dispose();
+    final oldController = _mediaController;
+    _mediaController = null;
+    oldController?.dispose();
+    if (!mounted) return;
     _initMediaController(currentStory);
-
-    // Set progress cursor and update state
     _progressController!.setCursorAt(currentStoryIndex);
     _reactionController.setCurrentStory(currentStory);
     _updateState(
@@ -195,11 +201,9 @@ class _VStoryViewerState extends State<VStoryViewer> {
         currentStoryIndex: currentStoryIndex,
       ),
     );
-
-    // Load media
+    if (!mounted || _mediaController == null) return;
     await _mediaController!.loadStory(currentStory);
-
-    // Notify callback
+    if (!mounted) return;
     widget.callbacks?.onStoryChanged?.call(
       currentGroup,
       currentStory,
@@ -226,10 +230,11 @@ class _VStoryViewerState extends State<VStoryViewer> {
   }
 
   void _handleCarouselScrollStateChanged(bool isScrolling) {
-    setState(() {
-      if (isScrolling) {
-      } else {}
-    });
+    if (isScrolling) {
+      _handlePause();
+    } else {
+      _handleResume();
+    }
   }
 
   void _handleTapPrevious() {
@@ -289,6 +294,21 @@ class _VStoryViewerState extends State<VStoryViewer> {
     Navigator.of(context).pop();
   }
 
+  void _handlePlayPausePressed() {
+    if (_state.isPlaying) {
+      _handlePause();
+    } else if (_state.isPaused) {
+      _handleResume();
+    }
+  }
+
+  Future<void> _handleMutePressed() async {
+    final controller = _mediaController;
+    if (controller is VVideoController) {
+      await controller.toggleMute();
+    }
+  }
+
   void _handlePause() {
     if (!_state.isPaused && _state.isPlaying) {
       _progressController?.pauseProgress();
@@ -337,29 +357,52 @@ class _VStoryViewerState extends State<VStoryViewer> {
   @override
   Widget build(BuildContext context) {
     final storyContent = _buildStoryContent();
+    final isWebPlatform = kIsWeb;
 
+    Widget body;
     if (_isCubePageMode) {
+      body = CubePageView(
+        controller: _cubePageManager.pageController!,
+        itemCount: widget.storyGroups.length,
+        onPageChanged: _handleCarouselPageChanged,
+        itemBuilder: (context, index) {
+          if (index == _navigationController.currentGroupIndex) {
+            return storyContent;
+          }
+          return const ColoredBox(color: Colors.black);
+        },
+      );
+    } else {
+      body = storyContent;
+    }
+    if (isWebPlatform) {
       return Scaffold(
         backgroundColor: Colors.black,
-        body: SafeArea(
-          child: CubePageView(
-            controller: _cubePageManager.pageController!,
-            itemCount: widget.storyGroups.length,
-            onPageChanged: _handleCarouselPageChanged,
-            itemBuilder: (context, index) {
-              if (index == _navigationController.currentGroupIndex) {
-                return storyContent;
+        body: KeyboardListener(
+          focusNode: _keyboardFocusNode,
+          autofocus: true,
+          onKeyEvent: (KeyEvent event) {
+            if (_isTextFieldFocused()) return;
+            if (event is KeyDownEvent) {
+              if (event.logicalKey == LogicalKeyboardKey.space) {
+                print(':LogicalKeyboardKey.spaceLogicalKeyboardKey.space');
+                if (_state.isPlaying) {
+                  _handlePause();
+                } else if (_state.isPaused) {
+                  _handleResume();
+                }
               }
-              return const ColoredBox(color: Colors.black);
-            },
-          ),
+            }
+          },
+
+          child: body,
         ),
       );
     }
 
     return Scaffold(
       backgroundColor: Colors.black,
-      body: SafeArea(child: storyContent),
+      body: SafeArea(child: body),
     );
   }
 
@@ -382,13 +425,19 @@ class _VStoryViewerState extends State<VStoryViewer> {
       reactionController: _reactionController,
       context: context,
       callbacks: widget.callbacks,
+      onPlayPausePressed: _handlePlayPausePressed,
+      onMutePressed: _handleMutePressed,
+      replyTextFieldFocusNode: _replyTextFieldFocusNode,
     );
   }
 
   @override
   void dispose() {
+    _keyboardFocusNode.dispose();
+    _replyTextFieldFocusNode.dispose();
     _progressSubscription?.cancel();
     _eventSubscription?.cancel();
+    VStoryEventManager.instance.clear();
     _navigationController.dispose();
     _progressController?.dispose();
     _mediaController?.dispose();
@@ -398,5 +447,21 @@ class _VStoryViewerState extends State<VStoryViewer> {
       _cacheController.dispose();
     }
     super.dispose();
+  }
+
+  bool _isTextFieldFocused() {
+    // Check if the currently focused widget is a text input
+    final focusNode = FocusManager.instance.primaryFocus;
+    if (focusNode != null && focusNode.context != null) {
+      final Widget? widget = focusNode.context!.widget;
+      // Check if it's an EditableText (base class for TextField)
+      if (widget is EditableText) {
+        return true;
+      }
+      // Also check the context for TextField or TextFormField
+      return focusNode.context!.findAncestorWidgetOfExactType<TextField>() != null ||
+          focusNode.context!.findAncestorWidgetOfExactType<TextFormField>() != null;
+    }
+    return false;
   }
 }

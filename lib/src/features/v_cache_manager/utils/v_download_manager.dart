@@ -34,14 +34,16 @@ class VDownloadManager {
     Future<File?> Function() downloadFunction,
   ) async {
     if (_isDisposed) return null;
-
     final downloadFuture = downloadFunction();
     _activeDownloads[url] = downloadFuture;
-
     try {
-      return await downloadFuture;
+      final result = await downloadFuture;
+      if (_isDisposed) {
+        return null;
+      }
+      return result;
     } finally {
-      // ignore: unawaited_futures - Map.remove() doesn't return a Future
+      // ignore: unawaited_futures - Map.remove() is synchronous and doesn't return Future
       _activeDownloads.remove(url);
     }
   }
@@ -52,65 +54,52 @@ class VDownloadManager {
     String storyId, {
     required void Function(VDownloadProgress) onProgress,
     required void Function(VCacheManagerError) onError,
-    int attempt = 0,
   }) async {
     if (_isDisposed) return null;
-
-    try {
-      onProgress(_createProgress(storyId, url, 0, 0, VDownloadStatus.downloading));
-
-      final stream = _cacheManager.getFileStream(url, withProgress: true);
-
-      await for (final result in stream) {
-        if (_isDisposed) return null;
-
-        if (result is DownloadProgress) {
-          onProgress(_createProgress(
-            storyId,
-            url,
-            result.progress ?? 0,
-            result.downloaded,
-            VDownloadStatus.downloading,
-            result.totalSize,
-          ));
-        } else if (result is FileInfo) {
-          final fileSize = await result.file.length();
-          onProgress(_createProgress(
-            storyId,
-            url,
-            1,
-            fileSize,
-            VDownloadStatus.completed,
-            fileSize,
-          ));
-          return result.file;
+    for (var attempt = 0; attempt <= _config.maxRetries; attempt++) {
+      try {
+        onProgress(_createProgress(storyId, url, 0, 0, VDownloadStatus.downloading));
+        final stream = _cacheManager.getFileStream(url, withProgress: true);
+        await for (final result in stream) {
+          if (_isDisposed) return null;
+          if (result is DownloadProgress) {
+            onProgress(_createProgress(
+              storyId,
+              url,
+              result.progress ?? 0,
+              result.downloaded,
+              VDownloadStatus.downloading,
+              result.totalSize,
+            ));
+          } else if (result is FileInfo) {
+            final fileSize = await result.file.length();
+            onProgress(_createProgress(
+              storyId,
+              url,
+              1,
+              fileSize,
+              VDownloadStatus.completed,
+              fileSize,
+            ));
+            return result.file;
+          }
         }
-      }
-    } catch (e) {
-      if (_isDisposed) return null;
-
-      if (attempt < _config.maxRetries) {
+      } catch (e) {
+        if (_isDisposed) return null;
+        if (attempt >= _config.maxRetries) {
+          final error = VCacheRetryExhaustedError(
+            'Download failed after ${attempt + 1} attempts',
+            url,
+            attempts: attempt + 1,
+            lastError: e,
+          );
+          onError(error);
+          return null;
+        }
         final delay = _config.retryPolicy.calculateDelay(attempt);
         await Future<void>.delayed(delay);
-        return downloadWithProgress(
-          url,
-          storyId,
-          onProgress: onProgress,
-          onError: onError,
-          attempt: attempt + 1,
-        );
       }
-
-      final error = VCacheRetryExhaustedError(
-        'Download failed after ${attempt + 1} attempts',
-        url,
-        attempts: attempt + 1,
-        lastError: e,
-      );
-      onError(error);
-      return null;
     }
-
     return null;
   }
 

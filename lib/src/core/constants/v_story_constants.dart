@@ -4,8 +4,6 @@
 /// to improve code readability and maintainability.
 library v_story_constants;
 
-
-
 /// UI dimension constants
 class VStoryDimensionConstants {
   VStoryDimensionConstants._();
@@ -13,13 +11,8 @@ class VStoryDimensionConstants {
   /// Default progress bar height
   static const double progressBarHeight = 2;
 
-
-
-
   /// Border radius values
   static const double defaultBorderRadius = 8;
   static const double smallBorderRadius = 4;
   static const double largeBorderRadius = 16;
 }
-
-

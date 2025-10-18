@@ -21,10 +21,23 @@ class VReplyController extends ChangeNotifier {
   /// The story being replied to.
   final VBaseStory story;
 
+  bool _isDisposed = false;
+  bool _isFocused = false;
+
+  /// Whether the reply input is currently focused
+  bool get isFocused => _isFocused;
+
+  /// Updates the focus state
+  void setFocusState(bool focused) {
+    if (_isFocused != focused) {
+      _isFocused = focused;
+      notifyListeners();
+    }
+  }
+
   /// Sends a reply.
   Future<void> sendReply(String reply) async {
     if (callbacks?.onReplySubmitted == null) return;
-
     stateController.setSending();
     final success = await callbacks!.onReplySubmitted!(story, reply);
     if (success) {
@@ -32,12 +45,16 @@ class VReplyController extends ChangeNotifier {
     } else {
       stateController.setError();
     }
-    // Reset to idle after a short delay
-    Future.delayed(const Duration(seconds: 2), stateController.reset);
+    Future.delayed(const Duration(seconds: 2), () {
+      if (!_isDisposed) {
+        stateController.reset();
+      }
+    });
   }
 
   @override
   void dispose() {
+    _isDisposed = true;
     stateController.dispose();
     super.dispose();
   }

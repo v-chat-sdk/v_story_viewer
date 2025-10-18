@@ -21,6 +21,7 @@ class VProgressController extends ChangeNotifier {
   late final VProgressTimer _timer;
   int _currentIndex = -1;
   double _currentProgress = 0;
+  Duration? _reportedDuration;
 
   int get currentIndex => _currentIndex;
 
@@ -38,18 +39,18 @@ class VProgressController extends ChangeNotifier {
 
   void startProgress(int index, Duration duration) {
     assert(index >= 0 && index < barCount, 'Index out of bounds: $index');
-
     _currentIndex = index;
     _currentProgress = 0;
-    _timer.start(duration);
+    final durationToUse = _reportedDuration ?? duration;
+    _timer.start(durationToUse);
   }
 
   void setCursorAt(int index) {
     assert(index >= 0 && index < barCount, 'Index out of bounds: $index');
-
     _timer.pause();
     _currentIndex = index;
     _currentProgress = 0;
+    _reportedDuration = null;
     notifyListeners();
   }
 
@@ -72,16 +73,15 @@ class VProgressController extends ChangeNotifier {
 
   void updateDuration(Duration newDuration) {
     if (_currentIndex == -1) return;
-
+    _reportedDuration = newDuration;
     if (isRunning) {
       final currentProgress = _currentProgress;
       _timer.start(newDuration, initialProgress: currentProgress);
+    } else {
+      _timer.setDuration(newDuration);
     }
-
     notifyListeners();
   }
-
-
 
   void _handleProgressTick(double progress) {
     _currentProgress = progress;

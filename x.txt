@@ -5,3 +5,6 @@ now your task it to change all callbacks to use this classes i have created and 
 the complexity make the code more readable more clean
 you can direct update the code in this package it still not in production state
 so no detracted things done direct update the code deep search and tell me what you will do
+
+
+i need you to do a good code good think   for me implement the following actions the VReplyInput which current is the widget in the footer of the story in case the app run in web i need to register a keyboard listener as iam doing for listen on the space key press to pause and play the story but the problem is when the user start typing in the text field of the reply and press the space there are miss match with this key so i need you if the user click to start type in the VReplyInput is display a very lite transparent blur effect  to the entire content and the focus got to the reply if the user click outside the typing this means he exit from the VReplyInput and the story should at this moment resume play so do your best for implement this

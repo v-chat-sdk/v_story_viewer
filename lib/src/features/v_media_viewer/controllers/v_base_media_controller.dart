@@ -82,13 +82,18 @@ abstract class VBaseMediaController extends ChangeNotifier {
   /// Pause media playback (if applicable)
   void pause() {
     if (!_isPaused) {
-      _isPaused = true;
-      notifyListeners();
-      pauseMedia();
-      if (_currentStory != null) {
-        VStoryEventManager.instance.enqueue(
-          VStoryPauseStateChangedEvent(isPaused: true, story: _currentStory!),
-        );
+      try {
+        pauseMedia();
+        _isPaused = true;
+        notifyListeners();
+        if (_currentStory != null) {
+          VStoryEventManager.instance.enqueue(
+            VStoryPauseStateChangedEvent(isPaused: true, story: _currentStory!),
+          );
+        }
+      } catch (e) {
+        _errorMessage = 'Failed to pause: $e';
+        notifyListeners();
       }
     }
   }
@@ -96,13 +101,18 @@ abstract class VBaseMediaController extends ChangeNotifier {
   /// Resume media playback (if applicable)
   void resume() {
     if (_isPaused) {
-      _isPaused = false;
-      notifyListeners();
-      resumeMedia();
-      if (_currentStory != null) {
-        VStoryEventManager.instance.enqueue(
-          VStoryPauseStateChangedEvent(isPaused: false, story: _currentStory!),
-        );
+      try {
+        resumeMedia();
+        _isPaused = false;
+        notifyListeners();
+        if (_currentStory != null) {
+          VStoryEventManager.instance.enqueue(
+            VStoryPauseStateChangedEvent(isPaused: false, story: _currentStory!),
+          );
+        }
+      } catch (e) {
+        _errorMessage = 'Failed to resume: $e';
+        notifyListeners();
       }
     }
   }

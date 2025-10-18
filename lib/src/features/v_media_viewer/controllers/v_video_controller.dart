@@ -24,11 +24,9 @@ class VVideoController extends VBaseMediaController {
     if (story is! VVideoStory) {
       throw ArgumentError('VVideoController requires VVideoStory');
     }
-
-    await _videoPlayerController?.dispose();
-
-
-
+    final oldController = _videoPlayerController;
+    _videoPlayerController = null;
+    await oldController?.dispose();
     VPlatformFile? mediaToLoad = story.media;
     if (story.media.networkUrl != null) {
       final cachedFile = await cacheController.getFile(story.media, story.id);
@@ -36,7 +34,6 @@ class VVideoController extends VBaseMediaController {
         mediaToLoad = cachedFile;
       }
     }
-
     _videoPlayerController = _createVideoController(mediaToLoad);
     await _initializeAndConfigureVideo(story);
   }
@@ -60,12 +57,8 @@ class VVideoController extends VBaseMediaController {
     await _videoPlayerController!.initialize();
     await _videoPlayerController!.setVolume(story.muted ? 0 : 1);
     await _videoPlayerController!.setLooping(story.looping);
-
     final duration = _videoPlayerController!.value.duration;
-    if (duration != Duration.zero) {
-      notifyDuration(duration);
-    }
-
+    notifyDuration(duration);
     if (story.autoPlay) {
       await _videoPlayerController!.play();
     }

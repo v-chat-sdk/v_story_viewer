@@ -14,14 +14,10 @@ class VTextController extends VBaseMediaController {
     if (story is! VTextStory) {
       throw ArgumentError('VTextController requires VTextStory');
     }
-
-    // Validate text content
     if (story.text.isEmpty) {
       throw ArgumentError('Text story cannot be empty');
     }
-
-    // Text is synchronous - immediately ready
-    // Actual rendering happens in widget layer
+    notifyReady();
   }
 
   // Text is static - no pause/resume needed (use default implementations)

@@ -14,6 +14,7 @@ class VReplyView extends StatefulWidget {
   /// Creates a new instance of [VReplyView].
   const VReplyView({
     required this.story,
+    required this.replyTextFieldFocusNode,
     this.callbacks,
     this.config,
     super.key,
@@ -21,6 +22,7 @@ class VReplyView extends StatefulWidget {
 
   /// The story being replied to.
   final VBaseStory story;
+  final FocusNode replyTextFieldFocusNode;
 
   /// The callbacks for reply actions.
   final VReplyCallbacks? callbacks;
@@ -34,7 +36,6 @@ class VReplyView extends StatefulWidget {
 
 class _VReplyViewState extends State<VReplyView> {
   late final VReplyController _replyController;
-  late final FocusNode _focusNode;
 
   @override
   void initState() {
@@ -43,14 +44,12 @@ class _VReplyViewState extends State<VReplyView> {
       story: widget.story,
       callbacks: widget.callbacks,
     );
-    _focusNode = FocusNode()..addListener(_onFocusChange);
+    widget.replyTextFieldFocusNode.addListener(_onFocusChange);
   }
 
   @override
   void dispose() {
-    _focusNode
-      ..removeListener(_onFocusChange)
-      ..dispose();
+    widget.replyTextFieldFocusNode.removeListener(_onFocusChange);
     _replyController.dispose();
     super.dispose();
   }
@@ -58,7 +57,7 @@ class _VReplyViewState extends State<VReplyView> {
   void _onFocusChange() {
     VStoryEventManager.instance.enqueue(
       VReplyFocusChangedEvent(
-        hasFocus: _focusNode.hasFocus,
+        hasFocus: widget.replyTextFieldFocusNode.hasFocus,
         story: widget.story,
       ),
     );
@@ -67,11 +66,13 @@ class _VReplyViewState extends State<VReplyView> {
   @override
   Widget build(BuildContext context) {
     return VReplyInput(
-      focusNode: _focusNode,
+      focusNode: widget.replyTextFieldFocusNode,
       config: widget.config,
+      onChanged: (txt) {},
       onSubmitted: (reply) {
         _replyController.sendReply(reply);
-        _focusNode.unfocus();
+        widget.replyTextFieldFocusNode.unfocus();
+
       },
     );
   }

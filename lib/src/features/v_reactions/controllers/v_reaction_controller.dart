@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import '../../../core/models/v_story_events.dart';
@@ -13,9 +15,10 @@ class VReactionController extends ChangeNotifier {
   }) : _config = config ?? const VReactionConfig();
 
   final VReactionConfig _config;
-
   bool _isAnimating = false;
   VBaseStory? _currentStory;
+  bool _isDisposed = false;
+  final List<Timer> _timers = [];
 
   /// Get config
   VReactionConfig get config => _config;
@@ -30,26 +33,26 @@ class VReactionController extends ChangeNotifier {
 
   /// Trigger reaction animation and send reaction
   void triggerReaction() {
-    if (!_config.enabled || _isAnimating || _currentStory == null) {
+    if (!_config.enabled || _isAnimating || _currentStory == null || _isDisposed) {
       return;
     }
-
     _isAnimating = true;
     notifyListeners();
-
-    // Emit reaction sent event
     VStoryEventManager.instance.enqueue(
       VReactionSentEvent(
         reactionType: _config.reactionType,
         story: _currentStory!,
       ),
     );
-
-    // Animation will complete after duration in widget
-    Future.delayed(_config.animationDuration, () {
-      _isAnimating = false;
-      notifyListeners();
+    late final Timer timer;
+    timer = Timer(_config.animationDuration, () {
+      if (!_isDisposed) {
+        _isAnimating = false;
+        notifyListeners();
+      }
+      _timers.removeWhere((t) => t == timer);
     });
+    _timers.add(timer);
   }
 
   /// Reset reaction state
@@ -57,5 +60,15 @@ class VReactionController extends ChangeNotifier {
     _isAnimating = false;
     _currentStory = null;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    for (final timer in _timers) {
+      timer.cancel();
+    }
+    _timers.clear();
+    super.dispose();
   }
 }

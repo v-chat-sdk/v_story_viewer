@@ -85,9 +85,15 @@ class VStoryEventManager {
     _eventQueue.clear();
   }
 
-  /// Dispose and clean up resources
+  /// Clear event handler
+  void clearEventHandler() {
+    _eventHandler = null;
+  }
+
+  /// Dispose and clean up resources (clears queue and handler)
   void dispose() {
     _eventQueue.clear();
+    _eventHandler = null;
     _isProcessing = false;
   }
 
@@ -95,21 +101,9 @@ class VStoryEventManager {
   static int getPriority(VStoryEvent event) {
     return switch (event) {
       VMediaErrorEvent() => 100, // Critical - errors first
-      VCacheErrorEvent() => 100, // Critical - cache errors
       VMediaReadyEvent() => 90, // High - ready state
-      VProgressCompleteEvent() => 80, // Medium-high - progress
-      VDurationKnownEvent() => 70, // Medium - duration
-      VNavigateToGroupEvent() => 60, // Medium
-      VNavigateToNextStoryEvent() => 60, // Medium
-      VNavigateToPreviewsStoryEvent() => 60, // Medium
-      VStoryPauseStateChangedEvent() => 50, // Medium-low
       VReplyFocusChangedEvent() => 50, // Medium-low - pause on reply
       VReactionSentEvent() => 40, // Low - reactions
-      VCarouselScrollStateChangedEvent() => 30, // Low - scroll
-      VCacheDownloadStartEvent() => 25, // Very low - cache start
-      VCacheHitEvent() => 25, // Very low - cache hit
-      VCacheDownloadCompleteEvent() => 25, // Very low - cache complete
-      VMediaLoadingProgressEvent() => 20, // Very low - progress updates
       _ => 10, // Default - lowest priority
     };
   }

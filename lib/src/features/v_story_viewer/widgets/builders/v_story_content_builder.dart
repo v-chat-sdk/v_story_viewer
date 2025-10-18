@@ -10,10 +10,10 @@ import '../../../v_progress_bar/widgets/v_segmented_progress.dart';
 import '../../../v_reactions/controllers/v_reaction_controller.dart';
 import '../../../v_reactions/widgets/v_reaction_animation.dart';
 import '../../../v_reply_system/views/v_reply_view.dart';
+import '../../../v_reply_system/widgets/v_reply_overlay.dart';
 import '../../../v_story_header/views/v_header_view.dart';
 import '../../../v_story_models/models/v_base_story.dart';
 import '../../../v_story_models/models/v_story_group.dart';
-import '../../../v_story_viewer/models/v_story_viewer_state.dart';
 import '../../models/v_story_viewer_callbacks.dart';
 import 'v_loading_overlay_builder.dart';
 
@@ -32,20 +32,45 @@ class VStoryContentBuilder {
     required VReactionController reactionController,
     required BuildContext context,
     required VStoryViewerCallbacks? callbacks,
+    required FocusNode replyTextFieldFocusNode,
+    VoidCallback? onPlayPausePressed,
+    VoidCallback? onMutePressed,
   }) {
-    return VGestureWrapper(
+    // Build the main story content
+    final storyContent = VGestureWrapper(
       callbacks: gestureCallbacks,
       child: Stack(
         children: [
           VMediaDisplay(controller: mediaController, story: currentStory),
           _buildProgressBar(progressController),
-          _buildHeader(currentGroup, currentStory, context),
+          _buildHeader(
+            currentGroup,
+            currentStory,
+            context,
+            mediaController,
+            onPlayPausePressed,
+            onMutePressed,
+          ),
           VReactionAnimation(controller: reactionController),
-          _buildReplyView(currentStory, context, callbacks),
-          if ( isLoading)
+          if (isLoading)
             VLoadingOverlayBuilder.build(mediaLoadingProgress),
         ],
       ),
+    );
+
+    // Build the reply view
+    final replyView = _buildReplyView(
+      currentStory,
+      context,
+      callbacks,
+      replyTextFieldFocusNode,
+    );
+
+    // Wrap with VReplyOverlay for web platform blur effect
+    return VReplyOverlay(
+      storyContent: storyContent,
+      replyWidget: replyView,
+      focusNode: replyTextFieldFocusNode,
     );
   }
 
@@ -62,6 +87,9 @@ class VStoryContentBuilder {
     VStoryGroup group,
     VBaseStory story,
     BuildContext context,
+    VBaseMediaController mediaController,
+    VoidCallback? onPlayPausePressed,
+    VoidCallback? onMutePressed,
   ) {
     return Positioned(
       top: 24,
@@ -71,6 +99,10 @@ class VStoryContentBuilder {
         user: group.user,
         createdAt: story.createdAt,
         onClosePressed: () => Navigator.of(context).pop(),
+        mediaController: mediaController,
+        currentStory: story,
+        onPlayPausePressed: onPlayPausePressed,
+        onMutePressed: onMutePressed,
       ),
     );
   }
@@ -79,18 +111,15 @@ class VStoryContentBuilder {
     VBaseStory story,
     BuildContext context,
     VStoryViewerCallbacks? callbacks,
+    FocusNode  replyTextFieldFocusNode,
   ) {
-    return Positioned(
-      bottom: 0,
-      left: 0,
-      right: 0,
-      child: VReplyView(
-        story: story,
-        callbacks: VReplyCallbacks(
-          onFocusChanged: callbacks?.replyCallbacks?.onFocusChanged,
-          onReplySubmitted: callbacks?.replyCallbacks?.onReplySubmitted,
-        ),
+    return VReplyView(
+      story: story,
+      callbacks: VReplyCallbacks(
+        onFocusChanged: callbacks?.replyCallbacks?.onFocusChanged,
+        onReplySubmitted: callbacks?.replyCallbacks?.onReplySubmitted,
       ),
+      replyTextFieldFocusNode: replyTextFieldFocusNode,
     );
   }
 }

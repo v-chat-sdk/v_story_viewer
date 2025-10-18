@@ -13,10 +13,7 @@ abstract class VStoryEvent {
 /// Event fired when progress bar completes
 @immutable
 class VProgressCompleteEvent extends VStoryEvent {
-  const VProgressCompleteEvent({
-    required this.barIndex,
-    required super.story,
-  });
+  const VProgressCompleteEvent({required this.barIndex, required super.story});
 
   final int barIndex;
 }
@@ -30,10 +27,7 @@ class VMediaReadyEvent extends VStoryEvent {
 /// Event fired when media fails to load
 @immutable
 class VMediaErrorEvent extends VStoryEvent {
-  const VMediaErrorEvent({
-    required this.error,
-    required super.story,
-  });
+  const VMediaErrorEvent({required this.error, required super.story});
 
   final String error;
 }
@@ -41,10 +35,7 @@ class VMediaErrorEvent extends VStoryEvent {
 /// Event fired when video duration becomes known
 @immutable
 class VDurationKnownEvent extends VStoryEvent {
-  const VDurationKnownEvent({
-    required this.duration,
-    required super.story,
-  });
+  const VDurationKnownEvent({required this.duration, required super.story});
 
   final Duration duration;
 }
@@ -52,62 +43,9 @@ class VDurationKnownEvent extends VStoryEvent {
 /// Event fired when user reacts (double tap)
 @immutable
 class VReactionSentEvent extends VStoryEvent {
-  const VReactionSentEvent({
-    required this.reactionType,
-    required super.story,
-  });
+  const VReactionSentEvent({required this.reactionType, required super.story});
 
   final String reactionType;
-}
-
-/// Event fired when carousel scrolls
-@immutable
-class VCarouselScrollStateChangedEvent extends VStoryEvent {
-  const VCarouselScrollStateChangedEvent({
-    required this.isScrolling,
-    required super.story,
-  });
-
-  final bool isScrolling;
-}
-
-/// Event fired when user navigates Previews story
-/// storyIndex is the current story index
-@immutable
-class VNavigateToPreviewsStoryEvent extends VStoryEvent {
-  const VNavigateToPreviewsStoryEvent({
-    required this.groupIndex,
-    required this.storyIndex,
-    required super.story,
-  });
-
-  final int groupIndex;
-  final int storyIndex;
-}
-
-/// Event fired when user navigates Next story
-/// storyIndex is the current story index
-@immutable
-class VNavigateToNextStoryEvent extends VStoryEvent {
-  const VNavigateToNextStoryEvent({
-    required this.groupIndex,
-    required this.storyIndex,
-    required super.story,
-  });
-
-  final int groupIndex;
-  final int storyIndex;
-}
-
-/// Event fired when user navigates between groups
-@immutable
-class VNavigateToGroupEvent extends VStoryEvent {
-  const VNavigateToGroupEvent({
-    required this.groupIndex,
-    required super.story,
-  });
-
-  final int groupIndex;
 }
 
 /// Event fired when story pause state changes
@@ -121,70 +59,10 @@ class VStoryPauseStateChangedEvent extends VStoryEvent {
   final bool isPaused;
 }
 
-/// Event fired when loading progress updates
-@immutable
-class VMediaLoadingProgressEvent extends VStoryEvent {
-  const VMediaLoadingProgressEvent({
-    required this.progress,
-    required super.story,
-  });
-
-  final double progress;
-}
-
-/// Event fired when cache download starts
-@immutable
-class VCacheDownloadStartEvent extends VStoryEvent {
-  const VCacheDownloadStartEvent({
-    required this.url,
-    required super.story,
-  });
-
-  final String url;
-}
-
-/// Event fired when cache hit occurs
-@immutable
-class VCacheHitEvent extends VStoryEvent {
-  const VCacheHitEvent({
-    required this.url,
-    required super.story,
-  });
-
-  final String url;
-}
-
-/// Event fired when cache download completes
-@immutable
-class VCacheDownloadCompleteEvent extends VStoryEvent {
-  const VCacheDownloadCompleteEvent({
-    required this.url,
-    required super.story,
-  });
-
-  final String url;
-}
-
-/// Event fired when cache error occurs
-@immutable
-class VCacheErrorEvent extends VStoryEvent {
-  const VCacheErrorEvent({
-    required this.url,
-    required this.error,
-    required super.story,
-  });
-
-  final String url;
-  final String error;
-}
-
 /// Event fired when reply input focus changes
 @immutable
 class VReplyFocusChangedEvent extends VStoryEvent {
-  const VReplyFocusChangedEvent({
-    required this.hasFocus,
-    required super.story,
-  });
+  const VReplyFocusChangedEvent({required this.hasFocus, required super.story});
 
   final bool hasFocus;
 }

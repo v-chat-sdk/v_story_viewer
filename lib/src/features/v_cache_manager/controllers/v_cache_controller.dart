@@ -26,11 +26,10 @@ class VCacheController extends ChangeNotifier {
   }
 
   final VCacheConfig _config;
-  late final CacheManager? _cacheManager;
+  CacheManager? _cacheManager;
   late final VProgressStreamer _progressStreamer;
-  late final VDownloadManager? _downloadManager;
+  VDownloadManager? _downloadManager;
   late final VCacheErrorHandler _errorHandler;
-
   bool _isDisposed = false;
 
   void _initializeCacheManager() {
@@ -62,11 +61,13 @@ class VCacheController extends ChangeNotifier {
   /// Get file from VPlatformFile with story ID for progress tracking
   Future<VPlatformFile?> getFile(VPlatformFile platformFile, String storyId) async {
     if (_isDisposed) return null;
-
     try {
-      return await _getFileByType(platformFile, storyId);
+      final result = await _getFileByType(platformFile, storyId);
+      return _isDisposed ? null : result;
     } catch (e) {
-      _errorHandler.handleFileError(e, platformFile, storyId);
+      if (!_isDisposed) {
+        _errorHandler.handleFileError(e, platformFile, storyId);
+      }
       return null;
     }
   }
@@ -105,40 +106,38 @@ class VCacheController extends ChangeNotifier {
 
   Future<VPlatformFile?> _getFromNetwork(String url, String storyId) async {
     if (_isDisposed) return null;
-
     if (kIsWeb) {
-      _progressStreamer.emit(
-        storyId: storyId,
-        url: url,
-        progress: 1,
-        downloaded: 0,
-        total: 0,
-        status: VDownloadStatus.completed,
-      );
-      return VPlatformFile.fromUrl(networkUrl: url);
+      if (!_isDisposed) {
+        _progressStreamer.emit(
+          storyId: storyId,
+          url: url,
+          progress: 1,
+          downloaded: 0,
+          total: 0,
+          status: VDownloadStatus.completed,
+        );
+      }
+      return _isDisposed ? null : VPlatformFile.fromUrl(networkUrl: url);
     }
-
-    final existingDownloadFuture = _downloadManager!.getActiveDownload(url);
+    final existingDownloadFuture = _downloadManager?.getActiveDownload(url);
     if (existingDownloadFuture != null) {
       final existingFile = await existingDownloadFuture;
+      if (_isDisposed) return null;
       if (existingFile != null) {
         return VPlatformFile.fromPath(fileLocalPath: existingFile.path);
       }
     }
-
-    final file = await _downloadManager.startDownload(url, () => _performNetworkFetch(url, storyId));
-    if (file == null) return null;
-    return VPlatformFile.fromPath(fileLocalPath: file.path);
+    if (_isDisposed) return null;
+    final file = await _downloadManager?.startDownload(url, () => _performNetworkFetch(url, storyId));
+    return _isDisposed || file == null ? null : VPlatformFile.fromPath(fileLocalPath: file.path);
   }
 
   Future<File?> _performNetworkFetch(String url, String storyId) async {
     try {
       final cachedFile = await _downloadManager!.getFromCache(url);
-
-      if (cachedFile != null && !_downloadManager.isCacheStale(cachedFile)) {
+      if (cachedFile != null && !_downloadManager!.isCacheStale(cachedFile)) {
         return _handleCacheHit(url, cachedFile.file, storyId);
       }
-
       return await _downloadWithProgress(url, storyId);
     } catch (e) {
       _errorHandler.handleNetworkError(e, url, storyId);

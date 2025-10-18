@@ -30,62 +30,63 @@ class VGestureWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    const headerSafeZoneHeight = 80.0;
     return Stack(
       fit: StackFit.expand,
       children: [
-        // Story content at the bottom
         child,
-
-        // Left tap zone for previous story
         Align(
           alignment: Alignment.centerLeft,
-          child: SizedBox(
-            width: size.width * config.leftTapZoneWidth,
-            height: size.height,
-            child: GestureDetector(
-              onTap: ( ) {
-
-                callbacks.onTapPrevious?.call();
-              },
-              behavior: HitTestBehavior.translucent,
+          child: Padding(
+            padding: EdgeInsets.only(top: headerSafeZoneHeight),
+            child: SizedBox(
+              width: size.width * config.leftTapZoneWidth,
+              height: size.height - headerSafeZoneHeight,
+              child: GestureDetector(
+                onTap: () {
+                  callbacks.onTapPrevious?.call();
+                },
+                behavior: HitTestBehavior.translucent,
+              ),
             ),
           ),
         ),
-
-        // Right tap zone for next story
         Align(
           alignment: Alignment.centerRight,
-          child: SizedBox(
-            width: size.width * config.rightTapZoneWidth,
-            height: size.height,
-            child: GestureDetector(
-              onTap: ( ) {
-                callbacks.onTapNext?.call();
-              },
-              behavior: HitTestBehavior.translucent,
+          child: Padding(
+            padding: EdgeInsets.only(top: headerSafeZoneHeight),
+            child: SizedBox(
+              width: size.width * config.rightTapZoneWidth,
+              height: size.height - headerSafeZoneHeight,
+              child: GestureDetector(
+                onTap: () {
+                  callbacks.onTapNext?.call();
+                },
+                behavior: HitTestBehavior.translucent,
+              ),
             ),
           ),
         ),
-
-        // Full screen overlay for long press pause/resume and vertical swipe
         Align(
-          child: SizedBox(
-            width: size.width,
-            height: size.height,
-            child: GestureDetector(
-              onDoubleTap: callbacks.onDoubleTap,
-              onLongPressDown: (_) => callbacks.onLongPressStart?.call(),
-              onLongPressUp: () => callbacks.onLongPressEnd?.call(),
-              onLongPressEnd: (_) => callbacks.onLongPressEnd?.call(),
-              onLongPressCancel: () => callbacks.onLongPressEnd?.call(),
-
-              onVerticalDragEnd: (details) {
-                final velocity = details.velocity.pixelsPerSecond.dy;
-                if (velocity > config.swipeVelocityThreshold) {
-                  callbacks.onSwipeDown?.call();
-                }
-              },
-              behavior: HitTestBehavior.translucent,
+          child: Padding(
+            padding: EdgeInsets.only(top: headerSafeZoneHeight),
+            child: SizedBox(
+              width: size.width,
+              height: size.height - headerSafeZoneHeight,
+              child: GestureDetector(
+                onDoubleTap: callbacks.onDoubleTap,
+                onLongPressDown: (_) => callbacks.onLongPressStart?.call(),
+                onLongPressUp: () => callbacks.onLongPressEnd?.call(),
+                onLongPressEnd: (_) => callbacks.onLongPressEnd?.call(),
+                onLongPressCancel: () => callbacks.onLongPressEnd?.call(),
+                onVerticalDragEnd: (details) {
+                  final velocity = details.velocity.pixelsPerSecond.dy;
+                  if (velocity > config.swipeVelocityThreshold) {
+                    callbacks.onSwipeDown?.call();
+                  }
+                },
+                behavior: HitTestBehavior.translucent,
+              ),
             ),
           ),
         ),

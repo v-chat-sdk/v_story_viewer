@@ -125,4 +125,3 @@ class VStoryFailure<T> extends VStoryResult<T> {
   @override
   String toString() => 'VStoryFailure($error)';
 }
-
