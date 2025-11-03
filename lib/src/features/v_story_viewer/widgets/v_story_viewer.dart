@@ -202,8 +202,14 @@ class _VStoryViewerState extends State<VStoryViewer> {
       ),
     );
     if (!mounted || _mediaController == null) return;
-    await _mediaController!.loadStory(currentStory);
-    if (!mounted) return;
+    try {
+      await _mediaController!.loadStory(currentStory);
+    } catch (e) {
+      // Ignore errors from disposed controller or other race conditions
+      if (!mounted) return;
+      rethrow;
+    }
+    if (!mounted || _mediaController == null) return;
     widget.callbacks?.onStoryChanged?.call(
       currentGroup,
       currentStory,

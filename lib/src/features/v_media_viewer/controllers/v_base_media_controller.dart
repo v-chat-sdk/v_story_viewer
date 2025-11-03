@@ -19,6 +19,7 @@ abstract class VBaseMediaController extends ChangeNotifier {
   bool _isPaused = false;
   bool _hasError = false;
   String? _errorMessage;
+  bool _isDisposed = false;
 
   /// Current story being displayed
   VBaseStory? get currentStory => _currentStory;
@@ -34,6 +35,14 @@ abstract class VBaseMediaController extends ChangeNotifier {
 
   /// Error message if any
   String? get errorMessage => _errorMessage;
+
+  /// Safely notify listeners only if not disposed
+  void _safeNotifyListeners() {
+    if (!_isDisposed && !hasListeners) return;
+    if (!_isDisposed) {
+      notifyListeners();
+    }
+  }
 
   /// Load and prepare media for display
   ///
@@ -54,12 +63,12 @@ abstract class VBaseMediaController extends ChangeNotifier {
     _isLoading = true;
     _hasError = false;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   void _setReadyState() {
     _isLoading = false;
-    notifyListeners();
+    _safeNotifyListeners();
     if (_currentStory != null) {
       VStoryEventManager.instance.enqueue(
         VMediaReadyEvent(story: _currentStory!),
@@ -71,7 +80,7 @@ abstract class VBaseMediaController extends ChangeNotifier {
     _isLoading = false;
     _hasError = true;
     _errorMessage = error;
-    notifyListeners();
+    _safeNotifyListeners();
     if (_currentStory != null) {
       VStoryEventManager.instance.enqueue(
         VMediaErrorEvent(error: error, story: _currentStory!),
@@ -85,7 +94,7 @@ abstract class VBaseMediaController extends ChangeNotifier {
       try {
         pauseMedia();
         _isPaused = true;
-        notifyListeners();
+        _safeNotifyListeners();
         if (_currentStory != null) {
           VStoryEventManager.instance.enqueue(
             VStoryPauseStateChangedEvent(isPaused: true, story: _currentStory!),
@@ -93,7 +102,7 @@ abstract class VBaseMediaController extends ChangeNotifier {
         }
       } catch (e) {
         _errorMessage = 'Failed to pause: $e';
-        notifyListeners();
+        _safeNotifyListeners();
       }
     }
   }
@@ -104,7 +113,7 @@ abstract class VBaseMediaController extends ChangeNotifier {
       try {
         resumeMedia();
         _isPaused = false;
-        notifyListeners();
+        _safeNotifyListeners();
         if (_currentStory != null) {
           VStoryEventManager.instance.enqueue(
             VStoryPauseStateChangedEvent(isPaused: false, story: _currentStory!),
@@ -112,7 +121,7 @@ abstract class VBaseMediaController extends ChangeNotifier {
         }
       } catch (e) {
         _errorMessage = 'Failed to resume: $e';
-        notifyListeners();
+        _safeNotifyListeners();
       }
     }
   }
@@ -124,7 +133,7 @@ abstract class VBaseMediaController extends ChangeNotifier {
     _isPaused = false;
     _hasError = false;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   /// Notify that video duration is known
@@ -157,7 +166,7 @@ abstract class VBaseMediaController extends ChangeNotifier {
         VMediaErrorEvent(error: error, story: _currentStory!),
       );
     }
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   /// Load media specific to this controller type
@@ -183,6 +192,7 @@ abstract class VBaseMediaController extends ChangeNotifier {
 
   @override
   void dispose() {
+    _isDisposed = true;
     reset();
     super.dispose();
   }
