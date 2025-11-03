@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 
 /// Configuration options for VStoryViewer
 @immutable
@@ -13,6 +13,7 @@ class VStoryViewerConfig {
     this.pauseOnCarouselScroll = true,
     this.carouselAnimationDuration = const Duration(milliseconds: 300),
     this.maxContentWidth = 600.0,
+    this.loadingSpinnerColor,
   });
 
   /// Enable haptic feedback for gestures
@@ -49,6 +50,9 @@ class VStoryViewerConfig {
   /// Maximum width for header and progress bar content
   final double maxContentWidth;
 
+  /// Color of the loading spinner (defaults to theme's primary color)
+  final Color? loadingSpinnerColor;
+
   /// Default configuration
   static const defaultConfig = VStoryViewerConfig();
 
@@ -62,6 +66,7 @@ class VStoryViewerConfig {
     bool? pauseOnCarouselScroll,
     Duration? carouselAnimationDuration,
     double? maxContentWidth,
+    Color? loadingSpinnerColor,
   }) {
     return VStoryViewerConfig(
       enableHapticFeedback: enableHapticFeedback ?? this.enableHapticFeedback,
@@ -76,6 +81,7 @@ class VStoryViewerConfig {
       carouselAnimationDuration:
           carouselAnimationDuration ?? this.carouselAnimationDuration,
       maxContentWidth: maxContentWidth ?? this.maxContentWidth,
+      loadingSpinnerColor: loadingSpinnerColor ?? this.loadingSpinnerColor,
     );
   }
 }

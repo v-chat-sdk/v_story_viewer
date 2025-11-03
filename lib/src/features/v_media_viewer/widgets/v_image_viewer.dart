@@ -11,26 +11,19 @@ import '../controllers/v_image_controller.dart';
 ///
 /// Handles different image sources (network, asset, file) with proper caching.
 class VImageViewer extends StatelessWidget {
-  const VImageViewer({
-    required this.controller,
-    super.key,
-  });
+  const VImageViewer({required this.controller, super.key});
 
   final VImageController controller;
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: controller,
-      builder: (context, child) {
-        final media = controller.cachedMedia;
-        if (media == null) {
-          return const Center(child: CircularProgressIndicator());
-        }
+    final media = controller.cachedMedia;
 
-        return _buildImageFromMedia(media);
-      },
-    );
+    if (media == null) {
+      return const SizedBox();
+    }
+
+    return _buildImageFromMedia(media);
   }
 
   Widget _buildImageFromMedia(VPlatformFile media) {
@@ -39,9 +32,8 @@ class VImageViewer extends StatelessWidget {
       return Image.file(
         File(media.fileLocalPath!),
         fit: BoxFit.contain,
-        errorBuilder: (context, error, stackTrace) => const Center(
-          child: Icon(Icons.error, color: Colors.white),
-        ),
+        errorBuilder: (context, error, stackTrace) =>
+            Icon(Icons.error, color: Colors.white),
       );
     }
 
@@ -49,13 +41,10 @@ class VImageViewer extends StatelessWidget {
     if (media.networkUrl != null) {
       return CachedNetworkImage(
         imageUrl: media.networkUrl!,
+        cacheKey: media.getCachedUrlKey,
         fit: BoxFit.contain,
-        placeholder: (context, url) => const Center(
-          child: CircularProgressIndicator(),
-        ),
-        errorWidget: (context, url, error) => const Center(
-          child: Icon(Icons.error, color: Colors.white),
-        ),
+        errorWidget: (context, url, error) =>
+            Icon(Icons.error, color: Colors.white),
       );
     }
 
@@ -64,9 +53,8 @@ class VImageViewer extends StatelessWidget {
       return Image.asset(
         media.assetsPath!,
         fit: BoxFit.contain,
-        errorBuilder: (context, error, stackTrace) => const Center(
-          child: Icon(Icons.error, color: Colors.white),
-        ),
+        errorBuilder: (context, error, stackTrace) =>
+            Icon(Icons.error, color: Colors.white),
       );
     }
 
@@ -79,15 +67,12 @@ class VImageViewer extends StatelessWidget {
       return Image.memory(
         bytes,
         fit: BoxFit.contain,
-        errorBuilder: (context, error, stackTrace) => const Center(
-          child: Icon(Icons.error, color: Colors.white),
-        ),
+        errorBuilder: (context, error, stackTrace) =>
+            Icon(Icons.error, color: Colors.white),
       );
     }
 
     // No valid source
-    return const Center(
-      child: Icon(Icons.broken_image, color: Colors.white, size: 48),
-    );
+    return Icon(Icons.broken_image, color: Colors.white, size: 48);
   }
 }

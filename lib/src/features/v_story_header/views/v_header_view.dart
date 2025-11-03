@@ -99,6 +99,20 @@ class _VHeaderViewState extends State<VHeaderView> {
 
   bool _isVideoStory() => widget.currentStory != null && widget.currentStory!.runtimeType.toString().contains('VVideoStory');
 
+  /// Calculate responsive icon button size based on screen width
+  double _getResponsiveIconSize(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    // Mobile: 48px, Tablet: 52px, Desktop: 56px
+    if (screenWidth >= 1000) {
+      return 56;
+    } else if (screenWidth >= 600) {
+      return 52;
+    } else {
+      return 48;
+    }
+  }
+
   void _showActionMenu(BuildContext context) {
     final actions = widget.config?.actions ?? [];
     if (actions.isEmpty) {
@@ -147,6 +161,8 @@ class _VHeaderViewState extends State<VHeaderView> {
 
   @override
   Widget build(BuildContext context) {
+    final responsiveIconSize = _getResponsiveIconSize(context);
+
     return VHeaderContainer(
       padding: widget.config?.padding,
       child: Row(
@@ -172,35 +188,85 @@ class _VHeaderViewState extends State<VHeaderView> {
             ),
           ),
           if (widget.config?.showPlaybackControls ?? false) ...[
-            IconButton(
-              icon: Icon(_isPaused ? Icons.play_arrow : Icons.pause),
-              color: widget.config?.controlButtonColor ?? Colors.white,
-              onPressed: widget.onPlayPausePressed,
+            SizedBox(
+              height: responsiveIconSize,
+              width: responsiveIconSize,
+              child: Semantics(
+                label: _isPaused ? 'Play story' : 'Pause story',
+                button: true,
+                enabled: true,
+                onTap: widget.onPlayPausePressed,
+                child: IconButton(
+                  icon: Icon(_isPaused ? Icons.play_arrow : Icons.pause),
+                  color: widget.config?.controlButtonColor ?? Colors.white,
+                  onPressed: widget.onPlayPausePressed,
+                ),
+              ),
             ),
             if (_isVideoStory())
-              IconButton(
-                icon: Icon(_isMuted ? Icons.volume_off : Icons.volume_up),
-                color: widget.config?.controlButtonColor ?? Colors.white,
-                onPressed: widget.onMutePressed,
+              SizedBox(
+                height: responsiveIconSize,
+                width: responsiveIconSize,
+                child: Semantics(
+                  label: _isMuted ? 'Unmute video' : 'Mute video',
+                  button: true,
+                  enabled: true,
+                  onTap: widget.onMutePressed,
+                  child: IconButton(
+                    icon: Icon(_isMuted ? Icons.volume_off : Icons.volume_up),
+                    color: widget.config?.controlButtonColor ?? Colors.white,
+                    onPressed: widget.onMutePressed,
+                  ),
+                ),
               ),
           ],
           if (widget.config?.actions != null && widget.config!.actions!.isNotEmpty)
-            IconButton(
-              icon: const Icon(Icons.more_vert),
-              color: widget.config?.actionButtonColor ?? Colors.white,
-              onPressed: () => _showActionMenu(context),
+            SizedBox(
+              height: responsiveIconSize,
+              width: responsiveIconSize,
+              child: Semantics(
+                label: 'More options',
+                button: true,
+                enabled: true,
+                onTap: () => _showActionMenu(context),
+                child: IconButton(
+                  icon: const Icon(Icons.more_vert),
+                  color: widget.config?.actionButtonColor ?? Colors.white,
+                  onPressed: () => _showActionMenu(context),
+                ),
+              ),
             )
           else if (widget.onActionPressed != null)
-            IconButton(
-              icon: const Icon(Icons.more_vert),
-              color: widget.config?.actionButtonColor ?? Colors.white,
-              onPressed: widget.onActionPressed,
+            SizedBox(
+              height: responsiveIconSize,
+              width: responsiveIconSize,
+              child: Semantics(
+                label: 'More options',
+                button: true,
+                enabled: true,
+                onTap: widget.onActionPressed,
+                child: IconButton(
+                  icon: const Icon(Icons.more_vert),
+                  color: widget.config?.actionButtonColor ?? Colors.white,
+                  onPressed: widget.onActionPressed,
+                ),
+              ),
             ),
           if (widget.onClosePressed != null)
-            IconButton(
-              icon: const Icon(Icons.close),
-              color: widget.config?.closeButtonColor ?? Colors.white,
-              onPressed: widget.onClosePressed,
+            SizedBox(
+              height: responsiveIconSize,
+              width: responsiveIconSize,
+              child: Semantics(
+                label: 'Close story viewer',
+                button: true,
+                enabled: true,
+                onTap: widget.onClosePressed,
+                child: IconButton(
+                  icon: const Icon(Icons.close),
+                  color: widget.config?.closeButtonColor ?? Colors.white,
+                  onPressed: widget.onClosePressed,
+                ),
+              ),
             ),
         ],
       ),

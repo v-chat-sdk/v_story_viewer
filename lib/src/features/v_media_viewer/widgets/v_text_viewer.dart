@@ -7,27 +7,25 @@ import '../../v_story_models/models/v_text_story.dart';
 ///
 /// Renders text with customizable styling and optional background.
 class VTextViewer extends StatelessWidget {
-  const VTextViewer({
-    required this.story,
-    super.key,
-  });
+  const VTextViewer({required this.story, super.key});
 
   final VTextStory story;
 
   @override
   Widget build(BuildContext context) {
+    // Use SizedBox.expand to ensure full-screen gesture coverage
+    // while keeping text content constrained to 500px width
     return ConstrainedBox(
-      constraints: BoxConstraints(maxWidth: 500),
-
+      constraints: const BoxConstraints(maxWidth: 500),
       child: DecoratedBox(
-
         decoration: _buildDecoration(),
         child: Center(
           child: Padding(
             padding: story.padding,
             child: Text(
               story.text,
-              style: story.textStyle ??
+              style:
+                  story.textStyle ??
                   const TextStyle(
                     color: Colors.white,
                     fontSize: 24,
@@ -56,14 +54,10 @@ class VTextViewer extends StatelessWidget {
 
     // Gradient background
     if (story.backgroundGradient != null) {
-      return BoxDecoration(
-        gradient: story.backgroundGradient,
-      );
+      return BoxDecoration(gradient: story.backgroundGradient);
     }
 
     // Solid color background
-    return BoxDecoration(
-      color: story.backgroundColor,
-    );
+    return BoxDecoration(color: story.backgroundColor);
   }
 }

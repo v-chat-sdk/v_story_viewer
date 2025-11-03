@@ -7,10 +7,7 @@ import '../controllers/v_video_controller.dart';
 ///
 /// Displays video content using VideoPlayer with aspect ratio handling.
 class VVideoViewer extends StatelessWidget {
-  const VVideoViewer({
-    required this.controller,
-    super.key,
-  });
+  const VVideoViewer({required this.controller, super.key});
 
   final VVideoController controller;
 
@@ -20,20 +17,16 @@ class VVideoViewer extends StatelessWidget {
 
     // No video controller
     if (videoController == null) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return SizedBox();
     }
 
     // Video not initialized
     if (!videoController.value.isInitialized) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return SizedBox();
     }
 
-    // Display video
-    return Center(
+    // Display video with full-screen gesture coverage
+    return SizedBox.expand(
       child: AspectRatio(
         aspectRatio: videoController.value.aspectRatio,
         child: VideoPlayer(videoController),

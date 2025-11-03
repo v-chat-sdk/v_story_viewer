@@ -4,12 +4,13 @@ import 'package:flutter/material.dart';
 @immutable
 class VProgressStyle {
   const VProgressStyle({
-    this.height = 2,
+    this.height = 3.5,
     this.activeColor = Colors.white,
     this.inactiveColor = const Color(0x33FFFFFF),
     this.padding = const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
     this.borderRadius,
     this.segmentSpacing = 4,
+    this.boxShadow,
   });
 
   /// Height of each progress segment
@@ -30,6 +31,9 @@ class VProgressStyle {
   /// Spacing between progress segments
   final double segmentSpacing;
 
+  /// Shadow for progress bar glow effect
+  final BoxShadow? boxShadow;
+
   /// WhatsApp-style dark theme
   static const VProgressStyle whatsapp = VProgressStyle();
 
@@ -47,6 +51,7 @@ class VProgressStyle {
     EdgeInsets? padding,
     BorderRadius? borderRadius,
     double? segmentSpacing,
+    BoxShadow? boxShadow,
   }) {
     return VProgressStyle(
       height: height ?? this.height,
@@ -55,6 +60,7 @@ class VProgressStyle {
       padding: padding ?? this.padding,
       borderRadius: borderRadius ?? this.borderRadius,
       segmentSpacing: segmentSpacing ?? this.segmentSpacing,
+      boxShadow: boxShadow ?? this.boxShadow,
     );
   }
 }

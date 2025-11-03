@@ -32,15 +32,38 @@ class VTimestamp extends StatelessWidget {
     }
   }
 
+  /// Calculate responsive font size based on screen width
+  double _getResponsiveFontSize(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final textScaler = MediaQuery.of(context).textScaler;
+
+    // Mobile: 12sp, Tablet: 13sp, Desktop: 14sp
+    double baseFontSize;
+    if (screenWidth >= 1000) {
+      baseFontSize = 14;
+    } else if (screenWidth >= 600) {
+      baseFontSize = 13;
+    } else {
+      baseFontSize = 12;
+    }
+
+    // Apply system text scale factor
+    return textScaler.scale(baseFontSize);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final responsiveFontSize = _getResponsiveFontSize(context);
+
     return Text(
       _formatTimeAgo(createdAt),
       style: textStyle ??
           TextStyle(
-            fontSize: 12,
+            fontSize: responsiveFontSize,
             color: Colors.grey[400],
           ),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
     );
   }
 }

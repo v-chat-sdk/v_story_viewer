@@ -59,6 +59,25 @@ class _VStoryViewerState extends State<VStoryViewer> {
   bool get _isCubePageMode =>
       _config.enableCarousel && widget.storyGroups.length > 1;
 
+  /// Calculate responsive maxContentWidth based on screen size
+  /// Mobile: full width minus padding
+  /// Tablet: 600px (default)
+  /// Desktop: 700px
+  double _getResponsiveMaxContentWidth(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth >= 600;
+    final isDesktop = screenWidth >= 1000;
+
+    if (isDesktop) {
+      return 700;
+    } else if (isTablet) {
+      return 600;
+    } else {
+      // Mobile: use full width minus padding
+      return screenWidth - 16;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -378,21 +397,64 @@ class _VStoryViewerState extends State<VStoryViewer> {
     } else {
       body = storyContent;
     }
+
+    // Check if we should show navigation arrows
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isDesktopWide = screenWidth >= 1000;
+    final hasMultipleGroups = widget.storyGroups.length > 1;
+    final shouldShowArrows = isWebPlatform && isDesktopWide && hasMultipleGroups;
+
+    // Add navigation arrows overlay for web/desktop
+    if (shouldShowArrows) {
+      body = Stack(
+        children: [
+          body,
+          _buildNavigationArrowsOverlay(),
+        ],
+      );
+    }
+
+    final scaffoldBackgroundColor = _getScaffoldBackgroundColor();
     if (isWebPlatform) {
       return Scaffold(
-        backgroundColor: Colors.black,
+        backgroundColor: scaffoldBackgroundColor,
         body: KeyboardListener(
           focusNode: _keyboardFocusNode,
           autofocus: true,
           onKeyEvent: (KeyEvent event) {
             if (_isTextFieldFocused()) return;
             if (event is KeyDownEvent) {
+              // Space: Pause/Resume
               if (event.logicalKey == LogicalKeyboardKey.space) {
-                if (_state.isPlaying) {
-                  _handlePause();
-                } else if (_state.isPaused) {
-                  _handleResume();
-                }
+                _handlePlayPausePressed();
+                return;
+              }
+              // Arrow Right / D: Next story
+              if (event.logicalKey == LogicalKeyboardKey.arrowRight ||
+                  event.logicalKey == LogicalKeyboardKey.keyD) {
+                _handleTapNext();
+                return;
+              }
+              // Arrow Left / A: Previous story
+              if (event.logicalKey == LogicalKeyboardKey.arrowLeft ||
+                  event.logicalKey == LogicalKeyboardKey.keyA) {
+                _handleTapPrevious();
+                return;
+              }
+              // Escape: Exit viewer
+              if (event.logicalKey == LogicalKeyboardKey.escape) {
+                _completeViewing();
+                return;
+              }
+              // R: Focus reply input
+              if (event.logicalKey == LogicalKeyboardKey.keyR) {
+                _replyTextFieldFocusNode.requestFocus();
+                return;
+              }
+              // M: Mute/Unmute (for videos)
+              if (event.logicalKey == LogicalKeyboardKey.keyM) {
+                _handleMutePressed();
+                return;
               }
             }
           },
@@ -403,12 +465,81 @@ class _VStoryViewerState extends State<VStoryViewer> {
     }
 
     return Scaffold(
-      backgroundColor: Colors.black,
-      body: SafeArea(child: body),
+      backgroundColor: scaffoldBackgroundColor,
+      body: body,
+    );
+  }
+
+  Widget _buildNavigationArrowsOverlay() {
+    return Stack(
+      children: [
+        // Left arrow
+        Positioned(
+          left: 24,
+          top: 0,
+          bottom: 0,
+          child: Center(
+            child: _buildNavigationButton(
+              icon: Icons.arrow_back_ios_new,
+              onPressed: _navigationController.hasPreviousGroup
+                  ? _handlePreviousGroup
+                  : null,
+            ),
+          ),
+        ),
+        // Right arrow
+        Positioned(
+          right: 24,
+          top: 0,
+          bottom: 0,
+          child: Center(
+            child: _buildNavigationButton(
+              icon: Icons.arrow_forward_ios,
+              onPressed: _navigationController.hasNextGroup
+                  ? _handleNextGroup
+                  : null,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNavigationButton({
+    required IconData icon,
+    required VoidCallback? onPressed,
+  }) {
+    return MouseRegion(
+      cursor: onPressed != null ? SystemMouseCursors.click : MouseCursor.defer,
+      child: GestureDetector(
+        onTap: onPressed,
+        child: Container(
+          width: 56,
+          height: 56,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.black.withValues(alpha: 0.4),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.5),
+              width: 1.5,
+            ),
+          ),
+          child: Icon(
+            icon,
+            color: onPressed != null
+                ? Colors.white
+                : Colors.white.withValues(alpha: 0.4),
+            size: 24,
+          ),
+        ),
+      ),
     );
   }
 
   Widget _buildStoryContent() {
+    // Use responsive maxContentWidth based on screen size
+    final responsiveMaxWidth = _getResponsiveMaxContentWidth(context);
+
     return VStoryContentBuilder.build(
       gestureCallbacks: VGestureCallbacks(
         onTapPrevious: _gestureHandler.handleTapPrevious,
@@ -428,9 +559,10 @@ class _VStoryViewerState extends State<VStoryViewer> {
       context: context,
       callbacks: widget.callbacks,
       replyTextFieldFocusNode: _replyTextFieldFocusNode,
-      maxContentWidth: _config.maxContentWidth,
+      maxContentWidth: responsiveMaxWidth,
       onPlayPausePressed: _handlePlayPausePressed,
       onMutePressed: _handleMutePressed,
+      loadingSpinnerColor: _config.loadingSpinnerColor,
     );
   }
 
@@ -466,5 +598,13 @@ class _VStoryViewerState extends State<VStoryViewer> {
           focusNode.context!.findAncestorWidgetOfExactType<TextFormField>() != null;
     }
     return false;
+  }
+
+  Color _getScaffoldBackgroundColor() {
+    final currentStory = _navigationController.currentStory;
+    if (currentStory is VTextStory) {
+      return currentStory.backgroundColor;
+    }
+    return Colors.black;
   }
 }

@@ -14,6 +14,7 @@ import '../../../v_reply_system/widgets/v_reply_overlay.dart';
 import '../../../v_story_header/views/v_header_view.dart';
 import '../../../v_story_models/models/v_base_story.dart';
 import '../../../v_story_models/models/v_story_group.dart';
+import '../../../v_story_models/models/v_text_story.dart';
 import '../../models/v_story_viewer_callbacks.dart';
 import 'v_loading_overlay_builder.dart';
 
@@ -36,28 +37,45 @@ class VStoryContentBuilder {
     required double maxContentWidth,
     VoidCallback? onPlayPausePressed,
     VoidCallback? onMutePressed,
+    Color? loadingSpinnerColor,
   }) {
+    final backgroundColor = _getBackgroundColor(currentStory);
     // Build the main story content
-    final storyContent = VGestureWrapper(
-      callbacks: gestureCallbacks,
-      child: Stack(
-        alignment: AlignmentDirectional.topCenter,
-        children: [
-          VMediaDisplay(controller: mediaController, story: currentStory),
-          _buildProgressBar(progressController, maxContentWidth),
-          _buildHeader(
-            currentGroup,
-            currentStory,
-            context,
-            mediaController,
-            maxContentWidth,
-            onPlayPausePressed,
-            onMutePressed,
+    final storyContent = SafeArea(
+      child: VGestureWrapper(
+        callbacks: gestureCallbacks,
+        child: ColoredBox(
+          color: backgroundColor,
+          child: Stack(
+            alignment: AlignmentDirectional.center,
+            children: [
+              Container(
+                constraints: BoxConstraints(maxWidth: maxContentWidth),
+                child: VMediaDisplay(
+                  controller: mediaController,
+                  story: currentStory,
+                  spinnerColor: loadingSpinnerColor,
+                ),
+              ),
+              Column(
+                children: [
+                  _buildProgressBar(progressController, maxContentWidth),
+                  _buildHeader(
+                    currentGroup,
+                    currentStory,
+                    context,
+                    mediaController,
+                    maxContentWidth,
+                    onPlayPausePressed,
+                    onMutePressed,
+                  ),
+                ],
+              ),
+              VReactionAnimation(controller: reactionController),
+              if (isLoading) VLoadingOverlayBuilder.build(mediaLoadingProgress),
+            ],
           ),
-          VReactionAnimation(controller: reactionController),
-          if (isLoading)
-            VLoadingOverlayBuilder.build(mediaLoadingProgress),
-        ],
+        ),
       ),
     );
 
@@ -101,7 +119,7 @@ class VStoryContentBuilder {
     VoidCallback? onMutePressed,
   ) {
     return Container(
-      margin: const EdgeInsets.only(top: 24, left: 8),
+      margin: const EdgeInsets.only(left: 8, right: 8),
       constraints: BoxConstraints(maxWidth: maxContentWidth),
       child: VHeaderView(
         user: group.user,
@@ -119,7 +137,7 @@ class VStoryContentBuilder {
     VBaseStory story,
     BuildContext context,
     VStoryViewerCallbacks? callbacks,
-    FocusNode  replyTextFieldFocusNode,
+    FocusNode replyTextFieldFocusNode,
   ) {
     return VReplyView(
       story: story,
@@ -129,5 +147,12 @@ class VStoryContentBuilder {
       ),
       replyTextFieldFocusNode: replyTextFieldFocusNode,
     );
+  }
+
+  static Color _getBackgroundColor(VBaseStory story) {
+    if (story is VTextStory) {
+      return story.backgroundColor;
+    }
+    return Colors.black;
   }
 }

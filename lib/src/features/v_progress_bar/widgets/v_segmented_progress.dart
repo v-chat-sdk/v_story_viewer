@@ -40,14 +40,30 @@ class VSegmentedProgress extends StatelessWidget {
                     padding: EdgeInsets.only(
                       right: isLast ? 0 : style.segmentSpacing,
                     ),
-                    child: LinearProgressIndicator(
-                      value: controller.getProgress(index),
-                      backgroundColor: style.inactiveColor,
-                      valueColor:
-                          AlwaysStoppedAnimation<Color>(style.activeColor),
-                      minHeight: style.height,
-                      borderRadius: style.borderRadius,
-                    ),
+                    child: style.boxShadow != null
+                        ? DecoratedBox(
+                            decoration: BoxDecoration(
+                              boxShadow: [style.boxShadow!],
+                            ),
+                            child: LinearProgressIndicator(
+                              value: controller.getProgress(index),
+                              backgroundColor: style.inactiveColor,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                style.activeColor,
+                              ),
+                              minHeight: style.height,
+                              borderRadius: style.borderRadius,
+                            ),
+                          )
+                        : LinearProgressIndicator(
+                            value: controller.getProgress(index),
+                            backgroundColor: style.inactiveColor,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              style.activeColor,
+                            ),
+                            minHeight: style.height,
+                            borderRadius: style.borderRadius,
+                          ),
                   ),
                 );
               },

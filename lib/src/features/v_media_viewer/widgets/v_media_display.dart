@@ -20,55 +20,48 @@ class VMediaDisplay extends StatelessWidget {
   const VMediaDisplay({
     required this.controller,
     required this.story,
+    this.spinnerColor,
     super.key,
   });
 
   final VBaseMediaController controller;
   final VBaseStory story;
+  final Color? spinnerColor;
 
   @override
   Widget build(BuildContext context) {
     // Show loading indicator
     if (controller.isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return SizedBox();
     }
 
     // Show error
     if (controller.hasError) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error, color: Colors.white, size: 48),
-            const SizedBox(height: 16),
-            Text(
-              controller.errorMessage ?? 'Failed to load story',
-              style: const TextStyle(color: Colors.white),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.error, color: Colors.white, size: 48),
+          const SizedBox(height: 16),
+          Text(
+            controller.errorMessage ?? 'Failed to load story',
+            style: const TextStyle(color: Colors.white),
+            textAlign: TextAlign.center,
+          ),
+        ],
       );
     }
 
     // Display appropriate viewer based on story type
-    return Center(
-      child: switch (story) {
-        VImageStory() => VImageViewer(
-          controller: controller as VImageController,
-        ),
-        VVideoStory() => VVideoViewer(
-          controller: controller as VVideoController,
-        ),
-        VTextStory() => VTextViewer(story: story as VTextStory),
-        VCustomStory() => VCustomViewer(story: story as VCustomStory),
-        _ => const Center(
-          child: Text(
-            'Unknown story type please update the app to latest version',
-            style: TextStyle(color: Colors.white),
-          ),
-        ),
-      },
-    );
+    // Use SizedBox.expand to ensure full-screen coverage for gestures
+    return switch (story) {
+      VImageStory() => VImageViewer(controller: controller as VImageController),
+      VVideoStory() => VVideoViewer(controller: controller as VVideoController),
+      VTextStory() => VTextViewer(story: story as VTextStory),
+      VCustomStory() => VCustomViewer(story: story as VCustomStory),
+      _ => const Text(
+        'Unknown story type please update the app to latest version',
+        style: TextStyle(color: Colors.white),
+      ),
+    };
   }
 }
