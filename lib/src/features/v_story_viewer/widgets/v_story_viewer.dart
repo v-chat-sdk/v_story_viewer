@@ -566,6 +566,7 @@ class _VStoryViewerState extends State<VStoryViewer> {
       callbacks: widget.callbacks,
       replyTextFieldFocusNode: _replyTextFieldFocusNode,
       maxContentWidth: responsiveMaxWidth,
+      isPaused: _state.isPaused,
       onPlayPausePressed: _handlePlayPausePressed,
       onMutePressed: _handleMutePressed,
       loadingSpinnerColor: _config.loadingSpinnerColor,

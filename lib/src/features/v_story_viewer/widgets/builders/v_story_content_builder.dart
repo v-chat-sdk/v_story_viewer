@@ -35,6 +35,7 @@ class VStoryContentBuilder {
     required VStoryViewerCallbacks? callbacks,
     required FocusNode replyTextFieldFocusNode,
     required double maxContentWidth,
+    required bool isPaused,
     VoidCallback? onPlayPausePressed,
     VoidCallback? onMutePressed,
     Color? loadingSpinnerColor,
@@ -59,15 +60,23 @@ class VStoryContentBuilder {
               ),
               Column(
                 children: [
-                  _buildProgressBar(progressController, maxContentWidth),
-                  _buildHeader(
-                    currentGroup,
-                    currentStory,
-                    context,
-                    mediaController,
-                    maxContentWidth,
-                    onPlayPausePressed,
-                    onMutePressed,
+                  AnimatedOpacity(
+                    opacity: isPaused ? 0.0 : 1.0,
+                    duration: const Duration(milliseconds: 200),
+                    child: _buildProgressBar(progressController, maxContentWidth),
+                  ),
+                  AnimatedOpacity(
+                    opacity: isPaused ? 0.0 : 1.0,
+                    duration: const Duration(milliseconds: 200),
+                    child: _buildHeader(
+                      currentGroup,
+                      currentStory,
+                      context,
+                      mediaController,
+                      maxContentWidth,
+                      onPlayPausePressed,
+                      onMutePressed,
+                    ),
                   ),
                 ],
               ),
@@ -80,11 +89,15 @@ class VStoryContentBuilder {
     );
 
     // Build the reply view
-    final replyView = _buildReplyView(
-      currentStory,
-      context,
-      callbacks,
-      replyTextFieldFocusNode,
+    final replyView = AnimatedOpacity(
+      opacity: isPaused ? 0.0 : 1.0,
+      duration: const Duration(milliseconds: 200),
+      child: _buildReplyView(
+        currentStory,
+        context,
+        callbacks,
+        replyTextFieldFocusNode,
+      ),
     );
 
     // Wrap with VReplyOverlay for web platform blur effect
