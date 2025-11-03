@@ -23,47 +23,4 @@ class VThemeController extends ChangeNotifier {
       notifyListeners();
     }
   }
-
-  /// Toggle between light and dark theme
-  void toggleTheme() {
-    if (_isDarkMode) {
-      updateTheme(VStoryTheme.light());
-    } else {
-      updateTheme(VStoryTheme.dark());
-    }
-  }
-
-  /// Set WhatsApp theme
-  void setWhatsAppTheme() {
-    updateTheme(VStoryTheme.whatsapp());
-  }
-
-  /// Set Instagram theme
-  void setInstagramTheme() {
-    updateTheme(VStoryTheme.instagram());
-  }
-
-  /// Apply theme from brightness
-  void applyThemeFromBrightness(Brightness brightness) {
-    if (brightness == Brightness.dark) {
-      updateTheme(VStoryTheme.dark());
-    } else {
-      updateTheme(VStoryTheme.light());
-    }
-  }
-
-  /// Create a custom theme
-  void setCustomTheme({required VStoryTheme theme}) {
-    updateTheme(theme);
-  }
-
-  /// Reset to default theme
-  void resetTheme() {
-    updateTheme(VStoryTheme.dark());
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
 }

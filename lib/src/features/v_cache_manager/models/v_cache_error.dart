@@ -34,30 +34,6 @@ class VCacheFileSystemError extends VCacheManagerError {
   const VCacheFileSystemError(super.message, super.url);
 }
 
-/// Asset loading errors
-class VCacheAssetError extends VCacheManagerError {
-  const VCacheAssetError(super.message, super.url);
-}
-
-/// Timeout errors during download
-class VCacheTimeoutError extends VCacheManagerError {
-  const VCacheTimeoutError(super.message, super.url, {this.duration});
-
-  /// Duration that timed out
-  final Duration? duration;
-
-  @override
-  String toString() {
-    final dur = duration != null ? ' (timeout: $duration)' : '';
-    return 'VCacheTimeoutError: $message$dur (url: $url)';
-  }
-}
-
-/// Validation errors (invalid URL, missing file, etc.)
-class VCacheValidationError extends VCacheManagerError {
-  const VCacheValidationError(super.message, super.url);
-}
-
 /// Errors that occurred after max retry attempts
 class VCacheRetryExhaustedError extends VCacheManagerError {
   const VCacheRetryExhaustedError(

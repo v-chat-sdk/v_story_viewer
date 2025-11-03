@@ -22,7 +22,6 @@ final class VImageStory extends VMediaStory {
     super.metadata,
   }) : super(storyType: VStoryType.image);
 
-
   @override
   final VPlatformFile media;
 
@@ -58,7 +57,6 @@ final class VImageStory extends VMediaStory {
 
   /// Convenience getter for accessing the file path from media
   String? get file => media.fileLocalPath;
-
 
   @override
   VImageStory copyWith({

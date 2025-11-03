@@ -68,7 +68,6 @@ class _VReplyViewState extends State<VReplyView> {
     return VReplyInput(
       focusNode: widget.replyTextFieldFocusNode,
       config: widget.config,
-      onChanged: (txt) {},
       onSubmitted: (reply) {
         _replyController.sendReply(reply);
         widget.replyTextFieldFocusNode.unfocus();

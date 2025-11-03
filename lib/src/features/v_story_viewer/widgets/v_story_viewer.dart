@@ -338,13 +338,10 @@ class _VStoryViewerState extends State<VStoryViewer> {
   }
 
   void _handleCarouselPageChanged(int index) {
-    final jumpRes = _navigationController.jumpTo(
+    _navigationController.jumpTo(
       groupIndex: index,
       storyIndex: 0,
     );
-    if (jumpRes == false) {
-      // this means he can not move to next group!
-    }
     _reinitializeProgressController();
     _loadCurrentStory();
 
@@ -385,7 +382,6 @@ class _VStoryViewerState extends State<VStoryViewer> {
             if (_isTextFieldFocused()) return;
             if (event is KeyDownEvent) {
               if (event.logicalKey == LogicalKeyboardKey.space) {
-                print(':LogicalKeyboardKey.spaceLogicalKeyboardKey.space');
                 if (_state.isPlaying) {
                   _handlePause();
                 } else if (_state.isPaused) {

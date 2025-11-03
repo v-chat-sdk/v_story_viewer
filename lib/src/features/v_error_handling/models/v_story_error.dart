@@ -56,9 +56,6 @@ abstract class VStoryError implements Exception {
 }
 
 
-
-
-
 /// Generic error for unexpected failures
 class VGenericError extends VStoryError {
   const VGenericError({

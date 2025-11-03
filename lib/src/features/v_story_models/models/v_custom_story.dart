@@ -10,7 +10,6 @@ class VCustomStory extends VBaseStory {
     required super.id,
     required this.builder,
     required super.createdAt,
-
     required super.groupId,
     super.duration = const Duration(seconds: 5),
     super.isViewed,
@@ -38,7 +37,6 @@ class VCustomStory extends VBaseStory {
     String? groupId,
     bool? isViewed,
     bool? isReacted,
-
     Map<String, dynamic>? metadata,
     Widget Function(BuildContext context, Object error)? errorBuilder,
     Widget Function(BuildContext context)? loadingBuilder,
@@ -53,7 +51,6 @@ class VCustomStory extends VBaseStory {
       metadata: metadata ?? this.metadata,
       errorBuilder: errorBuilder ?? this.errorBuilder,
       loadingBuilder: loadingBuilder ?? this.loadingBuilder,
-
       createdAt: createdAt ?? this.createdAt,
     );
   }

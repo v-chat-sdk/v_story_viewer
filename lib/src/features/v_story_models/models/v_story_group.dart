@@ -39,21 +39,10 @@ class VStoryGroup {
     return _service.storyAt(stories, index);
   }
 
-  @Deprecated('Use storyAt(index) which returns VStoryResult instead')
-  VBaseStory? storyAtOrNull(int index) {
-    return index >= 0 && index < stories.length ? stories[index] : null;
-  }
-
   int indexOf(VBaseStory story) => _service.indexOf(stories, story);
 
   VStoryResult<VBaseStory> findStoryById(String storyId) {
     return _service.findById(stories, storyId, groupId);
-  }
-
-  @Deprecated('Use findStoryById(storyId) which returns VStoryResult instead')
-  VBaseStory? getStoryById(String storyId) {
-    final result = findStoryById(storyId);
-    return result.valueOrNull;
   }
 
   VStoryGroup copyWith({
@@ -71,13 +60,6 @@ class VStoryGroup {
   VStoryResult<VStoryGroup> markStoryAsViewed(String storyId) {
     final result = _service.markAsViewed(stories, storyId, groupId);
     return result.map((updatedStories) => copyWith(stories: updatedStories));
-  }
-
-  @Deprecated(
-    'Use markStoryAsViewed(storyId) which returns VStoryResult instead',
-  )
-  VStoryGroup markStoryAsViewedLegacy(String storyId) {
-    return markStoryAsViewed(storyId).getOrElse((_) => this);
   }
 
   VStoryGroup markAllAsViewed() {

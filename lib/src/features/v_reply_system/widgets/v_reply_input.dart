@@ -9,7 +9,6 @@ class VReplyInput extends StatefulWidget {
   const VReplyInput({
     required this.onSubmitted,
     required this.focusNode,
-    required this.onChanged,
     this.config,
     super.key,
   });
@@ -19,7 +18,6 @@ class VReplyInput extends StatefulWidget {
 
   /// A callback for when a reply is submitted.
   final void Function(String txt) onSubmitted;
-  final void Function(String txt) onChanged;
 
   /// The focus node for the input field.
   final FocusNode focusNode;
@@ -69,7 +67,6 @@ class _VReplyInputState extends State<VReplyInput> {
               child: TextField(
                 controller: _controller,
                 focusNode: widget.focusNode,
-                onChanged: widget.onChanged,
                 style: widget.config?.textStyle ??
                     const TextStyle(color: Colors.white, fontSize: 16),
                 decoration: widget.config?.inputDecoration ??
