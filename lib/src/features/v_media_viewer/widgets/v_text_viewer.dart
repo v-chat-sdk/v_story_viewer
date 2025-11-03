@@ -16,22 +16,27 @@ class VTextViewer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: _buildDecoration(),
-      child: Center(
-        child: Padding(
-          padding: story.padding,
-          child: Text(
-            story.text,
-            style: story.textStyle ??
-                const TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-            textAlign: story.textAlign,
-            maxLines: story.maxLines,
-            overflow: story.maxLines != null ? TextOverflow.ellipsis : null,
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: 500),
+
+      child: DecoratedBox(
+
+        decoration: _buildDecoration(),
+        child: Center(
+          child: Padding(
+            padding: story.padding,
+            child: Text(
+              story.text,
+              style: story.textStyle ??
+                  const TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+              textAlign: story.textAlign,
+              maxLines: story.maxLines,
+              overflow: story.maxLines != null ? TextOverflow.ellipsis : null,
+            ),
           ),
         ),
       ),

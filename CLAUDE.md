@@ -363,3 +363,10 @@ VCustomStory(
 - Avoid rebuilding the entire widget tree; use targeted rebuilds for efficiency.
 - Implement proper error states within your controllers.
 - Never expose mutable state directly; use getters to provide read-only access.
+
+# Flutter Build and Test Rule
+
+When working on Flutter projects:
+- Do not build APKs or run the app during `flutter build` or `flutter test`, as they take too much time.
+- Instead, use only `flutter analyze` or the Dart analyzer to quickly check and fix code issues.
+- The goal is to ensure rapid iteration by relying solely on static analysis rather than full builds or test runs.

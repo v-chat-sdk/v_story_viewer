@@ -425,9 +425,10 @@ class _VStoryViewerState extends State<VStoryViewer> {
       reactionController: _reactionController,
       context: context,
       callbacks: widget.callbacks,
+      replyTextFieldFocusNode: _replyTextFieldFocusNode,
+      maxContentWidth: _config.maxContentWidth,
       onPlayPausePressed: _handlePlayPausePressed,
       onMutePressed: _handleMutePressed,
-      replyTextFieldFocusNode: _replyTextFieldFocusNode,
     );
   }
 

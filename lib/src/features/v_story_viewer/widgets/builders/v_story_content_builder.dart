@@ -33,6 +33,7 @@ class VStoryContentBuilder {
     required BuildContext context,
     required VStoryViewerCallbacks? callbacks,
     required FocusNode replyTextFieldFocusNode,
+    required double maxContentWidth,
     VoidCallback? onPlayPausePressed,
     VoidCallback? onMutePressed,
   }) {
@@ -40,14 +41,16 @@ class VStoryContentBuilder {
     final storyContent = VGestureWrapper(
       callbacks: gestureCallbacks,
       child: Stack(
+        alignment: AlignmentDirectional.topCenter,
         children: [
           VMediaDisplay(controller: mediaController, story: currentStory),
-          _buildProgressBar(progressController),
+          _buildProgressBar(progressController, maxContentWidth),
           _buildHeader(
             currentGroup,
             currentStory,
             context,
             mediaController,
+            maxContentWidth,
             onPlayPausePressed,
             onMutePressed,
           ),
@@ -74,12 +77,17 @@ class VStoryContentBuilder {
     );
   }
 
-  static Widget _buildProgressBar(VProgressController controller) {
-    return Positioned(
-      top: 8,
-      left: 8,
-      right: 8,
-      child: VSegmentedProgress(controller: controller),
+  static Widget _buildProgressBar(
+    VProgressController controller,
+    double maxContentWidth,
+  ) {
+    return Align(
+      alignment: Alignment.topCenter,
+      child: Container(
+        margin: const EdgeInsets.only(top: 8, left: 8),
+        constraints: BoxConstraints(maxWidth: maxContentWidth),
+        child: VSegmentedProgress(controller: controller),
+      ),
     );
   }
 
@@ -88,13 +96,13 @@ class VStoryContentBuilder {
     VBaseStory story,
     BuildContext context,
     VBaseMediaController mediaController,
+    double maxContentWidth,
     VoidCallback? onPlayPausePressed,
     VoidCallback? onMutePressed,
   ) {
-    return Positioned(
-      top: 24,
-      left: 8,
-      right: 8,
+    return Container(
+      margin: const EdgeInsets.only(top: 24, left: 8),
+      constraints: BoxConstraints(maxWidth: maxContentWidth),
       child: VHeaderView(
         user: group.user,
         createdAt: story.createdAt,

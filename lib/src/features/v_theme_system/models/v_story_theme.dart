@@ -20,6 +20,7 @@ class VStoryTheme {
     this.footerHeight = 60.0,
     this.replyInputHeight = 48.0,
     this.tapZoneWidth = 0.3,
+    this.maxContentWidth = 600.0,
     this.enableShadows = true,
     this.enableRippleEffect = true,
     this.enableHapticFeedback = false,
@@ -101,6 +102,9 @@ class VStoryTheme {
   /// Tap zone width (percentage of screen width)
   final double tapZoneWidth;
 
+  /// Maximum width for header and progress bar content
+  final double maxContentWidth;
+
   /// Enable shadows
   final bool enableShadows;
 
@@ -124,6 +128,7 @@ class VStoryTheme {
     double? footerHeight,
     double? replyInputHeight,
     double? tapZoneWidth,
+    double? maxContentWidth,
     bool? enableShadows,
     bool? enableRippleEffect,
     bool? enableHapticFeedback,
@@ -141,6 +146,7 @@ class VStoryTheme {
       footerHeight: footerHeight ?? this.footerHeight,
       replyInputHeight: replyInputHeight ?? this.replyInputHeight,
       tapZoneWidth: tapZoneWidth ?? this.tapZoneWidth,
+      maxContentWidth: maxContentWidth ?? this.maxContentWidth,
       enableShadows: enableShadows ?? this.enableShadows,
       enableRippleEffect: enableRippleEffect ?? this.enableRippleEffect,
       enableHapticFeedback: enableHapticFeedback ?? this.enableHapticFeedback,

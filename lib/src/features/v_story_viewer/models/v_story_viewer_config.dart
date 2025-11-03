@@ -12,6 +12,7 @@ class VStoryViewerConfig {
     this.enableCarousel = true,
     this.pauseOnCarouselScroll = true,
     this.carouselAnimationDuration = const Duration(milliseconds: 300),
+    this.maxContentWidth = 600.0,
   });
 
   /// Enable haptic feedback for gestures
@@ -45,6 +46,9 @@ class VStoryViewerConfig {
   /// Duration for carousel page transition animation
   final Duration carouselAnimationDuration;
 
+  /// Maximum width for header and progress bar content
+  final double maxContentWidth;
+
   /// Default configuration
   static const defaultConfig = VStoryViewerConfig();
 
@@ -57,6 +61,7 @@ class VStoryViewerConfig {
     bool? enableCarousel,
     bool? pauseOnCarouselScroll,
     Duration? carouselAnimationDuration,
+    double? maxContentWidth,
   }) {
     return VStoryViewerConfig(
       enableHapticFeedback: enableHapticFeedback ?? this.enableHapticFeedback,
@@ -70,6 +75,7 @@ class VStoryViewerConfig {
           pauseOnCarouselScroll ?? this.pauseOnCarouselScroll,
       carouselAnimationDuration:
           carouselAnimationDuration ?? this.carouselAnimationDuration,
+      maxContentWidth: maxContentWidth ?? this.maxContentWidth,
     );
   }
 }

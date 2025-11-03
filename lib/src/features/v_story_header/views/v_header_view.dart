@@ -150,6 +150,7 @@ class _VHeaderViewState extends State<VHeaderView> {
     return VHeaderContainer(
       padding: widget.config?.padding,
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           VUserAvatar(
             avatarUrl: widget.user.profilePicture,
