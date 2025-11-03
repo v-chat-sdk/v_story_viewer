@@ -402,7 +402,11 @@ class _VStoryViewerState extends State<VStoryViewer> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktopWide = screenWidth >= 1000;
     final hasMultipleGroups = widget.storyGroups.length > 1;
-    final shouldShowArrows = isWebPlatform && isDesktopWide && hasMultipleGroups;
+    final hasMultipleStories =
+        _navigationController.currentGroup.stories.length > 1;
+    // Show arrows if there are multiple stories in current group OR multiple groups
+    final shouldShowArrows =
+        isWebPlatform && isDesktopWide && (hasMultipleStories || hasMultipleGroups);
 
     // Add navigation arrows overlay for web/desktop
     if (shouldShowArrows) {
@@ -473,7 +477,7 @@ class _VStoryViewerState extends State<VStoryViewer> {
   Widget _buildNavigationArrowsOverlay() {
     return Stack(
       children: [
-        // Left arrow
+        // Left arrow - Navigate to previous story or group
         Positioned(
           left: 24,
           top: 0,
@@ -481,13 +485,14 @@ class _VStoryViewerState extends State<VStoryViewer> {
           child: Center(
             child: _buildNavigationButton(
               icon: Icons.arrow_back_ios_new,
-              onPressed: _navigationController.hasPreviousGroup
-                  ? _handlePreviousGroup
+              onPressed: (_navigationController.hasPreviousStory ||
+                      _navigationController.hasPreviousGroup)
+                  ? _handleTapPrevious
                   : null,
             ),
           ),
         ),
-        // Right arrow
+        // Right arrow - Navigate to next story or next group
         Positioned(
           right: 24,
           top: 0,
@@ -495,8 +500,9 @@ class _VStoryViewerState extends State<VStoryViewer> {
           child: Center(
             child: _buildNavigationButton(
               icon: Icons.arrow_forward_ios,
-              onPressed: _navigationController.hasNextGroup
-                  ? _handleNextGroup
+              onPressed: (_navigationController.hasNextStory ||
+                      (_navigationController.hasNextGroup && _config.autoMoveToNextGroup))
+                  ? _handleTapNext
                   : null,
             ),
           ),
