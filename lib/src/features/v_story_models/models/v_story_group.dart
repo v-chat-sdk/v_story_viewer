@@ -1,15 +1,13 @@
 import 'package:flutter/foundation.dart';
 
 import '../../../core/models/v_story_result.dart';
-import '../services/v_story_mutation_service.dart';
-import '../services/v_story_query_service.dart';
-import '../services/v_story_validation_service.dart';
+import '../services/v_story_service.dart';
 import 'v_base_story.dart';
 import 'v_story_user.dart';
 
 /// Story group model representing a collection of stories from a single user
 ///
-/// Delegates business logic to specialized services for better maintainability.
+/// Delegates business logic to the unified VStoryService for better maintainability.
 @immutable
 class VStoryGroup {
   VStoryGroup({required this.user, required this.stories, this.metadata})
@@ -19,19 +17,17 @@ class VStoryGroup {
   final List<VBaseStory> stories;
   final Map<String, dynamic>? metadata;
 
-  static const _queryService = VStoryQueryService();
-  static const _mutationService = VStoryMutationService();
-  static const _validationService = VStoryValidationService();
+  static const _service = VStoryService();
 
   String get groupId => user.id;
 
-  int get unviewedCount => _queryService.countUnviewed(stories);
+  int get unviewedCount => _service.countUnviewed(stories);
 
-  int get viewedCount => _queryService.countViewed(stories);
+  int get viewedCount => _service.countViewed(stories);
 
-  bool get hasUnviewedStories => _queryService.hasUnviewed(stories);
+  bool get hasUnviewedStories => _service.hasUnviewed(stories);
 
-  int get firstUnviewedIndex => _queryService.firstUnviewedIndex(stories);
+  int get firstUnviewedIndex => _service.firstUnviewedIndex(stories);
 
   VBaseStory get firstUnviewedStory => stories[firstUnviewedIndex];
 
@@ -40,7 +36,7 @@ class VStoryGroup {
   bool get isCompletelyUnviewed => viewedCount == 0;
 
   VStoryResult<VBaseStory> storyAt(int index) {
-    return _queryService.storyAt(stories, index);
+    return _service.storyAt(stories, index);
   }
 
   @Deprecated('Use storyAt(index) which returns VStoryResult instead')
@@ -48,10 +44,10 @@ class VStoryGroup {
     return index >= 0 && index < stories.length ? stories[index] : null;
   }
 
-  int indexOf(VBaseStory story) => _queryService.indexOf(stories, story);
+  int indexOf(VBaseStory story) => _service.indexOf(stories, story);
 
   VStoryResult<VBaseStory> findStoryById(String storyId) {
-    return _queryService.findById(stories, storyId, groupId);
+    return _service.findById(stories, storyId, groupId);
   }
 
   @Deprecated('Use findStoryById(storyId) which returns VStoryResult instead')
@@ -73,7 +69,7 @@ class VStoryGroup {
   }
 
   VStoryResult<VStoryGroup> markStoryAsViewed(String storyId) {
-    final result = _mutationService.markAsViewed(stories, storyId, groupId);
+    final result = _service.markAsViewed(stories, storyId, groupId);
     return result.map((updatedStories) => copyWith(stories: updatedStories));
   }
 
@@ -85,12 +81,12 @@ class VStoryGroup {
   }
 
   VStoryGroup markAllAsViewed() {
-    final updatedStories = _mutationService.markAllAsViewed(stories);
+    final updatedStories = _service.markAllAsViewed(stories);
     return copyWith(stories: updatedStories);
   }
 
   VStoryResult<VStoryGroup> validate() {
-    final validationResult = _validationService.validate(stories);
+    final validationResult = _service.validate(stories);
     return validationResult.map((_) => this);
   }
 

@@ -1,8 +1,7 @@
- import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:v_platform/v_platform.dart';
 import 'package:v_story_viewer/v_story_viewer.dart';
 import 'cache_manager_test_screen.dart';
-import 'gesture_detector_test_screen.dart';
 import 'progress_test_screen.dart';
 
 /// Home screen with buttons to test each feature
@@ -26,14 +25,6 @@ class HomeScreen extends StatelessWidget {
             icon: Icons.linear_scale,
             color: Colors.blue,
             onTap: () => _navigate(context, const ProgressTestScreen()),
-          ),
-          _buildFeatureCard(
-            context,
-            title: 'Gesture Detector',
-            description: 'Test tap zones and swipe gestures',
-            icon: Icons.touch_app,
-            color: Colors.green,
-            onTap: () => _navigate(context, const GestureDetectorTestScreen()),
           ),
           _buildFeatureCard(
             context,
