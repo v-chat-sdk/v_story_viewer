@@ -25,6 +25,7 @@ dependencies:
   shared_preferences: ^2.5.3
   crypto: ^3.0.3
   event_bus: ^2.0.1
+  emoji_picker_flutter: ^4.3.0
 dependency_overrides:
   analyzer: ^8.1.1
   custom_lint_builder: ^0.8.1

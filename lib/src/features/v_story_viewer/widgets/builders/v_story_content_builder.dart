@@ -63,7 +63,10 @@ class VStoryContentBuilder {
                   AnimatedOpacity(
                     opacity: isPaused ? 0.0 : 1.0,
                     duration: const Duration(milliseconds: 200),
-                    child: _buildProgressBar(progressController, maxContentWidth),
+                    child: _buildProgressBar(
+                      progressController,
+                      maxContentWidth,
+                    ),
                   ),
                   AnimatedOpacity(
                     opacity: isPaused ? 0.0 : 1.0,
@@ -97,6 +100,7 @@ class VStoryContentBuilder {
         context,
         callbacks,
         replyTextFieldFocusNode,
+        maxContentWidth,
       ),
     );
 
@@ -151,6 +155,7 @@ class VStoryContentBuilder {
     BuildContext context,
     VStoryViewerCallbacks? callbacks,
     FocusNode replyTextFieldFocusNode,
+    double maxContentWidth,
   ) {
     return VReplyView(
       story: story,
@@ -159,6 +164,7 @@ class VStoryContentBuilder {
         onReplySubmitted: callbacks?.replyCallbacks?.onReplySubmitted,
       ),
       replyTextFieldFocusNode: replyTextFieldFocusNode,
+      maxContentWidth: maxContentWidth,
     );
   }
 

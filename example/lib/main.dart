@@ -14,10 +14,7 @@ class VStoryViewerExampleApp extends StatelessWidget {
     return MaterialApp(
       title: 'V Story Viewer - Feature Tests',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
-      ),
+      theme: ThemeData.dark(useMaterial3: true),
       home: const HomeScreen(),
     );
   }

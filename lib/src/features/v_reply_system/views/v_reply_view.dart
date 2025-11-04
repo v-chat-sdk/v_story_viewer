@@ -15,6 +15,7 @@ class VReplyView extends StatefulWidget {
   const VReplyView({
     required this.story,
     required this.replyTextFieldFocusNode,
+    required this.maxContentWidth,
     this.callbacks,
     this.config,
     super.key,
@@ -23,6 +24,7 @@ class VReplyView extends StatefulWidget {
   /// The story being replied to.
   final VBaseStory story;
   final FocusNode replyTextFieldFocusNode;
+  final double maxContentWidth;
 
   /// The callbacks for reply actions.
   final VReplyCallbacks? callbacks;
@@ -68,10 +70,10 @@ class _VReplyViewState extends State<VReplyView> {
     return VReplyInput(
       focusNode: widget.replyTextFieldFocusNode,
       config: widget.config,
+      maxContentWidth: widget.maxContentWidth,
       onSubmitted: (reply) {
         _replyController.sendReply(reply);
         widget.replyTextFieldFocusNode.unfocus();
-
       },
     );
   }
