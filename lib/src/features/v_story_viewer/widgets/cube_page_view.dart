@@ -90,13 +90,23 @@ class _CubePageViewState extends State<CubePageView> {
   }
 
   double _calculatePageOffset(int index) {
-    if (!widget.controller.position.haveDimensions) {
+    try {
+      if (widget.controller.positions.isEmpty) {
+        return 0;
+      }
+      if (widget.controller.positions.length > 1) {
+        return 0;
+      }
+      if (!widget.controller.position.haveDimensions) {
+        return 0;
+      }
+
+      final page = widget.controller.page ?? 0;
+      final offset = page - index;
+      return offset.clamp(-1, 1);
+    } catch (e) {
       return 0;
     }
-
-    final page = widget.controller.page ?? 0;
-    final offset = page - index;
-    return offset.clamp(-1, 1);
   }
 
   Alignment _getRotationAlignment(double pageOffset) {

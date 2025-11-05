@@ -20,9 +20,14 @@ final class VVideoStory extends VMediaStory {
     this.autoPlay = true,
     this.muted = false,
     this.looping = false,
-
     super.metadata,
-  }) : super(storyType: VStoryType.video);
+    String? caption,
+    String? source,
+  }) : super(
+    storyType: VStoryType.video,
+    caption: caption,
+    source: source,
+  );
 
 
   /// Media file containing the video resource
@@ -63,6 +68,8 @@ final class VVideoStory extends VMediaStory {
     String? groupId,
     bool? isReacted,
     Map<String, dynamic>? metadata,
+    String? caption,
+    String? source,
   }) {
     return VVideoStory(
       id: id ?? this.id,
@@ -78,6 +85,8 @@ final class VVideoStory extends VMediaStory {
       isViewed: isViewed ?? this.isViewed,
       isReacted: isReacted ?? this.isReacted,
       metadata: metadata ?? this.metadata,
+      caption: caption ?? this.caption,
+      source: source ?? this.source,
     );
   }
 }

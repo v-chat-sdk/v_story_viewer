@@ -16,6 +16,8 @@ class VTextStory extends VBaseStory {
     super.isViewed,
     super.isReacted,
     super.metadata,
+    super.caption,
+    super.source,
     this.textStyle,
     this.maxLines,
     this.textAlign = TextAlign.center,
@@ -59,13 +61,14 @@ class VTextStory extends VBaseStory {
     String? groupId,
     int? maxLines,
     bool? isReacted,
-
     Map<String, dynamic>? metadata,
     TextStyle? textStyle,
     TextAlign? textAlign,
     Gradient? backgroundGradient,
     String? backgroundImageUrl,
     EdgeInsets? padding,
+    String? caption,
+    String? source,
   }) {
     return VTextStory(
       id: id ?? this.id,
@@ -78,6 +81,8 @@ class VTextStory extends VBaseStory {
       isViewed: isViewed ?? this.isViewed,
       isReacted: isReacted ?? this.isReacted,
       metadata: metadata ?? this.metadata,
+      caption: caption ?? this.caption,
+      source: source ?? this.source,
       textStyle: textStyle ?? this.textStyle,
       textAlign: textAlign ?? this.textAlign,
       backgroundGradient: backgroundGradient ?? this.backgroundGradient,

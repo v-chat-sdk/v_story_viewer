@@ -4,6 +4,7 @@ import '../../v_media_viewer/controllers/v_base_media_controller.dart';
 import '../../v_media_viewer/controllers/v_video_controller.dart';
 import '../../v_story_models/models/v_base_story.dart';
 import '../../v_story_models/models/v_story_user.dart';
+import '../../v_theme_system/models/v_responsive_utils.dart';
 import '../models/v_header_config.dart';
 import '../models/v_story_action.dart';
 import '../widgets/v_header_container.dart';
@@ -101,16 +102,12 @@ class _VHeaderViewState extends State<VHeaderView> {
 
   /// Calculate responsive icon button size based on screen width
   double _getResponsiveIconSize(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    // Mobile: 48px, Tablet: 52px, Desktop: 56px
-    if (screenWidth >= 1000) {
-      return 56;
-    } else if (screenWidth >= 600) {
-      return 52;
-    } else {
-      return 48;
-    }
+    return VResponsiveUtils.getIconSize(
+      context,
+      mobileSize: 48,
+      tabletSize: 52,
+      desktopSize: 56,
+    );
   }
 
   void _showActionMenu(BuildContext context) {

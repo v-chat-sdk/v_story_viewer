@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../v_theme_system/models/v_responsive_utils.dart';
 import '../models/v_gesture_config.dart';
 import 'v_gesture_callbacks.dart';
 
@@ -64,8 +65,9 @@ class _VGestureWrapperState extends State<VGestureWrapper> {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     // Responsive safe zone: viewPadding.top handles notch/dynamic island
-    // Add header height (60px is typical for icon buttons + user info)
-    final headerSafeZoneHeight = MediaQuery.of(context).viewPadding.top + 60;
+    // Add responsive header height based on device type
+    final headerSafeZoneHeight = VResponsiveUtils.getSafeAreaTop(context) +
+        VResponsiveUtils.getHeaderHeight(context);
 
     return Semantics(
       label: 'Story viewer gesture controls',

@@ -14,6 +14,8 @@ abstract class VBaseStory {
     this.isViewed = false,
     this.isReacted = false,
     this.metadata,
+    this.caption,
+    this.source,
   });
 
   /// Unique identifier for the story
@@ -39,6 +41,12 @@ abstract class VBaseStory {
   /// Additional metadata as key-value pairs
   final Map<String, dynamic>? metadata;
 
+  /// Caption or description text for the story
+  final String? caption;
+
+  /// Source or attribution for the story content
+  final String? source;
+
   /// Creates a copy of the story with updated fields
   VBaseStory copyWith({
     String? id,
@@ -48,6 +56,8 @@ abstract class VBaseStory {
     bool? isReacted,
     String? groupId,
     Map<String, dynamic>? metadata,
+    String? caption,
+    String? source,
   });
 
   @override

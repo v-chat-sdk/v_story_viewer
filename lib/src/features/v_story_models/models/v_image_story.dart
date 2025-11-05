@@ -16,11 +16,16 @@ final class VImageStory extends VMediaStory {
     required super.groupId,
     required super.createdAt,
     this.fit = BoxFit.contain,
-    this.caption,
+    String? caption,
     this.aspectRatio,
     this.dimensions,
     super.metadata,
-  }) : super(storyType: VStoryType.image);
+    String? source,
+  }) : _caption = caption, super(
+    storyType: VStoryType.image,
+    caption: caption,
+    source: source,
+  );
 
   @override
   final VPlatformFile media;
@@ -29,13 +34,16 @@ final class VImageStory extends VMediaStory {
   final BoxFit fit;
 
   /// Optional caption for the image
-  final String? caption;
+  final String? _caption;
 
   /// Aspect ratio of the image
   final double? aspectRatio;
 
   /// Image dimensions for aspect ratio calculation
   final Size? dimensions;
+
+  /// Getter for caption (for compatibility)
+  String? get captionText => _caption;
 
   /// Gets the effective aspect ratio (calculated or provided)
   double get effectiveAspectRatio {
@@ -47,7 +55,7 @@ final class VImageStory extends VMediaStory {
   }
 
   /// Whether the image has caption text
-  bool get hasCaption => caption != null && caption!.isNotEmpty;
+  bool get hasCaption => _caption != null && _caption!.isNotEmpty;
 
   /// Convenience getter for accessing the URL from media
   String? get url => media.networkUrl;
@@ -68,13 +76,15 @@ final class VImageStory extends VMediaStory {
     bool? isViewed,
     bool? isReacted,
     Map<String, dynamic>? metadata,
+    String? caption,
+    String? source,
   }) {
     return VImageStory(
       id: id ?? this.id,
       media: media ?? this.media,
       duration: duration ?? this.duration,
       fit: this.fit,
-      caption: this.caption,
+      caption: caption ?? _caption,
       aspectRatio: this.aspectRatio,
       dimensions: this.dimensions,
       createdAt: createdAt ?? this.createdAt,
@@ -82,6 +92,7 @@ final class VImageStory extends VMediaStory {
       isReacted: isReacted ?? this.isReacted,
       groupId: groupId ?? this.groupId,
       metadata: metadata ?? this.metadata,
+      source: source ?? this.source,
     );
   }
 }

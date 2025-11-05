@@ -56,6 +56,8 @@ class VCustomStory extends VBaseStory {
     super.isViewed,
     super.isReacted,
     super.metadata,
+    super.caption,
+    super.source,
     this.errorBuilder,
     this.loadingBuilder,
   }) : super(storyType: VStoryType.custom);
@@ -86,6 +88,8 @@ class VCustomStory extends VBaseStory {
     Map<String, dynamic>? metadata,
     Widget Function(BuildContext context, Object error)? errorBuilder,
     Widget Function(BuildContext context)? loadingBuilder,
+    String? caption,
+    String? source,
   }) {
     return VCustomStory(
       id: id ?? this.id,
@@ -95,6 +99,8 @@ class VCustomStory extends VBaseStory {
       isViewed: isViewed ?? this.isViewed,
       isReacted: isReacted ?? this.isReacted,
       metadata: metadata ?? this.metadata,
+      caption: caption ?? this.caption,
+      source: source ?? this.source,
       errorBuilder: errorBuilder ?? this.errorBuilder,
       loadingBuilder: loadingBuilder ?? this.loadingBuilder,
       createdAt: createdAt ?? this.createdAt,

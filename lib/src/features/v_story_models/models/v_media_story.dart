@@ -13,9 +13,10 @@ abstract class VMediaStory extends VBaseStory {
     required super.groupId,
     super.duration,
     super.isViewed,
-
     super.isReacted,
     super.metadata,
+    super.caption,
+    super.source,
   });
 
   /// Media file containing the resource
@@ -31,5 +32,7 @@ abstract class VMediaStory extends VBaseStory {
     bool? isViewed,
     bool? isReacted,
     Map<String, dynamic>? metadata,
+    String? caption,
+    String? source,
   });
 }

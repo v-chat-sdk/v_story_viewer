@@ -11,11 +11,17 @@ import '../../../v_reactions/controllers/v_reaction_controller.dart';
 import '../../../v_reactions/widgets/v_reaction_animation.dart';
 import '../../../v_reply_system/views/v_reply_view.dart';
 import '../../../v_reply_system/widgets/v_reply_overlay.dart';
+import '../../../v_story_footer/models/v_engagement_data.dart';
+import '../../../v_story_footer/models/v_error_recovery_state.dart';
+import '../../../v_story_footer/models/v_footer_config.dart';
+import '../../../v_story_footer/views/v_footer_view.dart';
 import '../../../v_story_header/views/v_header_view.dart';
 import '../../../v_story_models/models/v_base_story.dart';
 import '../../../v_story_models/models/v_story_group.dart';
 import '../../../v_story_models/models/v_text_story.dart';
+import '../../models/v_story_transition.dart';
 import '../../models/v_story_viewer_callbacks.dart';
+import '../v_story_transition_wrapper.dart';
 import 'v_loading_overlay_builder.dart';
 
 /// Builder for story content with all layers
@@ -39,6 +45,11 @@ class VStoryContentBuilder {
     VoidCallback? onPlayPausePressed,
     VoidCallback? onMutePressed,
     Color? loadingSpinnerColor,
+    VFooterConfig? footerConfig,
+    VEngagementData? engagementData,
+    VErrorRecoveryState? errorState,
+    VoidCallback? onFooterRetry,
+    VTransitionConfig? transitionConfig,
   }) {
     final backgroundColor = _getBackgroundColor(currentStory);
     // Build the main story content
@@ -47,34 +58,47 @@ class VStoryContentBuilder {
         callbacks: gestureCallbacks,
         child: ColoredBox(
           color: backgroundColor,
-          child: Stack(
-            alignment: AlignmentDirectional.center,
+          child: Column(
             children: [
-              Container(
-                constraints: BoxConstraints(maxWidth: maxContentWidth),
-                child: VMediaDisplay(
-                  controller: mediaController,
-                  story: currentStory,
-                  spinnerColor: loadingSpinnerColor,
+              Expanded(
+                child: Stack(
+                  alignment: AlignmentDirectional.center,
+                  children: [
+                    Container(
+                      constraints: BoxConstraints(maxWidth: maxContentWidth),
+                      child: VMediaDisplay(
+                        controller: mediaController,
+                        story: currentStory,
+                        spinnerColor: loadingSpinnerColor,
+                      ),
+                    ),
+                    Column(
+                      children: [
+                        _buildProgressBar(progressController, maxContentWidth),
+                        _buildHeader(
+                          currentGroup,
+                          currentStory,
+                          context,
+                          mediaController,
+                          maxContentWidth,
+                          onPlayPausePressed,
+                          onMutePressed,
+                        ),
+                      ],
+                    ),
+                    VReactionAnimation(controller: reactionController),
+                    if (isLoading) VLoadingOverlayBuilder.build(mediaLoadingProgress),
+                  ],
                 ),
               ),
-              Column(
-                children: [
-                  _buildProgressBar(progressController, maxContentWidth),
-
-                  _buildHeader(
-                    currentGroup,
-                    currentStory,
-                    context,
-                    mediaController,
-                    maxContentWidth,
-                    onPlayPausePressed,
-                    onMutePressed,
-                  ),
-                ],
+              _buildFooter(
+                currentStory,
+                maxContentWidth,
+                footerConfig,
+                engagementData,
+                errorState,
+                onFooterRetry,
               ),
-              VReactionAnimation(controller: reactionController),
-              if (isLoading) VLoadingOverlayBuilder.build(mediaLoadingProgress),
             ],
           ),
         ),
@@ -90,9 +114,18 @@ class VStoryContentBuilder {
       maxContentWidth,
     );
 
+    // Wrap story content with transition if configured
+    final transitionedContent = transitionConfig != null
+        ? VStoryTransitionWrapper(
+          child: storyContent,
+          storyId: currentStory.id,
+          transitionConfig: transitionConfig,
+        )
+        : storyContent;
+
     // Wrap with VReplyOverlay for web platform blur effect
     return VReplyOverlay(
-      storyContent: storyContent,
+      storyContent: transitionedContent,
       replyWidget: replyView,
       focusNode: replyTextFieldFocusNode,
     );
@@ -159,5 +192,27 @@ class VStoryContentBuilder {
       return story.backgroundColor;
     }
     return Colors.black;
+  }
+
+  static Widget _buildFooter(
+    VBaseStory story,
+    double maxContentWidth,
+    VFooterConfig? config,
+    VEngagementData? engagementData,
+    VErrorRecoveryState? errorState,
+    VoidCallback? onRetry,
+  ) {
+    return Container(
+      constraints: BoxConstraints(maxWidth: maxContentWidth),
+      child: VFooterView(
+        caption: story.caption,
+        source: story.source,
+        engagementData: engagementData ?? const VEngagementData(),
+        errorState: errorState ?? const VErrorRecoveryState(),
+        config: config,
+        onRetry: onRetry,
+        createdAt: story.createdAt,
+      ),
+    );
   }
 }

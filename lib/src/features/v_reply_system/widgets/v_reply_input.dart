@@ -1,6 +1,7 @@
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
 
+import '../../v_theme_system/models/v_responsive_utils.dart';
 import '../models/v_reply_config.dart';
 import 'v_reply_close_button.dart';
 import 'v_reply_emoji_button.dart';
@@ -153,8 +154,7 @@ class _VReplyInputState extends State<VReplyInput> {
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode =
-        MediaQuery.of(context).platformBrightness == Brightness.dark;
+    final isDarkMode = VResponsiveUtils.isDarkMode(context);
     return ConstrainedBox(
       constraints: BoxConstraints(maxWidth: widget.maxContentWidth),
       child: Align(

@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 
 import '../../../../v_story_viewer.dart';
 import '../../../core/models/v_story_events.dart';
+import '../../v_theme_system/models/v_responsive_utils.dart';
 import '../utils/v_carousel_manager.dart';
 import '../utils/v_controller_initializer.dart';
 import '../utils/v_story_event_manager.dart';
@@ -64,18 +65,7 @@ class _VStoryViewerState extends State<VStoryViewer> {
   /// Tablet: 600px (default)
   /// Desktop: 700px
   double _getResponsiveMaxContentWidth(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isTablet = screenWidth >= 600;
-    final isDesktop = screenWidth >= 1000;
-
-    if (isDesktop) {
-      return 700;
-    } else if (isTablet) {
-      return 600;
-    } else {
-      // Mobile: use full width minus padding
-      return screenWidth - 16;
-    }
+    return VResponsiveUtils.getMaxContentWidth(context);
   }
 
   @override
@@ -570,6 +560,7 @@ class _VStoryViewerState extends State<VStoryViewer> {
       onPlayPausePressed: _handlePlayPausePressed,
       onMutePressed: _handleMutePressed,
       loadingSpinnerColor: _config.loadingSpinnerColor,
+      transitionConfig: _config.transitionConfig,
     );
   }
 

@@ -24,6 +24,9 @@ class VStoryTheme {
     this.enableShadows = true,
     this.enableRippleEffect = true,
     this.enableHapticFeedback = false,
+    this.landscapeHeaderHeight = 48.0,
+    this.landscapeFooterHeight = 48.0,
+    this.enableLandscapeSupport = true,
   });
 
   /// Default light theme
@@ -114,6 +117,15 @@ class VStoryTheme {
   /// Enable haptic feedback
   final bool enableHapticFeedback;
 
+  /// Landscape header height
+  final double landscapeHeaderHeight;
+
+  /// Landscape footer height
+  final double landscapeFooterHeight;
+
+  /// Enable landscape orientation support
+  final bool enableLandscapeSupport;
+
   /// Create a copy with modifications
   VStoryTheme copyWith({
     VColorScheme? colorScheme,
@@ -132,6 +144,9 @@ class VStoryTheme {
     bool? enableShadows,
     bool? enableRippleEffect,
     bool? enableHapticFeedback,
+    double? landscapeHeaderHeight,
+    double? landscapeFooterHeight,
+    bool? enableLandscapeSupport,
   }) {
     return VStoryTheme(
       colorScheme: colorScheme ?? this.colorScheme,
@@ -150,6 +165,9 @@ class VStoryTheme {
       enableShadows: enableShadows ?? this.enableShadows,
       enableRippleEffect: enableRippleEffect ?? this.enableRippleEffect,
       enableHapticFeedback: enableHapticFeedback ?? this.enableHapticFeedback,
+      landscapeHeaderHeight: landscapeHeaderHeight ?? this.landscapeHeaderHeight,
+      landscapeFooterHeight: landscapeFooterHeight ?? this.landscapeFooterHeight,
+      enableLandscapeSupport: enableLandscapeSupport ?? this.enableLandscapeSupport,
     );
   }
 }
