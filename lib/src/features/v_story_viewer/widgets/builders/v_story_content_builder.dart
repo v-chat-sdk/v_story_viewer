@@ -60,26 +60,16 @@ class VStoryContentBuilder {
               ),
               Column(
                 children: [
-                  AnimatedOpacity(
-                    opacity: isPaused ? 0.0 : 1.0,
-                    duration: const Duration(milliseconds: 200),
-                    child: _buildProgressBar(
-                      progressController,
-                      maxContentWidth,
-                    ),
-                  ),
-                  AnimatedOpacity(
-                    opacity: isPaused ? 0.0 : 1.0,
-                    duration: const Duration(milliseconds: 200),
-                    child: _buildHeader(
-                      currentGroup,
-                      currentStory,
-                      context,
-                      mediaController,
-                      maxContentWidth,
-                      onPlayPausePressed,
-                      onMutePressed,
-                    ),
+                  _buildProgressBar(progressController, maxContentWidth),
+
+                  _buildHeader(
+                    currentGroup,
+                    currentStory,
+                    context,
+                    mediaController,
+                    maxContentWidth,
+                    onPlayPausePressed,
+                    onMutePressed,
                   ),
                 ],
               ),
@@ -92,16 +82,12 @@ class VStoryContentBuilder {
     );
 
     // Build the reply view
-    final replyView = AnimatedOpacity(
-      opacity: isPaused ? 0.0 : 1.0,
-      duration: const Duration(milliseconds: 200),
-      child: _buildReplyView(
-        currentStory,
-        context,
-        callbacks,
-        replyTextFieldFocusNode,
-        maxContentWidth,
-      ),
+    final replyView = _buildReplyView(
+      currentStory,
+      context,
+      callbacks,
+      replyTextFieldFocusNode,
+      maxContentWidth,
     );
 
     // Wrap with VReplyOverlay for web platform blur effect

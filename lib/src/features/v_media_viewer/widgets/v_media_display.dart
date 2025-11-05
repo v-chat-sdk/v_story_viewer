@@ -6,6 +6,7 @@ import '../../v_story_models/models/v_image_story.dart';
 import '../../v_story_models/models/v_text_story.dart';
 import '../../v_story_models/models/v_video_story.dart';
 import '../controllers/v_base_media_controller.dart';
+import '../controllers/v_custom_controller.dart';
 import '../controllers/v_image_controller.dart';
 import '../controllers/v_video_controller.dart';
 import 'v_custom_viewer.dart';
@@ -57,7 +58,10 @@ class VMediaDisplay extends StatelessWidget {
       VImageStory() => VImageViewer(controller: controller as VImageController),
       VVideoStory() => VVideoViewer(controller: controller as VVideoController),
       VTextStory() => VTextViewer(story: story as VTextStory),
-      VCustomStory() => VCustomViewer(story: story as VCustomStory),
+      VCustomStory() => VCustomViewer(
+        story: story as VCustomStory,
+        controller: controller as VCustomController,
+      ),
       _ => const Text(
         'Unknown story type please update the app to latest version',
         style: TextStyle(color: Colors.white),

@@ -27,12 +27,18 @@ class VVideoController extends VBaseMediaController {
     final oldController = _videoPlayerController;
     _videoPlayerController = null;
     await oldController?.dispose();
+    if (currentStory?.id != story.id) {
+      return;
+    }
     VPlatformFile? mediaToLoad = story.media;
     if (story.media.networkUrl != null) {
       final cachedFile = await cacheController.getFile(story.media, story.id);
       if (cachedFile != null) {
         mediaToLoad = cachedFile;
       }
+    }
+    if (currentStory?.id != story.id) {
+      return;
     }
     _videoPlayerController = _createVideoController(mediaToLoad);
     await _initializeAndConfigureVideo(story);
@@ -55,11 +61,14 @@ class VVideoController extends VBaseMediaController {
 
   Future<void> _initializeAndConfigureVideo(VVideoStory story) async {
     await _videoPlayerController!.initialize();
+    if (currentStory?.id != story.id) {
+      return;
+    }
     await _videoPlayerController!.setVolume(story.muted ? 0 : 1);
     await _videoPlayerController!.setLooping(story.looping);
     final duration = _videoPlayerController!.value.duration;
     notifyDuration(duration);
-    if (story.autoPlay) {
+    if (story.autoPlay && currentStory?.id == story.id) {
       await _videoPlayerController!.play();
     }
   }

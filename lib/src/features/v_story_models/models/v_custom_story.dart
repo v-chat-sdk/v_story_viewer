@@ -4,6 +4,47 @@ import 'story_type.dart';
 import 'v_base_story.dart';
 
 /// Custom story model for displaying arbitrary Flutter widgets
+///
+/// Custom stories allow you to render any Flutter widget as a story.
+/// The widget builder can optionally access the custom story controller
+/// to handle asynchronous loading, pause/resume, and error states.
+///
+/// Example with async loading:
+/// ```dart
+/// VCustomStory(
+///   id: 'custom_1',
+///   groupId: 'group_1',
+///   createdAt: DateTime.now(),
+///   builder: (context) => MyCustomWidget(),
+/// )
+///
+/// class MyCustomWidget extends StatefulWidget {
+///   @override
+///   State<MyCustomWidget> createState() => _MyCustomWidgetState();
+/// }
+///
+/// class _MyCustomWidgetState extends State<MyCustomWidget> {
+///   @override
+///   void initState() {
+///     super.initState();
+///     _loadData();
+///   }
+///
+///   Future<void> _loadData() async {
+///     // Access controller via provider
+///     final controller = VCustomStoryControllerProvider.of(context);
+///     controller.startLoading();
+///     try {
+///       final data = await fetchData();
+///       controller.finishLoading();
+///       setState(() { /* update UI */ });
+///     } catch (e) {
+///       controller.setError(e.toString());
+///     }
+///   }
+///   // ...
+/// }
+/// ```
 @immutable
 class VCustomStory extends VBaseStory {
   const VCustomStory({
@@ -20,6 +61,11 @@ class VCustomStory extends VBaseStory {
   }) : super(storyType: VStoryType.custom);
 
   /// Builder function to create the custom widget
+  ///
+  /// The widget can access the custom story controller via:
+  /// ```dart
+  /// VCustomStoryControllerProvider.of(context)
+  /// ```
   final Widget Function(BuildContext context) builder;
 
   /// Optional custom error widget builder
