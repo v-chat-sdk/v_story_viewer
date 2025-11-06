@@ -1,17 +1,10 @@
 import 'package:flutter/material.dart';
 
 /// Enum for transition direction
-enum VTransitionDirection {
-  forward,
-  backward,
-}
+enum VTransitionDirection { forward, backward }
 
 /// Enum for transition type
-enum VTransitionType {
-  slide,
-  fade,
-  zoom,
-}
+enum VTransitionType { slide, fade, zoom }
 
 /// Configuration for story transition animations
 @immutable
@@ -54,30 +47,29 @@ class VTransitionConfig {
 class VSlidePageRoute<T> extends PageRouteBuilder<T> {
   VSlidePageRoute({
     required WidgetBuilder pageBuilder,
-    VTransitionDirection direction = VTransitionDirection.forward,
-    required Duration transitionDuration,
+    required super.transitionDuration,
     required Curve curve,
-    RouteSettings? settings,
+    VTransitionDirection direction = VTransitionDirection.forward,
+    super.settings,
   }) : super(
-    pageBuilder: (context, animation, secondaryAnimation) =>
-        pageBuilder(context),
-    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      final offset = direction == VTransitionDirection.forward
-          ? const Offset(1, 0)
-          : const Offset(-1, 0);
+         pageBuilder: (context, animation, secondaryAnimation) =>
+             pageBuilder(context),
+         transitionsBuilder: (context, animation, secondaryAnimation, child) {
+           final offset = direction == VTransitionDirection.forward
+               ? const Offset(1, 0)
+               : const Offset(-1, 0);
 
-      return SlideTransition(
-        position: animation.drive(
-          Tween(begin: offset, end: Offset.zero).chain(
-            CurveTween(curve: curve),
-          ),
-        ),
-        child: child,
-      );
-    },
-    transitionDuration: transitionDuration,
-    settings: settings,
-  );
+           return SlideTransition(
+             position: animation.drive(
+               Tween(
+                 begin: offset,
+                 end: Offset.zero,
+               ).chain(CurveTween(curve: curve)),
+             ),
+             child: child,
+           );
+         },
+       );
 }
 
 /// Custom page route with fade transition
@@ -88,21 +80,19 @@ class VFadePageRoute<T> extends PageRouteBuilder<T> {
     required Curve curve,
     RouteSettings? settings,
   }) : super(
-    pageBuilder: (context, animation, secondaryAnimation) =>
-        pageBuilder(context),
-    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      return FadeTransition(
-        opacity: animation.drive(
-          Tween<double>(begin: 0, end: 1).chain(
-            CurveTween(curve: curve),
-          ),
-        ),
-        child: child,
-      );
-    },
-    transitionDuration: transitionDuration,
-    settings: settings,
-  );
+         pageBuilder: (context, animation, secondaryAnimation) =>
+             pageBuilder(context),
+         transitionsBuilder: (context, animation, secondaryAnimation, child) {
+           return FadeTransition(
+             opacity: animation.drive(
+               Tween<double>(begin: 0, end: 1).chain(CurveTween(curve: curve)),
+             ),
+             child: child,
+           );
+         },
+         transitionDuration: transitionDuration,
+         settings: settings,
+       );
 }
 
 /// Custom page route with zoom transition
@@ -113,28 +103,30 @@ class VZoomPageRoute<T> extends PageRouteBuilder<T> {
     required Curve curve,
     RouteSettings? settings,
   }) : super(
-    pageBuilder: (context, animation, secondaryAnimation) =>
-        pageBuilder(context),
-    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      return ScaleTransition(
-        scale: animation.drive(
-          Tween<double>(begin: 0.8, end: 1).chain(
-            CurveTween(curve: curve),
-          ),
-        ),
-        child: FadeTransition(
-          opacity: animation.drive(
-            Tween<double>(begin: 0, end: 1).chain(
-              CurveTween(curve: curve),
-            ),
-          ),
-          child: child,
-        ),
-      );
-    },
-    transitionDuration: transitionDuration,
-    settings: settings,
-  );
+         pageBuilder: (context, animation, secondaryAnimation) =>
+             pageBuilder(context),
+         transitionsBuilder: (context, animation, secondaryAnimation, child) {
+           return ScaleTransition(
+             scale: animation.drive(
+               Tween<double>(
+                 begin: 0.8,
+                 end: 1,
+               ).chain(CurveTween(curve: curve)),
+             ),
+             child: FadeTransition(
+               opacity: animation.drive(
+                 Tween<double>(
+                   begin: 0,
+                   end: 1,
+                 ).chain(CurveTween(curve: curve)),
+               ),
+               child: child,
+             ),
+           );
+         },
+         transitionDuration: transitionDuration,
+         settings: settings,
+       );
 }
 
 /// Builder for creating page routes with configured transitions
@@ -147,10 +139,7 @@ class VStoryPageRouteBuilder {
     RouteSettings? settings,
   }) {
     if (!config.enableTransitions) {
-      return MaterialPageRoute(
-        builder: pageBuilder,
-        settings: settings,
-      );
+      return MaterialPageRoute(builder: pageBuilder, settings: settings);
     }
 
     return switch (config.type) {

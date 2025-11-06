@@ -1,3 +1,5 @@
+library v_story_header;
+
 export './models/v_header_config.dart';
 export './models/v_story_action.dart';
 export './views/v_header_view.dart';

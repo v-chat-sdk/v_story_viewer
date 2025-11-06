@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:v_platform/v_platform.dart';
 import 'package:v_story_viewer/v_story_viewer.dart';
+
 import 'cache_manager_test_screen.dart';
 import 'progress_test_screen.dart';
 
@@ -47,6 +48,7 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
+
   void _openStoryViewer(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -58,12 +60,21 @@ class HomeScreen extends StatelessWidget {
             dismissOnSwipeDown: true,
             autoMoveToNextGroup: true,
           ),
+          headerConfig: VHeaderConfig(
+            showPlaybackControls: true,
+            showDefaultActions: true,
+            controlButtonColor: Colors.white,
+            actionButtonColor: Colors.white,
+            closeButtonColor: Colors.white,
+          ),
           callbacks: VStoryViewerCallbacks(
             onStoryChanged: (group, story, index) {
               debugPrint('Story changed: ${story.id} at index $index');
             },
             onGroupChanged: (group, index) {
-              debugPrint('Group changed: ${group.user.username} at index $index');
+              debugPrint(
+                'Group changed: ${group.user.username} at index $index',
+              );
             },
             onComplete: () {
               debugPrint('All stories completed');
@@ -79,6 +90,7 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
+
   Widget _buildFeatureCard(
     BuildContext context, {
     required String title,
@@ -159,7 +171,6 @@ class HomeScreen extends StatelessWidget {
             isReacted: false,
           ),
 
-
           VTextStory(
             id: 'story_11',
             groupId: "user_1",
@@ -174,7 +185,8 @@ class HomeScreen extends StatelessWidget {
             id: 'story_2',
             groupId: "user_1",
             media: VPlatformFile.fromUrl(
-              networkUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4',
+              networkUrl:
+                  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4',
             ),
             duration: const Duration(seconds: 5),
             createdAt: DateTime.now(),
@@ -196,7 +208,7 @@ class HomeScreen extends StatelessWidget {
             groupId: "user_1",
             media: VPlatformFile.fromUrl(
               networkUrl:
-              'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+                  'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
             ),
             duration: const Duration(seconds: 15),
             createdAt: DateTime.now(),
@@ -257,7 +269,7 @@ class HomeScreen extends StatelessWidget {
             groupId: "user_2",
             media: VPlatformFile.fromUrl(
               networkUrl:
-              'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+                  'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
             ),
             duration: const Duration(seconds: 15),
             createdAt: DateTime.now(),
@@ -343,7 +355,7 @@ class HomeScreen extends StatelessWidget {
             groupId: "user_4",
             media: VPlatformFile.fromUrl(
               networkUrl:
-              'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+                  'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
             ),
             duration: const Duration(seconds: 15),
             createdAt: DateTime.now(),
@@ -355,7 +367,7 @@ class HomeScreen extends StatelessWidget {
             groupId: "user_4",
             media: VPlatformFile.fromUrl(
               networkUrl:
-              'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4',
+                  'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4',
             ),
             duration: const Duration(seconds: 15),
             createdAt: DateTime.now(),
@@ -367,7 +379,7 @@ class HomeScreen extends StatelessWidget {
             groupId: "user_4",
             media: VPlatformFile.fromUrl(
               networkUrl:
-              'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
+                  'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
             ),
             duration: const Duration(seconds: 15),
             createdAt: DateTime.now(),

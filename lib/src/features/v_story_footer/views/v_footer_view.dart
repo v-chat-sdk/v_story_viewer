@@ -117,7 +117,7 @@ class _VFooterViewState extends State<VFooterView>
               onRetry: widget.onRetry,
             ),
           if (!widget.errorState.hasError)
-            Container(
+            ColoredBox(
               color:
                   config.backgroundColor ?? Colors.black.withValues(alpha: 0.5),
               child: Column(

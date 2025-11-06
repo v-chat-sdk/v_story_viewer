@@ -26,6 +26,7 @@ class VStoryViewer extends StatefulWidget {
     this.config,
     this.callbacks,
     this.cacheController,
+    this.headerConfig,
     super.key,
   }) : assert(storyGroups.length > 0, 'Story groups cannot be empty');
 
@@ -35,6 +36,7 @@ class VStoryViewer extends StatefulWidget {
   final VStoryViewerConfig? config;
   final VStoryViewerCallbacks? callbacks;
   final VCacheController? cacheController;
+  final VHeaderConfig? headerConfig;
 
   @override
   State<VStoryViewer> createState() => _VStoryViewerState();
@@ -561,6 +563,7 @@ class _VStoryViewerState extends State<VStoryViewer> {
       onMutePressed: _handleMutePressed,
       loadingSpinnerColor: _config.loadingSpinnerColor,
       transitionConfig: _config.transitionConfig,
+      headerConfig: widget.headerConfig,
     );
   }
 

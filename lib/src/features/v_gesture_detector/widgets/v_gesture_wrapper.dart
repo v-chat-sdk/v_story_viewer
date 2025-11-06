@@ -66,8 +66,11 @@ class _VGestureWrapperState extends State<VGestureWrapper> {
     final size = MediaQuery.of(context).size;
     // Responsive safe zone: viewPadding.top handles notch/dynamic island
     // Add responsive header height based on device type
-    final headerSafeZoneHeight = VResponsiveUtils.getSafeAreaTop(context) +
-        VResponsiveUtils.getHeaderHeight(context);
+    // Add 20pt buffer to account for interactive button areas below header
+    final headerSafeZoneHeight =
+        VResponsiveUtils.getSafeAreaTop(context) +
+        VResponsiveUtils.getHeaderHeight(context) +
+        60;
 
     return Semantics(
       label: 'Story viewer gesture controls',

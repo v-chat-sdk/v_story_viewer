@@ -15,6 +15,7 @@ import '../../../v_story_footer/models/v_engagement_data.dart';
 import '../../../v_story_footer/models/v_error_recovery_state.dart';
 import '../../../v_story_footer/models/v_footer_config.dart';
 import '../../../v_story_footer/views/v_footer_view.dart';
+import '../../../v_story_header/models/v_header_config.dart';
 import '../../../v_story_header/views/v_header_view.dart';
 import '../../../v_story_models/models/v_base_story.dart';
 import '../../../v_story_models/models/v_story_group.dart';
@@ -46,6 +47,7 @@ class VStoryContentBuilder {
     VoidCallback? onMutePressed,
     Color? loadingSpinnerColor,
     VFooterConfig? footerConfig,
+    VHeaderConfig? headerConfig,
     VEngagementData? engagementData,
     VErrorRecoveryState? errorState,
     VoidCallback? onFooterRetry,
@@ -83,11 +85,13 @@ class VStoryContentBuilder {
                           maxContentWidth,
                           onPlayPausePressed,
                           onMutePressed,
+                          headerConfig,
                         ),
                       ],
                     ),
                     VReactionAnimation(controller: reactionController),
-                    if (isLoading) VLoadingOverlayBuilder.build(mediaLoadingProgress),
+                    if (isLoading)
+                      VLoadingOverlayBuilder.build(mediaLoadingProgress),
                   ],
                 ),
               ),
@@ -117,10 +121,10 @@ class VStoryContentBuilder {
     // Wrap story content with transition if configured
     final transitionedContent = transitionConfig != null
         ? VStoryTransitionWrapper(
-          child: storyContent,
-          storyId: currentStory.id,
-          transitionConfig: transitionConfig,
-        )
+            child: storyContent,
+            storyId: currentStory.id,
+            transitionConfig: transitionConfig,
+          )
         : storyContent;
 
     // Wrap with VReplyOverlay for web platform blur effect
@@ -153,6 +157,7 @@ class VStoryContentBuilder {
     double maxContentWidth,
     VoidCallback? onPlayPausePressed,
     VoidCallback? onMutePressed,
+    VHeaderConfig? config,
   ) {
     return Container(
       margin: const EdgeInsets.only(left: 8, right: 8),
@@ -160,6 +165,7 @@ class VStoryContentBuilder {
       child: VHeaderView(
         user: group.user,
         createdAt: story.createdAt,
+        config: config,
         onClosePressed: () => Navigator.of(context).pop(),
         mediaController: mediaController,
         currentStory: story,

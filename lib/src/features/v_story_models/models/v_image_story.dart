@@ -21,11 +21,8 @@ final class VImageStory extends VMediaStory {
     this.dimensions,
     super.metadata,
     String? source,
-  }) : _caption = caption, super(
-    storyType: VStoryType.image,
-    caption: caption,
-    source: source,
-  );
+  }) : _caption = caption,
+       super(storyType: VStoryType.image, caption: caption, source: source);
 
   @override
   final VPlatformFile media;
@@ -55,7 +52,7 @@ final class VImageStory extends VMediaStory {
   }
 
   /// Whether the image has caption text
-  bool get hasCaption => _caption != null && _caption!.isNotEmpty;
+  bool get hasCaption => _caption != null && _caption.isNotEmpty;
 
   /// Convenience getter for accessing the URL from media
   String? get url => media.networkUrl;

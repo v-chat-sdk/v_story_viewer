@@ -7,6 +7,7 @@ import '../../v_story_models/models/v_story_user.dart';
 import '../../v_theme_system/models/v_responsive_utils.dart';
 import '../models/v_header_config.dart';
 import '../models/v_story_action.dart';
+import '../widgets/v_action_menu.dart';
 import '../widgets/v_header_container.dart';
 import '../widgets/v_timestamp.dart';
 import '../widgets/v_user_avatar.dart';
@@ -62,6 +63,7 @@ class VHeaderView extends StatefulWidget {
 class _VHeaderViewState extends State<VHeaderView> {
   late bool _isPaused;
   late bool _isMuted;
+  final _actionButtonKey = GlobalKey();
 
   @override
   void initState() {
@@ -98,7 +100,9 @@ class _VHeaderViewState extends State<VHeaderView> {
     return false;
   }
 
-  bool _isVideoStory() => widget.currentStory != null && widget.currentStory!.runtimeType.toString().contains('VVideoStory');
+  bool _isVideoStory() =>
+      widget.currentStory != null &&
+      widget.currentStory!.runtimeType.toString().contains('VVideoStory');
 
   /// Calculate responsive icon button size based on screen width
   double _getResponsiveIconSize(BuildContext context) {
@@ -111,42 +115,40 @@ class _VHeaderViewState extends State<VHeaderView> {
   }
 
   void _showActionMenu(BuildContext context) {
-    final actions = widget.config?.actions ?? [];
+    final actions = widget.config?.getEffectiveActions() ?? [];
     if (actions.isEmpty) {
       widget.onActionPressed?.call();
       return;
     }
-    showMenu<VStoryAction>(
+
+    // Get button position from GlobalKey
+    final buttonContext = _actionButtonKey.currentContext;
+    if (buttonContext == null) return;
+
+    final buttonBox = buttonContext.findRenderObject() as RenderBox;
+    final buttonSize = buttonBox.size;
+    final buttonPosition = buttonBox.localToGlobal(Offset.zero);
+
+    // Track if we need to resume the story after menu closes
+    final shouldResume = !_isPaused;
+
+    // Pause the story before showing menu (if it's playing)
+    if (shouldResume) {
+      widget.onPlayPausePressed?.call();
+    }
+
+    VActionMenu.show(
       context: context,
-      position: RelativeRect.fromLTRB(
-        MediaQuery.of(context).size.width - 60,
-        50,
-        8,
-        0,
-      ),
-      items: actions
-          .map(
-            (action) => PopupMenuItem<VStoryAction>(
-              value: action,
-              child: Row(
-                children: [
-                  Icon(
-                    action.icon,
-                    color: action.iconColor ?? Colors.black,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    action.label,
-                    style: TextStyle(color: action.textColor ?? Colors.black),
-                  ),
-                ],
-              ),
-            ),
-          )
-          .toList(),
+      actions: actions,
+      buttonPosition: buttonPosition,
+      buttonSize: buttonSize,
     ).then((selectedAction) {
       selectedAction?.onPressed();
+
+      // Resume the story after menu closes (if we paused it)
+      if (shouldResume) {
+        widget.onPlayPausePressed?.call();
+      }
     });
   }
 
@@ -165,9 +167,7 @@ class _VHeaderViewState extends State<VHeaderView> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          VUserAvatar(
-            avatarUrl: widget.user.profilePicture,
-          ),
+          VUserAvatar(avatarUrl: widget.user.profilePicture),
           const SizedBox(width: 8),
           Expanded(
             child: Column(
@@ -184,7 +184,7 @@ class _VHeaderViewState extends State<VHeaderView> {
               ],
             ),
           ),
-          if (widget.config?.showPlaybackControls ?? false) ...[
+          if (widget.config?.showPlaybackControls ?? true) ...[
             SizedBox(
               height: responsiveIconSize,
               width: responsiveIconSize,
@@ -217,8 +217,10 @@ class _VHeaderViewState extends State<VHeaderView> {
                 ),
               ),
           ],
-          if (widget.config?.actions != null && widget.config!.actions!.isNotEmpty)
+          if (widget.config?.getEffectiveActions() != null &&
+              widget.config!.getEffectiveActions()!.isNotEmpty)
             SizedBox(
+              key: _actionButtonKey,
               height: responsiveIconSize,
               width: responsiveIconSize,
               child: Semantics(
