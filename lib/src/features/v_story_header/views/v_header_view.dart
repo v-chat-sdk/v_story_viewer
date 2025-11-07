@@ -24,6 +24,7 @@ class VHeaderView extends StatefulWidget {
     this.mediaController,
     this.currentStory,
     this.onMutePressed,
+    this.onHeaderTap,
     super.key,
   });
 
@@ -50,6 +51,9 @@ class VHeaderView extends StatefulWidget {
 
   /// Callback for mute button press
   final VoidCallback? onMutePressed;
+
+  /// Callback when header is tapped
+  final VoidCallback? onHeaderTap;
 
   @override
   State<VHeaderView> createState() => _VHeaderViewState();
@@ -151,23 +155,30 @@ class _VHeaderViewState extends State<VHeaderView> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          VUserAvatar(avatarUrl: widget.user.profilePicture),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          GestureDetector(
+            onTap: widget.onHeaderTap,
+            child: Row(
               children: [
-                VUserInfo(
-                  user: widget.user,
-                  textStyle: widget.config?.titleTextStyle,
-                ),
-                VTimestamp(
-                  createdAt: widget.createdAt,
-                  textStyle: widget.config?.subtitleTextStyle,
+                VUserAvatar(avatarUrl: widget.user.profilePicture),
+                const SizedBox(width: 8),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    VUserInfo(
+                      user: widget.user,
+                      textStyle: widget.config?.titleTextStyle,
+                    ),
+                    VTimestamp(
+                      createdAt: widget.createdAt,
+                      textStyle: widget.config?.subtitleTextStyle,
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
+          const SizedBox(width: 8),
+          Expanded(child: const SizedBox()),
           if (widget.config?.showPlaybackControls ?? true) ...[
             // Play/pause button removed
             if (_isVideoStory())

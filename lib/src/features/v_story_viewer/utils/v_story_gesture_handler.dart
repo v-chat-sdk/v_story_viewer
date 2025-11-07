@@ -16,9 +16,9 @@ class VStoryGestureHandler {
     required this.onPauseStory,
     required this.onResumeStory,
     VStoryViewerCallbacks? callbacks,
-  })  : _config = config,
-        _reactionController = reactionController,
-        _callbacks = callbacks;
+  }) : _config = config,
+       _reactionController = reactionController,
+       _callbacks = callbacks;
 
   final VStoryViewerConfig _config;
   final VReactionController _reactionController;

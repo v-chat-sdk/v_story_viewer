@@ -2,13 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 
 /// Enum for swipe direction detection
-enum VSwipeDirection {
-  left,
-  right,
-  up,
-  down,
-  none,
-}
+enum VSwipeDirection { left, right, up, down, none }
 
 /// Data class for gesture velocity information
 @immutable
@@ -33,9 +27,7 @@ class VGestureVelocityData {
     final duration = endTime.difference(startTime).inMilliseconds;
 
     // Calculate velocity (pixels per second)
-    final pixelsPerSecond = duration > 0
-        ? (distance / duration) * 1000
-        : 0.0;
+    final pixelsPerSecond = duration > 0 ? (distance / duration) * 1000 : 0.0;
 
     // Determine swipe direction
     final dx = endPosition.dx - startPosition.dx;
@@ -56,7 +48,8 @@ class VGestureVelocityData {
     final speed = _categorizeSpeed(pixelsPerSecond);
 
     // Check if it's a valid swipe
-    final isSwipe = pixelsPerSecond >= minSwipeVelocity &&
+    final isSwipe =
+        pixelsPerSecond >= minSwipeVelocity &&
         direction != VSwipeDirection.none;
 
     return VGestureVelocityData(
@@ -139,12 +132,7 @@ class VGestureVelocityData {
 }
 
 /// Enum for categorizing gesture speed
-enum VGestureSpeed {
-  slow,
-  normal,
-  fast,
-  veryFast,
-}
+enum VGestureSpeed { slow, normal, fast, veryFast }
 
 /// Extension for getting speed label and color
 extension VGestureSpeedExt on VGestureSpeed {

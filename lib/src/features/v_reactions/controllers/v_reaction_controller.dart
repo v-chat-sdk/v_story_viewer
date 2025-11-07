@@ -10,9 +10,8 @@ import '../models/v_reaction_config.dart';
 /// Controller for managing story reactions
 /// Uses event-based communication via VStoryEventManager singleton
 class VReactionController extends ChangeNotifier {
-  VReactionController({
-    VReactionConfig? config,
-  }) : _config = config ?? const VReactionConfig();
+  VReactionController({VReactionConfig? config})
+    : _config = config ?? const VReactionConfig();
 
   final VReactionConfig _config;
   bool _isAnimating = false;
@@ -33,7 +32,10 @@ class VReactionController extends ChangeNotifier {
 
   /// Trigger reaction animation and send reaction
   void triggerReaction() {
-    if (!_config.enabled || _isAnimating || _currentStory == null || _isDisposed) {
+    if (!_config.enabled ||
+        _isAnimating ||
+        _currentStory == null ||
+        _isDisposed) {
       return;
     }
     _isAnimating = true;

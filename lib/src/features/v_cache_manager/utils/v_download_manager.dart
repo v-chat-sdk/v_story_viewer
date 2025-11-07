@@ -13,8 +13,8 @@ class VDownloadManager {
   VDownloadManager({
     required CacheManager cacheManager,
     required VCacheConfig config,
-  })  : _cacheManager = cacheManager,
-        _config = config;
+  }) : _cacheManager = cacheManager,
+       _config = config;
 
   final CacheManager _cacheManager;
   final VCacheConfig _config;
@@ -58,29 +58,35 @@ class VDownloadManager {
     if (_isDisposed) return null;
     for (var attempt = 0; attempt <= _config.maxRetries; attempt++) {
       try {
-        onProgress(_createProgress(storyId, url, 0, 0, VDownloadStatus.downloading));
+        onProgress(
+          _createProgress(storyId, url, 0, 0, VDownloadStatus.downloading),
+        );
         final stream = _cacheManager.getFileStream(url, withProgress: true);
         await for (final result in stream) {
           if (_isDisposed) return null;
           if (result is DownloadProgress) {
-            onProgress(_createProgress(
-              storyId,
-              url,
-              result.progress ?? 0,
-              result.downloaded,
-              VDownloadStatus.downloading,
-              result.totalSize,
-            ));
+            onProgress(
+              _createProgress(
+                storyId,
+                url,
+                result.progress ?? 0,
+                result.downloaded,
+                VDownloadStatus.downloading,
+                result.totalSize,
+              ),
+            );
           } else if (result is FileInfo) {
             final fileSize = await result.file.length();
-            onProgress(_createProgress(
-              storyId,
-              url,
-              1,
-              fileSize,
-              VDownloadStatus.completed,
-              fileSize,
-            ));
+            onProgress(
+              _createProgress(
+                storyId,
+                url,
+                1,
+                fileSize,
+                VDownloadStatus.completed,
+                fileSize,
+              ),
+            );
             return result.file;
           }
         }

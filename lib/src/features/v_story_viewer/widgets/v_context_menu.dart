@@ -3,13 +3,7 @@ import 'package:flutter/material.dart';
 import '../../v_story_models/models/v_base_story.dart';
 
 /// Menu item action type
-enum VContextMenuAction {
-  copyCaption,
-  share,
-  save,
-  report,
-  viewDetails,
-}
+enum VContextMenuAction { copyCaption, share, save, report, viewDetails }
 
 /// Configuration for context menu
 class VContextMenuConfig {

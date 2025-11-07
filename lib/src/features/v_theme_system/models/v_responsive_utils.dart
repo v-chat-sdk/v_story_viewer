@@ -3,13 +3,7 @@ import 'package:flutter/material.dart';
 import 'v_size_tokens.dart';
 
 /// Responsive device types
-enum VDeviceType {
-  mobile,
-  foldable,
-  tablet,
-  desktop,
-  tv,
-}
+enum VDeviceType { mobile, foldable, tablet, desktop, tv }
 
 /// Responsive design utilities for consistent behavior across devices
 class VResponsiveUtils {
@@ -83,8 +77,7 @@ class VResponsiveUtils {
       MediaQuery.of(context).viewPadding.right;
 
   /// Check if device has notch/cutout
-  static bool hasNotch(BuildContext context) =>
-      getSafeAreaTop(context) > 0;
+  static bool hasNotch(BuildContext context) => getSafeAreaTop(context) > 0;
 
   /// Check if in dark mode
   static bool isDarkMode(BuildContext context) =>
@@ -93,7 +86,6 @@ class VResponsiveUtils {
   /// Get text scale for current device
   static double getTextScale(BuildContext context) =>
       MediaQuery.of(context).textScaler.scale(1);
-
 
   /// Get device pixel ratio
   static double getDevicePixelRatio(BuildContext context) =>
@@ -148,10 +140,12 @@ class VResponsiveUtils {
   }
 
   /// Get responsive icon size
-  static double getIconSize(BuildContext context,
-      {double mobileSize = 24.0,
-      double tabletSize = 28.0,
-      double desktopSize = 32.0}) {
+  static double getIconSize(
+    BuildContext context, {
+    double mobileSize = 24.0,
+    double tabletSize = 28.0,
+    double desktopSize = 32.0,
+  }) {
     final deviceType = getDeviceType(context);
     return switch (deviceType) {
       VDeviceType.mobile => mobileSize,
@@ -175,10 +169,12 @@ class VResponsiveUtils {
   }
 
   /// Get responsive font size
-  static double getFontSize(BuildContext context,
-      {double mobileSize = 14.0,
-      double tabletSize = 16.0,
-      double desktopSize = 18.0}) {
+  static double getFontSize(
+    BuildContext context, {
+    double mobileSize = 14.0,
+    double tabletSize = 16.0,
+    double desktopSize = 18.0,
+  }) {
     final deviceType = getDeviceType(context);
     return switch (deviceType) {
       VDeviceType.mobile => mobileSize,

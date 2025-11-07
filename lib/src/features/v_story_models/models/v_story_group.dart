@@ -11,7 +11,7 @@ import 'v_story_user.dart';
 @immutable
 class VStoryGroup {
   VStoryGroup({required this.user, required this.stories, this.metadata})
-      : assert(stories.isNotEmpty, 'Stories list cannot be empty');
+    : assert(stories.isNotEmpty, 'Stories list cannot be empty');
 
   final VStoryUser user;
   final List<VBaseStory> stories;
@@ -73,11 +73,11 @@ class VStoryGroup {
   }
 
   VStoryViewingStats get viewingStats => VStoryViewingStats(
-        totalStories: stories.length,
-        viewedStories: viewedCount,
-        unviewedStories: unviewedCount,
-        viewingProgress: viewedCount / stories.length,
-      );
+    totalStories: stories.length,
+    viewedStories: viewedCount,
+    unviewedStories: unviewedCount,
+    viewingProgress: viewedCount / stories.length,
+  );
 
   @override
   bool operator ==(Object other) =>
@@ -132,11 +132,11 @@ class VStoryViewingStats {
 
   @override
   int get hashCode => Object.hash(
-        totalStories,
-        viewedStories,
-        unviewedStories,
-        viewingProgress,
-      );
+    totalStories,
+    viewedStories,
+    unviewedStories,
+    viewingProgress,
+  );
 
   @override
   String toString() =>

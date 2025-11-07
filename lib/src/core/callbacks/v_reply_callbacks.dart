@@ -6,10 +6,7 @@ import '../../features/v_story_models/v_story_models.dart';
 @immutable
 class VReplyCallbacks {
   /// Creates a new instance of [VReplyCallbacks].
-  const VReplyCallbacks({
-    this.onReplySubmitted,
-    this.onFocusChanged,
-  });
+  const VReplyCallbacks({this.onReplySubmitted, this.onFocusChanged});
 
   /// Called when the user submits a reply.
   ///

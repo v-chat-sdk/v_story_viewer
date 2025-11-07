@@ -24,7 +24,7 @@ class VTextStory extends VBaseStory {
     this.backgroundGradient,
     this.backgroundImageUrl,
     this.padding = const EdgeInsets.all(24),
-  }): super(storyType: VStoryType.text) ;
+  }) : super(storyType: VStoryType.text);
 
   /// The main text content of the story
   final String text;

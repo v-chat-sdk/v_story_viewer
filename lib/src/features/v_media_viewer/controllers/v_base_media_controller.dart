@@ -116,7 +116,10 @@ abstract class VBaseMediaController extends ChangeNotifier {
         _safeNotifyListeners();
         if (_currentStory != null) {
           VStoryEventManager.instance.enqueue(
-            VStoryPauseStateChangedEvent(isPaused: false, story: _currentStory!),
+            VStoryPauseStateChangedEvent(
+              isPaused: false,
+              story: _currentStory!,
+            ),
           );
         }
       } catch (e) {

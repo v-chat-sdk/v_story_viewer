@@ -13,23 +13,11 @@ class VCacheConfig {
     this.staleDuration = const Duration(days: 30),
     this.maxRetries = 3,
     VRetryPolicy? retryPolicy,
-  })  : retryPolicy = retryPolicy ?? VRetryPolicy.exponential(),
-        assert(
-          maxAge > Duration.zero,
-          'maxAge must be positive',
-        ),
-        assert(
-          staleDuration > Duration.zero,
-          'staleDuration must be positive',
-        ),
-        assert(
-          staleDuration >= maxAge,
-          'staleDuration must be >= maxAge',
-        ),
-        assert(
-          maxRetries >= 0,
-          'maxRetries must be non-negative',
-        );
+  }) : retryPolicy = retryPolicy ?? VRetryPolicy.exponential(),
+       assert(maxAge > Duration.zero, 'maxAge must be positive'),
+       assert(staleDuration > Duration.zero, 'staleDuration must be positive'),
+       assert(staleDuration >= maxAge, 'staleDuration must be >= maxAge'),
+       assert(maxRetries >= 0, 'maxRetries must be non-negative');
 
   /// Maximum age before cached files are considered stale
   ///
@@ -93,11 +81,6 @@ class VCacheConfig {
 
   @override
   int get hashCode {
-    return Object.hash(
-      maxAge,
-      staleDuration,
-      maxRetries,
-      retryPolicy,
-    );
+    return Object.hash(maxAge, staleDuration, maxRetries, retryPolicy);
   }
 }

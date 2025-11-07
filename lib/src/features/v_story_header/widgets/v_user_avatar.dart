@@ -4,11 +4,7 @@ import 'package:flutter/material.dart';
 /// A widget that displays the user's avatar.
 class VUserAvatar extends StatelessWidget {
   /// Creates a new instance of [VUserAvatar].
-  const VUserAvatar({
-    required this.avatarUrl,
-    this.radius = 24.0,
-    super.key,
-  });
+  const VUserAvatar({required this.avatarUrl, this.radius = 24.0, super.key});
 
   /// The URL of the user's avatar.
   final String? avatarUrl;
@@ -21,13 +17,11 @@ class VUserAvatar extends StatelessWidget {
     return CircleAvatar(
       radius: radius,
       backgroundColor: Colors.grey[300],
-      backgroundImage: avatarUrl != null ? CachedNetworkImageProvider(avatarUrl!) : null,
+      backgroundImage: avatarUrl != null
+          ? CachedNetworkImageProvider(avatarUrl!)
+          : null,
       child: avatarUrl == null
-          ? Icon(
-              Icons.person,
-              size: radius,
-              color: Colors.white,
-            )
+          ? Icon(Icons.person, size: radius, color: Colors.white)
           : null,
     );
   }

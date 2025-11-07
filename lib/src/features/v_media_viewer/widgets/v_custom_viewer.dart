@@ -53,9 +53,7 @@ class _VCustomViewerState extends State<VCustomViewer> {
       if (_story.loadingBuilder != null) {
         return _story.loadingBuilder!(context);
       }
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     // Show error state if controller has error

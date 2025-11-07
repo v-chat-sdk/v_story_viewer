@@ -38,22 +38,17 @@ class VStoryTransitionWrapper extends StatelessWidget {
           VTransitionType.zoom => _buildZoomTransition(child, animation),
         };
       },
-      child: KeyedSubtree(
-        key: ValueKey(storyId),
-        child: child,
-      ),
+      child: KeyedSubtree(key: ValueKey(storyId), child: child),
     );
   }
 
   /// Build slide transition
   Widget _buildSlideTransition(Widget child, Animation<double> animation) {
     return SlideTransition(
-      position: Tween<Offset>(
-        begin: const Offset(1, 0),
-        end: Offset.zero,
-      ).animate(
-        CurvedAnimation(parent: animation, curve: transitionConfig.curve),
-      ),
+      position: Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero)
+          .animate(
+            CurvedAnimation(parent: animation, curve: transitionConfig.curve),
+          ),
       child: child,
     );
   }
@@ -74,10 +69,7 @@ class VStoryTransitionWrapper extends StatelessWidget {
       scale: Tween<double>(begin: 0.8, end: 1).animate(
         CurvedAnimation(parent: animation, curve: transitionConfig.curve),
       ),
-      child: FadeTransition(
-        opacity: animation,
-        child: child,
-      ),
+      child: FadeTransition(opacity: animation, child: child),
     );
   }
 }

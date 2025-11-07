@@ -13,21 +13,19 @@ class VRetryPolicy {
   ///
   /// Delays increase exponentially: 1s, 2s, 4s, 8s, 16s...
   /// This is the recommended policy for network operations.
-  VRetryPolicy.exponential({
-    Duration baseDelay = const Duration(seconds: 1),
-  })  : assert(baseDelay > Duration.zero, 'baseDelay must be positive'),
-        type = VRetryType.exponential,
-        baseDelay = baseDelay;
+  VRetryPolicy.exponential({Duration baseDelay = const Duration(seconds: 1)})
+    : assert(baseDelay > Duration.zero, 'baseDelay must be positive'),
+      type = VRetryType.exponential,
+      baseDelay = baseDelay;
 
   /// Creates a linear retry policy
   ///
   /// Delays remain constant: 2s, 2s, 2s, 2s...
   /// Useful when you want predictable retry timing.
-  VRetryPolicy.linear({
-    Duration baseDelay = const Duration(seconds: 2),
-  })  : assert(baseDelay > Duration.zero, 'baseDelay must be positive'),
-        type = VRetryType.linear,
-        baseDelay = baseDelay;
+  VRetryPolicy.linear({Duration baseDelay = const Duration(seconds: 2)})
+    : assert(baseDelay > Duration.zero, 'baseDelay must be positive'),
+      type = VRetryType.linear,
+      baseDelay = baseDelay;
 
   /// Type of retry strategy
   final VRetryType type;

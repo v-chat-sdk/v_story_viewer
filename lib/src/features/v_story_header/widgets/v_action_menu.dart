@@ -33,9 +33,7 @@ class VActionMenu {
       context: context,
       position: position,
       elevation: 8,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       color: isDarkMode ? Colors.grey[900] : Colors.white,
       items: actions
           .map(
@@ -84,10 +82,7 @@ class VActionMenu {
 
 /// Individual action menu item widget
 class _ActionMenuItemWidget extends StatefulWidget {
-  const _ActionMenuItemWidget({
-    required this.action,
-    required this.isDarkMode,
-  });
+  const _ActionMenuItemWidget({required this.action, required this.isDarkMode});
 
   final VStoryAction action;
   final bool isDarkMode;
@@ -115,14 +110,16 @@ class _ActionMenuItemWidgetState extends State<_ActionMenuItemWidget> {
             Icon(
               widget.action.icon,
               size: 20,
-              color: widget.action.iconColor ??
+              color:
+                  widget.action.iconColor ??
                   (widget.isDarkMode ? Colors.white : Colors.black87),
             ),
             const SizedBox(width: 12),
             Text(
               widget.action.label,
               style: TextStyle(
-                color: widget.action.textColor ??
+                color:
+                    widget.action.textColor ??
                     (widget.isDarkMode ? Colors.white : Colors.black87),
                 fontSize: 14,
                 fontWeight: FontWeight.w500,

@@ -3,12 +3,7 @@ import 'package:flutter/material.dart';
 /// A button that triggers the reply input.
 class VReplyButton extends StatelessWidget {
   /// Creates a new instance of [VReplyButton].
-  const VReplyButton({
-    this.onPressed,
-    this.color,
-    this.text,
-    super.key,
-  });
+  const VReplyButton({this.onPressed, this.color, this.text, super.key});
 
   /// A callback for when the button is pressed.
   final VoidCallback? onPressed;

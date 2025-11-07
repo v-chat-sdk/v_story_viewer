@@ -165,9 +165,12 @@ class VStoryTheme {
       enableShadows: enableShadows ?? this.enableShadows,
       enableRippleEffect: enableRippleEffect ?? this.enableRippleEffect,
       enableHapticFeedback: enableHapticFeedback ?? this.enableHapticFeedback,
-      landscapeHeaderHeight: landscapeHeaderHeight ?? this.landscapeHeaderHeight,
-      landscapeFooterHeight: landscapeFooterHeight ?? this.landscapeFooterHeight,
-      enableLandscapeSupport: enableLandscapeSupport ?? this.enableLandscapeSupport,
+      landscapeHeaderHeight:
+          landscapeHeaderHeight ?? this.landscapeHeaderHeight,
+      landscapeFooterHeight:
+          landscapeFooterHeight ?? this.landscapeFooterHeight,
+      enableLandscapeSupport:
+          enableLandscapeSupport ?? this.enableLandscapeSupport,
     );
   }
 }

@@ -37,9 +37,8 @@ class AsyncCustomStoryExample {
       createdAt: DateTime.now(),
       duration: const Duration(seconds: 10),
       builder: (context) => const AsyncDataStoryWidget(),
-      loadingBuilder: (context) => const Center(
-        child: CircularProgressIndicator(),
-      ),
+      loadingBuilder: (context) =>
+          const Center(child: CircularProgressIndicator()),
       errorBuilder: (context, error) => Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -83,11 +82,7 @@ class _AsyncDataStoryWidgetState extends State<AsyncDataStoryWidget> {
       // Simulate async data loading (replace with actual API call)
       await Future.delayed(const Duration(seconds: 2));
 
-      final data = [
-        'Item 1',
-        'Item 2',
-        'Item 3',
-      ];
+      final data = ['Item 1', 'Item 2', 'Item 3'];
 
       // Signal that loading is complete
       controller.finishLoading();
@@ -105,9 +100,7 @@ class _AsyncDataStoryWidgetState extends State<AsyncDataStoryWidget> {
       future: _dataFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
+          return const Center(child: CircularProgressIndicator());
         }
 
         if (snapshot.hasError) {
@@ -314,9 +307,7 @@ class _ApiDataStoryWidgetState extends State<ApiDataStoryWidget> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Container(
             color: Colors.grey[800],
-            child: const Center(
-              child: CircularProgressIndicator(),
-            ),
+            child: const Center(child: CircularProgressIndicator()),
           );
         }
 
@@ -352,19 +343,13 @@ class _ApiDataStoryWidgetState extends State<ApiDataStoryWidget> {
                   const SizedBox(height: 16),
                   Text(
                     data['content'] ?? 'No content',
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 16,
-                    ),
+                    style: const TextStyle(color: Colors.white70, fontSize: 16),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
                   Text(
                     data['timestamp'] ?? 'No timestamp',
-                    style: const TextStyle(
-                      color: Colors.white54,
-                      fontSize: 12,
-                    ),
+                    style: const TextStyle(color: Colors.white54, fontSize: 12),
                   ),
                 ],
               ),
@@ -432,52 +417,52 @@ class _FormStoryWidgetState extends State<FormStoryWidget> {
       child: Center(
         child: _submittedName.isEmpty
             ? Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Enter your name:',
+                      style: TextStyle(color: Colors.white, fontSize: 18),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _nameController,
+                      decoration: InputDecoration(
+                        hintText: 'Your name',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _handleSubmit,
+                      child: const Text('Submit'),
+                    ),
+                  ],
+                ),
+              )
+            : Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Text(
-                    'Enter your name:',
+                    'Hello,',
                     style: TextStyle(color: Colors.white, fontSize: 18),
                   ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _nameController,
-                    decoration: InputDecoration(
-                      hintText: 'Your name',
-                      filled: true,
-                      fillColor: Colors.white,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _submittedName,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: _handleSubmit,
-                    child: const Text('Submit'),
                   ),
                 ],
               ),
-            )
-            : Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  'Hello,',
-                  style: TextStyle(color: Colors.white, fontSize: 18),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  _submittedName,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
       ),
     );
   }

@@ -19,21 +19,21 @@ class VDownloadProgress {
     required this.status,
     this.totalBytes,
     this.error,
-  })  : assert(storyId != '', 'storyId must not be empty'),
-        assert(url != '', 'url must not be empty'),
-        assert(
-          progress >= 0.0 && progress <= 1.0,
-          'progress must be between 0.0 and 1.0',
-        ),
-        assert(downloadedBytes >= 0, 'downloadedBytes must be non-negative'),
-        assert(
-          totalBytes == null || totalBytes >= 0,
-          'totalBytes must be non-negative if provided',
-        ),
-        assert(
-          totalBytes == null || totalBytes >= downloadedBytes,
-          'totalBytes must be >= downloadedBytes',
-        );
+  }) : assert(storyId != '', 'storyId must not be empty'),
+       assert(url != '', 'url must not be empty'),
+       assert(
+         progress >= 0.0 && progress <= 1.0,
+         'progress must be between 0.0 and 1.0',
+       ),
+       assert(downloadedBytes >= 0, 'downloadedBytes must be non-negative'),
+       assert(
+         totalBytes == null || totalBytes >= 0,
+         'totalBytes must be non-negative if provided',
+       ),
+       assert(
+         totalBytes == null || totalBytes >= downloadedBytes,
+         'totalBytes must be >= downloadedBytes',
+       );
 
   /// Story ID for matching progress to specific story
   ///

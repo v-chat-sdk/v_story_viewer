@@ -96,9 +96,14 @@ class _CacheManagerTestScreenState extends State<CacheManagerTestScreen> {
   Future<void> _downloadSingle(TestMedia media) async {
     _addLog('🚀 Requesting: ${media.name}');
     final platformFile = VPlatformFile.fromUrl(networkUrl: media.url);
-    final file = await _cacheController.getFile(platformFile, 'test_${media.name}');
+    final file = await _cacheController.getFile(
+      platformFile,
+      'test_${media.name}',
+    );
     if (file != null) {
-      _addLog('💾 File ready: ${file.fileLocalPath ?? file.networkUrl ?? "unknown"}');
+      _addLog(
+        '💾 File ready: ${file.fileLocalPath ?? file.networkUrl ?? "unknown"}',
+      );
     }
   }
 

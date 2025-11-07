@@ -16,9 +16,7 @@ import '../../../core/models/v_story_events.dart';
 /// This is a singleton - access via [VStoryEventManager.instance]
 class VStoryEventManager {
   /// Private constructor for singleton pattern
-  VStoryEventManager._internal()
-      : _eventBus = EventBus(),
-        _eventQueue = [];
+  VStoryEventManager._internal() : _eventBus = EventBus(), _eventQueue = [];
 
   /// Singleton instance - access from anywhere in the app
   static final VStoryEventManager _instance = VStoryEventManager._internal();
@@ -41,8 +39,9 @@ class VStoryEventManager {
   /// Enqueue event for processing with optional priority
   /// Higher priority = processed earlier
   Future<void> enqueue(VStoryEvent event, {int priority = 0}) async {
-    _eventQueue..add(_QueuedEvent(event, priority))
-    ..sort((a, b) => b.priority.compareTo(a.priority));
+    _eventQueue
+      ..add(_QueuedEvent(event, priority))
+      ..sort((a, b) => b.priority.compareTo(a.priority));
 
     if (!_isProcessing) {
       await _processQueue();
@@ -112,7 +111,7 @@ class VStoryEventManager {
 /// Internal wrapper for queued events with priority
 class _QueuedEvent {
   _QueuedEvent(this.event, int? priority)
-      : priority = priority ?? VStoryEventManager.getPriority(event);
+    : priority = priority ?? VStoryEventManager.getPriority(event);
 
   final VStoryEvent event;
   final int priority;

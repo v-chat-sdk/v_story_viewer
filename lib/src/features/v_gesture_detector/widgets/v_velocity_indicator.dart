@@ -31,10 +31,7 @@ class VVelocityIndicator extends StatelessWidget {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: _getSpeedColor().withValues(alpha: 0.3),
-          border: Border.all(
-            color: _getSpeedColor(),
-            width: 2,
-          ),
+          border: Border.all(color: _getSpeedColor(), width: 2),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -58,10 +55,7 @@ class VVelocityIndicator extends StatelessWidget {
             ),
             Text(
               '${velocityData.pixelsPerSecond.toInt()} px/s',
-              style: TextStyle(
-                fontSize: size * 0.08,
-                color: Colors.white70,
-              ),
+              style: TextStyle(fontSize: size * 0.08, color: Colors.white70),
             ),
           ],
         ),
@@ -111,10 +105,7 @@ class _VSwipeProgressIndicatorState extends State<VSwipeProgressIndicator>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      duration: widget.duration,
-      vsync: this,
-    );
+    _controller = AnimationController(duration: widget.duration, vsync: this);
 
     // Calculate progress based on velocity
     // Max velocity considered is 500 px/s
@@ -123,9 +114,10 @@ class _VSwipeProgressIndicatorState extends State<VSwipeProgressIndicator>
         .clamp(0, 1)
         .toDouble();
 
-    _progressAnimation = Tween<double>(begin: 0, end: progress).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-    );
+    _progressAnimation = Tween<double>(
+      begin: 0,
+      end: progress,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
     _controller.forward();
   }
@@ -140,9 +132,10 @@ class _VSwipeProgressIndicatorState extends State<VSwipeProgressIndicator>
           .clamp(0, 1)
           .toDouble();
 
-      _progressAnimation = Tween<double>(begin: 0, end: progress).animate(
-        CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-      );
+      _progressAnimation = Tween<double>(
+        begin: 0,
+        end: progress,
+      ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
       _controller.forward();
     }
@@ -226,15 +219,11 @@ class VVelocityOverlay extends StatelessWidget {
             right: 20,
             child: SizedBox(
               height: 4,
-              child: VSwipeProgressIndicator(
-                velocityData: velocityData,
-              ),
+              child: VSwipeProgressIndicator(velocityData: velocityData),
             ),
           ),
         if (showIndicator && velocityData.isSwipe)
-          VVelocityIndicator(
-            velocityData: velocityData,
-          ),
+          VVelocityIndicator(velocityData: velocityData),
       ],
     );
   }

@@ -8,7 +8,7 @@ import '../utils/v_progress_timer.dart';
 /// Refactored to delegate timer logic to VProgressTimer for better separation of concerns.
 class VProgressController extends ChangeNotifier {
   VProgressController({required this.barCount, this.callbacks})
-      : assert(barCount > 0, 'barCount must be greater than 0') {
+    : assert(barCount > 0, 'barCount must be greater than 0') {
     _timer = VProgressTimer(
       onTick: _handleProgressTick,
       onComplete: _handleProgressComplete,

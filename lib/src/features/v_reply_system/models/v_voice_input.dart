@@ -143,10 +143,7 @@ class VVoiceInputStateNotifier extends ChangeNotifier {
 /// Permissions required for voice input
 @immutable
 class VVoiceInputPermissions {
-  const VVoiceInputPermissions({
-    this.microphone = false,
-    this.audio = false,
-  });
+  const VVoiceInputPermissions({this.microphone = false, this.audio = false});
 
   /// Microphone permission granted
   final bool microphone;
@@ -156,10 +153,7 @@ class VVoiceInputPermissions {
 
   bool get allGranted => microphone && audio;
 
-  VVoiceInputPermissions copyWith({
-    bool? microphone,
-    bool? audio,
-  }) {
+  VVoiceInputPermissions copyWith({bool? microphone, bool? audio}) {
     return VVoiceInputPermissions(
       microphone: microphone ?? this.microphone,
       audio: audio ?? this.audio,
@@ -185,18 +179,12 @@ extension VVoiceInputErrorTypeExt on VVoiceInputErrorType {
     return switch (this) {
       VVoiceInputErrorType.microphoneNotAvailable =>
         'Microphone is not available',
-      VVoiceInputErrorType.permissionDenied =>
-        'Microphone permission denied',
-      VVoiceInputErrorType.noSpeechDetected =>
-        'No speech was detected',
-      VVoiceInputErrorType.audioError =>
-        'Audio error occurred',
-      VVoiceInputErrorType.networkError =>
-        'Network error occurred',
-      VVoiceInputErrorType.timeout =>
-        'Speech recognition timed out',
-      VVoiceInputErrorType.unknown =>
-        'Unknown error occurred',
+      VVoiceInputErrorType.permissionDenied => 'Microphone permission denied',
+      VVoiceInputErrorType.noSpeechDetected => 'No speech was detected',
+      VVoiceInputErrorType.audioError => 'Audio error occurred',
+      VVoiceInputErrorType.networkError => 'Network error occurred',
+      VVoiceInputErrorType.timeout => 'Speech recognition timed out',
+      VVoiceInputErrorType.unknown => 'Unknown error occurred',
     };
   }
 }

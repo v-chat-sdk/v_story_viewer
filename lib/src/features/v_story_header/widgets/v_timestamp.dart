@@ -3,11 +3,7 @@ import 'package:flutter/material.dart';
 /// A widget that displays a formatted timestamp.
 class VTimestamp extends StatelessWidget {
   /// Creates a new instance of [VTimestamp].
-  const VTimestamp({
-    required this.createdAt,
-    this.textStyle,
-    super.key,
-  });
+  const VTimestamp({required this.createdAt, this.textStyle, super.key});
 
   /// The timestamp to display.
   final DateTime createdAt;
@@ -57,11 +53,9 @@ class VTimestamp extends StatelessWidget {
 
     return Text(
       _formatTimeAgo(createdAt),
-      style: textStyle ??
-          TextStyle(
-            fontSize: responsiveFontSize,
-            color: Colors.grey[400],
-          ),
+      style:
+          textStyle ??
+          TextStyle(fontSize: responsiveFontSize, color: Colors.grey[400]),
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
     );

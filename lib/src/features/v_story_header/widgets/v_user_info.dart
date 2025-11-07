@@ -4,11 +4,7 @@ import '../../v_story_models/models/v_story_user.dart';
 /// A widget that displays the user's information.
 class VUserInfo extends StatelessWidget {
   /// Creates a new instance of [VUserInfo].
-  const VUserInfo({
-    required this.user,
-    this.textStyle,
-    super.key,
-  });
+  const VUserInfo({required this.user, this.textStyle, super.key});
 
   /// The user to display information for.
   final VStoryUser user;
@@ -41,7 +37,8 @@ class VUserInfo extends StatelessWidget {
 
     return Text(
       user.username,
-      style: textStyle ??
+      style:
+          textStyle ??
           TextStyle(
             fontSize: responsiveFontSize,
             fontWeight: FontWeight.bold,

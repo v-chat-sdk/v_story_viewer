@@ -20,7 +20,9 @@ class VFileHandler {
   /// Throws UnsupportedError on web platforms.
   static Future<File> loadFromAssets(String assetPath) async {
     if (kIsWeb) {
-      throw UnsupportedError('File operations are not supported on web. Use VPlatformFile.assetsPath directly.');
+      throw UnsupportedError(
+        'File operations are not supported on web. Use VPlatformFile.assetsPath directly.',
+      );
     }
     final byteData = await rootBundle.load(assetPath);
     final bytes = byteData.buffer.asUint8List();
@@ -41,7 +43,9 @@ class VFileHandler {
   /// Throws UnsupportedError on web platforms.
   static Future<File> saveBytesToFile(Uint8List bytes) async {
     if (kIsWeb) {
-      throw UnsupportedError('File operations are not supported on web. Use VPlatformFile.bytes directly.');
+      throw UnsupportedError(
+        'File operations are not supported on web. Use VPlatformFile.bytes directly.',
+      );
     }
     final contentHash = _hashBytes(bytes);
     final timestamp = DateTime.now().millisecondsSinceEpoch;

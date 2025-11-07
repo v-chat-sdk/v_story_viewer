@@ -50,9 +50,7 @@ class VControllerInitializer {
   static VReactionController createReactionController({
     VReactionConfig? config,
   }) {
-    return VReactionController(
-      config: config ?? const VReactionConfig(),
-    );
+    return VReactionController(config: config ?? const VReactionConfig());
   }
 
   /// Create media controller for story (events auto-emitted to VStoryEventManager)

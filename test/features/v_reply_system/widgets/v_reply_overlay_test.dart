@@ -15,7 +15,9 @@ void main() {
       focusNode.dispose();
     });
 
-    testWidgets('should show normal layout on non-web platforms', (tester) async {
+    testWidgets('should show normal layout on non-web platforms', (
+      tester,
+    ) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
 
       await tester.pumpWidget(
@@ -32,7 +34,10 @@ void main() {
 
       // Should not show any overlay elements
       expect(find.byType(BackdropFilter), findsNothing);
-      expect(find.byType(GestureDetector), findsOneWidget); // Only the scaffold gesture detector
+      expect(
+        find.byType(GestureDetector),
+        findsOneWidget,
+      ); // Only the scaffold gesture detector
 
       // Should show normal layout
       expect(find.text('Story Content'), findsOneWidget);
@@ -41,8 +46,11 @@ void main() {
       debugDefaultTargetPlatformOverride = null;
     });
 
-    testWidgets('should not show overlay when unfocused on web', (tester) async {
-      debugDefaultTargetPlatformOverride = TargetPlatform.linux; // Simulate desktop/web
+    testWidgets('should not show overlay when unfocused on web', (
+      tester,
+    ) async {
+      debugDefaultTargetPlatformOverride =
+          TargetPlatform.linux; // Simulate desktop/web
 
       await tester.pumpWidget(
         MaterialApp(
@@ -73,7 +81,8 @@ void main() {
     });
 
     testWidgets('should show overlay when focused on web', (tester) async {
-      debugDefaultTargetPlatformOverride = TargetPlatform.linux; // Simulate desktop/web
+      debugDefaultTargetPlatformOverride =
+          TargetPlatform.linux; // Simulate desktop/web
 
       await tester.pumpWidget(
         MaterialApp(
@@ -90,7 +99,9 @@ void main() {
       // Focus the node
       focusNode.requestFocus();
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 250)); // Animation duration
+      await tester.pump(
+        const Duration(milliseconds: 250),
+      ); // Animation duration
 
       // Should show overlay with blur effect
       expect(find.byType(BackdropFilter), findsOneWidget);
@@ -103,7 +114,8 @@ void main() {
     });
 
     testWidgets('should unfocus when overlay is tapped', (tester) async {
-      debugDefaultTargetPlatformOverride = TargetPlatform.linux; // Simulate desktop/web
+      debugDefaultTargetPlatformOverride =
+          TargetPlatform.linux; // Simulate desktop/web
 
       await tester.pumpWidget(
         MaterialApp(
@@ -122,7 +134,9 @@ void main() {
       expect(focusNode.hasFocus, isTrue);
 
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 250)); // Animation duration
+      await tester.pump(
+        const Duration(milliseconds: 250),
+      ); // Animation duration
 
       // Tap on the overlay
       await tester.tap(find.byType(GestureDetector).last);

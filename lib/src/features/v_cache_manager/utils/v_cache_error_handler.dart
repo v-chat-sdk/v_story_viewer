@@ -7,14 +7,17 @@ import 'v_progress_streamer.dart';
 /// Handles error scenarios for cache operations
 /// Errors are emitted via progress stream for monitoring
 class VCacheErrorHandler {
-  VCacheErrorHandler({
-    required VProgressStreamer progressStreamer,
-  }) : _progressStreamer = progressStreamer;
+  VCacheErrorHandler({required VProgressStreamer progressStreamer})
+    : _progressStreamer = progressStreamer;
 
   final VProgressStreamer _progressStreamer;
   bool _isDisposed = false;
 
-  void handleFileError(Object error, VPlatformFile platformFile, String storyId) {
+  void handleFileError(
+    Object error,
+    VPlatformFile platformFile,
+    String storyId,
+  ) {
     if (_isDisposed) return;
 
     final url = _extractUrl(platformFile);

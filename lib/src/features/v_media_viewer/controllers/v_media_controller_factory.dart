@@ -30,12 +30,8 @@ class VMediaControllerFactory {
     required VCacheController cacheController,
   }) {
     return switch (story) {
-      VImageStory() => VImageController(
-        cacheController: cacheController,
-      ),
-      VVideoStory() => VVideoController(
-        cacheController: cacheController,
-      ),
+      VImageStory() => VImageController(cacheController: cacheController),
+      VVideoStory() => VVideoController(cacheController: cacheController),
       VTextStory() => VTextController(),
       VCustomStory() => VCustomController(),
       _ => throw ArgumentError('Unknown story type: ${story.runtimeType}'),

@@ -45,7 +45,8 @@ class VStoryViewer extends StatefulWidget {
   State<VStoryViewer> createState() => _VStoryViewerState();
 }
 
-class _VStoryViewerState extends State<VStoryViewer> {
+class _VStoryViewerState extends State<VStoryViewer>
+    with WidgetsBindingObserver {
   late VStoryNavigationController _navigationController;
   VProgressController? _progressController;
   VBaseMediaController? _mediaController;
@@ -77,6 +78,7 @@ class _VStoryViewerState extends State<VStoryViewer> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initializeConfiguration();
     _initializeManagers();
     _initializeControllers();
@@ -561,11 +563,31 @@ class _VStoryViewerState extends State<VStoryViewer> {
       loadingSpinnerColor: _config.loadingSpinnerColor,
       transitionConfig: _config.transitionConfig,
       headerConfig: widget.headerConfig,
+      storyIndex: _navigationController.currentStoryIndex,
+      groupIndex: _navigationController.currentGroupIndex,
     );
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.paused:
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.hidden:
+        _pauseResumeController.pause(VPauseReason.appLifecycle);
+        break;
+      case AppLifecycleState.resumed:
+        _pauseResumeController.resume();
+        break;
+      case AppLifecycleState.detached:
+        _pauseResumeController.pause(VPauseReason.appLifecycle);
+        break;
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _keyboardFocusNode.dispose();
     _replyTextFieldFocusNode.dispose();
     _progressSubscription?.cancel();

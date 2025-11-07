@@ -16,11 +16,12 @@ class VStoryViewerCallbacks {
     this.onDismiss,
     this.onError,
     this.replyCallbacks,
+    this.onHeaderTap,
   });
 
   /// Called when current story changes
   final void Function(VStoryGroup group, VBaseStory story, int storyIndex)?
-      onStoryChanged;
+  onStoryChanged;
 
   /// Called when current group changes
   final void Function(VStoryGroup group, int groupIndex)? onGroupChanged;
@@ -36,6 +37,10 @@ class VStoryViewerCallbacks {
 
   /// Callbacks for reply actions
   final VReplyCallbacks? replyCallbacks;
+
+  /// Called when header is tapped (user avatar/info area)
+  final void Function(VStoryGroup group, VBaseStory story, int storyIndex)?
+  onHeaderTap;
 
   /// Empty callbacks instance
   static const empty = VStoryViewerCallbacks();

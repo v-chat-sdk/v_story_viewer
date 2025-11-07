@@ -17,12 +17,10 @@ import '../utils/v_progress_streamer.dart';
 /// Cache events are emitted via progressStream for UI integration.
 class VCacheController extends ChangeNotifier {
   VCacheController({VCacheConfig? config})
-      : _config = config ?? VCacheConfig.defaultConfig {
+    : _config = config ?? VCacheConfig.defaultConfig {
     _progressStreamer = VProgressStreamer();
     _initializeCacheManager();
-    _errorHandler = VCacheErrorHandler(
-      progressStreamer: _progressStreamer,
-    );
+    _errorHandler = VCacheErrorHandler(progressStreamer: _progressStreamer);
   }
 
   final VCacheConfig _config;
@@ -56,10 +54,14 @@ class VCacheController extends ChangeNotifier {
     );
   }
 
-  Stream<VDownloadProgress> get mediaDownloadProgressStream => _progressStreamer.stream;
+  Stream<VDownloadProgress> get mediaDownloadProgressStream =>
+      _progressStreamer.stream;
 
   /// Get file from VPlatformFile with story ID for progress tracking
-  Future<VPlatformFile?> getFile(VPlatformFile platformFile, String storyId) async {
+  Future<VPlatformFile?> getFile(
+    VPlatformFile platformFile,
+    String storyId,
+  ) async {
     if (_isDisposed) return null;
     try {
       final result = await _getFileByType(platformFile, storyId);
@@ -72,7 +74,10 @@ class VCacheController extends ChangeNotifier {
     }
   }
 
-  Future<VPlatformFile?> _getFileByType(VPlatformFile platformFile, String storyId) async {
+  Future<VPlatformFile?> _getFileByType(
+    VPlatformFile platformFile,
+    String storyId,
+  ) async {
     if (platformFile.networkUrl != null) {
       return _getFromNetwork(platformFile.networkUrl!, storyId);
     }
@@ -128,8 +133,13 @@ class VCacheController extends ChangeNotifier {
       }
     }
     if (_isDisposed) return null;
-    final file = await _downloadManager?.startDownload(url, () => _performNetworkFetch(url, storyId));
-    return _isDisposed || file == null ? null : VPlatformFile.fromPath(fileLocalPath: file.path);
+    final file = await _downloadManager?.startDownload(
+      url,
+      () => _performNetworkFetch(url, storyId),
+    );
+    return _isDisposed || file == null
+        ? null
+        : VPlatformFile.fromPath(fileLocalPath: file.path);
   }
 
   Future<File?> _performNetworkFetch(String url, String storyId) async {

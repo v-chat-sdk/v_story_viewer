@@ -3,11 +3,7 @@ import 'package:flutter/material.dart';
 /// A container for the story header.
 class VHeaderContainer extends StatelessWidget {
   /// Creates a new instance of [VHeaderContainer].
-  const VHeaderContainer({
-    required this.child,
-    this.padding,
-    super.key,
-  });
+  const VHeaderContainer({required this.child, this.padding, super.key});
 
   /// The content of the header.
   final Widget child;

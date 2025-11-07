@@ -3,11 +3,7 @@ import 'package:flutter/material.dart';
 /// A button for closing the emoji picker in the reply system.
 class VReplyCloseButton extends StatelessWidget {
   /// Creates a new instance of [VReplyCloseButton].
-  const VReplyCloseButton({
-    required this.onPressed,
-    this.color,
-    super.key,
-  });
+  const VReplyCloseButton({required this.onPressed, this.color, super.key});
 
   /// Callback when the close button is pressed.
   final VoidCallback onPressed;

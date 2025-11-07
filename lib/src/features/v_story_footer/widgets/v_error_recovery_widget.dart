@@ -64,11 +64,7 @@ class VErrorRecoveryWidget extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(
-                _getErrorIcon(),
-                color: Colors.red,
-                size: 24,
-              ),
+              Icon(_getErrorIcon(), color: Colors.red, size: 24),
               SizedBox(width: VSpacingTokens.lg),
               Expanded(
                 child: Column(
@@ -77,16 +73,16 @@ class VErrorRecoveryWidget extends StatelessWidget {
                   children: [
                     Text(
                       'Error',
-                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            color: Colors.red,
-                          ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.labelLarge?.copyWith(color: Colors.red),
                     ),
                     SizedBox(height: VSpacingTokens.xs),
                     Text(
                       _getErrorMessage(),
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.white,
-                          ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: Colors.white),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -103,16 +99,16 @@ class VErrorRecoveryWidget extends StatelessWidget {
                 if (errorState.remainingRetries > 0)
                   Text(
                     'Retries left: ${errorState.remainingRetries}',
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: Colors.white70,
-                        ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.labelSmall?.copyWith(color: Colors.white70),
                   )
                 else
                   Text(
                     'Max retries reached',
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: Colors.red,
-                        ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.labelSmall?.copyWith(color: Colors.red),
                   ),
                 if (errorState.canRetry)
                   ElevatedButton.icon(

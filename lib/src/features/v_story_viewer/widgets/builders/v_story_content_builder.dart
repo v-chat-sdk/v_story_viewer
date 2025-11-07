@@ -51,6 +51,8 @@ class VStoryContentBuilder {
     VErrorRecoveryState? errorState,
     VoidCallback? onFooterRetry,
     VTransitionConfig? transitionConfig,
+    int storyIndex = 0,
+    int groupIndex = 0,
   }) {
     final backgroundColor = _getBackgroundColor(currentStory);
     // Build the main story content
@@ -84,6 +86,9 @@ class VStoryContentBuilder {
                           maxContentWidth,
                           onMutePressed,
                           headerConfig,
+                          callbacks,
+                          storyIndex,
+                          groupIndex,
                         ),
                       ],
                     ),
@@ -155,6 +160,9 @@ class VStoryContentBuilder {
     double maxContentWidth,
     VoidCallback? onMutePressed,
     VHeaderConfig? config,
+    VStoryViewerCallbacks? callbacks,
+    int storyIndex,
+    int groupIndex,
   ) {
     return Container(
       margin: const EdgeInsets.only(left: 8, right: 8),
@@ -167,6 +175,9 @@ class VStoryContentBuilder {
         mediaController: mediaController,
         currentStory: story,
         onMutePressed: onMutePressed,
+        onHeaderTap: callbacks?.onHeaderTap != null
+            ? () => callbacks!.onHeaderTap!(group, story, storyIndex)
+            : null,
       ),
     );
   }

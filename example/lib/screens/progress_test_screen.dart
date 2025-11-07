@@ -30,10 +30,7 @@ class _ProgressTestScreenState extends State<ProgressTestScreen> {
   }
 
   void _initController() {
-    _controller = VProgressController(
-      barCount: _barCount,
-
-    );
+    _controller = VProgressController(barCount: _barCount);
   }
 
   @override
@@ -99,7 +96,6 @@ class _ProgressTestScreenState extends State<ProgressTestScreen> {
                 child: VSegmentedProgress(
                   controller: _controller,
                   style: _currentStyle,
-
                 ),
               ),
             ),
@@ -136,9 +132,15 @@ class _ProgressTestScreenState extends State<ProgressTestScreen> {
             ),
             const Divider(),
             _buildStatusRow('Current Index', '${_controller.currentIndex}'),
-            _buildStatusRow('Progress', '${(_currentProgressValue * 100).toStringAsFixed(1)}%'),
+            _buildStatusRow(
+              'Progress',
+              '${(_currentProgressValue * 100).toStringAsFixed(1)}%',
+            ),
             _buildStatusRow('Is Running', _controller.isRunning ? 'Yes' : 'No'),
-            _buildStatusRow('Last Completed', _lastCompletedBar == -1 ? 'None' : 'Bar $_lastCompletedBar'),
+            _buildStatusRow(
+              'Last Completed',
+              _lastCompletedBar == -1 ? 'None' : 'Bar $_lastCompletedBar',
+            ),
             _buildStatusRow('Total Bars', '${_controller.barCount}'),
           ],
         ),
@@ -159,10 +161,7 @@ class _ProgressTestScreenState extends State<ProgressTestScreen> {
             ),
           ),
           Expanded(
-            child: Text(
-              value,
-              style: TextStyle(color: Colors.grey[700]),
-            ),
+            child: Text(value, style: TextStyle(color: Colors.grey[700])),
           ),
         ],
       ),
@@ -184,19 +183,17 @@ class _ProgressTestScreenState extends State<ProgressTestScreen> {
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: List.generate(
-                _controller.barCount,
-                (index) {
-                  final isCurrentBar = _controller.currentIndex == index;
-                  return ElevatedButton(
-                    onPressed: () => _startProgress(index, const Duration(seconds: 5)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: isCurrentBar ? Colors.green : null,
-                    ),
-                    child: Text('Bar $index'),
-                  );
-                },
-              ),
+              children: List.generate(_controller.barCount, (index) {
+                final isCurrentBar = _controller.currentIndex == index;
+                return ElevatedButton(
+                  onPressed: () =>
+                      _startProgress(index, const Duration(seconds: 5)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isCurrentBar ? Colors.green : null,
+                  ),
+                  child: Text('Bar $index'),
+                );
+              }),
             ),
             const SizedBox(height: 16),
             Row(
@@ -211,7 +208,8 @@ class _ProgressTestScreenState extends State<ProgressTestScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: !_controller.isRunning && _controller.currentIndex != -1
+                    onPressed:
+                        !_controller.isRunning && _controller.currentIndex != -1
                         ? _resumeProgress
                         : null,
                     icon: const Icon(Icons.play_arrow),

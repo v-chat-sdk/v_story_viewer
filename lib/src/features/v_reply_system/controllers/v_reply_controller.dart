@@ -7,10 +7,8 @@ import 'v_reply_state_controller.dart';
 /// The main controller for the reply system.
 class VReplyController extends ChangeNotifier {
   /// Creates a new instance of [VReplyController].
-  VReplyController({
-    required this.story,
-    this.callbacks,
-  }) : stateController = VReplyStateController();
+  VReplyController({required this.story, this.callbacks})
+    : stateController = VReplyStateController();
 
   /// The state controller for the reply UI.
   final VReplyStateController stateController;

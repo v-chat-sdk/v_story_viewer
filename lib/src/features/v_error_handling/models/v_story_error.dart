@@ -55,7 +55,6 @@ abstract class VStoryError implements Exception {
       'VStoryError: $message${code != null ? ' (code: $code)' : ''}';
 }
 
-
 /// Generic error for unexpected failures
 class VGenericError extends VStoryError {
   const VGenericError({
@@ -72,10 +71,7 @@ class VGenericError extends VStoryError {
     super.code = 'UNKNOWN_ERROR',
     super.stackTrace,
     super.originalError,
-  }) : super(
-         isRetryable: true,
-         requiresUserAction: false,
-       );
+  }) : super(isRetryable: true, requiresUserAction: false);
 
   const VGenericError.storyNotFound(String message)
     : super(

@@ -49,9 +49,7 @@ class VVideoController extends VBaseMediaController {
       return VideoPlayerController.file(File(media.fileLocalPath!));
     }
     if (media.networkUrl != null) {
-      return VideoPlayerController.networkUrl(
-        Uri.parse(media.networkUrl!),
-      );
+      return VideoPlayerController.networkUrl(Uri.parse(media.networkUrl!));
     }
     if (media.assetsPath != null) {
       return VideoPlayerController.asset(media.assetsPath!);

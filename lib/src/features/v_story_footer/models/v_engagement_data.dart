@@ -44,7 +44,8 @@ class VEngagementData {
   }
 
   /// Total engagement count
-  int get totalEngagement => viewCount + reactionCount + shareCount + commentCount;
+  int get totalEngagement =>
+      viewCount + reactionCount + shareCount + commentCount;
 
   /// Whether there is any engagement data
   bool get hasEngagement => totalEngagement > 0;

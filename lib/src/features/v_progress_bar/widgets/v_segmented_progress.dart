@@ -30,32 +30,20 @@ class VSegmentedProgress extends StatelessWidget {
         return Padding(
           padding: style.padding,
           child: Row(
-            children: List.generate(
-              controller.barCount,
-              (index) {
-                final isLast = index == controller.barCount - 1;
+            children: List.generate(controller.barCount, (index) {
+              final isLast = index == controller.barCount - 1;
 
-                return Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.only(
-                      right: isLast ? 0 : style.segmentSpacing,
-                    ),
-                    child: style.boxShadow != null
-                        ? DecoratedBox(
-                            decoration: BoxDecoration(
-                              boxShadow: [style.boxShadow!],
-                            ),
-                            child: LinearProgressIndicator(
-                              value: controller.getProgress(index),
-                              backgroundColor: style.inactiveColor,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                style.activeColor,
-                              ),
-                              minHeight: style.height,
-                              borderRadius: style.borderRadius,
-                            ),
-                          )
-                        : LinearProgressIndicator(
+              return Expanded(
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    right: isLast ? 0 : style.segmentSpacing,
+                  ),
+                  child: style.boxShadow != null
+                      ? DecoratedBox(
+                          decoration: BoxDecoration(
+                            boxShadow: [style.boxShadow!],
+                          ),
+                          child: LinearProgressIndicator(
                             value: controller.getProgress(index),
                             backgroundColor: style.inactiveColor,
                             valueColor: AlwaysStoppedAnimation<Color>(
@@ -64,10 +52,19 @@ class VSegmentedProgress extends StatelessWidget {
                             minHeight: style.height,
                             borderRadius: style.borderRadius,
                           ),
-                  ),
-                );
-              },
-            ),
+                        )
+                      : LinearProgressIndicator(
+                          value: controller.getProgress(index),
+                          backgroundColor: style.inactiveColor,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            style.activeColor,
+                          ),
+                          minHeight: style.height,
+                          borderRadius: style.borderRadius,
+                        ),
+                ),
+              );
+            }),
           ),
         );
       },
