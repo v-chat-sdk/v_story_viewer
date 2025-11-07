@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../v_localization/models/v_localization.dart';
+import '../../v_localization/providers/v_localization_provider.dart';
 import '../../v_theme_system/models/v_spacing_tokens.dart';
 import '../models/v_error_recovery_state.dart';
 
@@ -36,18 +38,18 @@ class VErrorRecoveryWidget extends StatelessWidget {
   }
 
   /// Get user-friendly error message
-  String _getErrorMessage() {
-    if (errorState.error == null) return 'An error occurred';
+  String _getErrorMessage(VLocalization localization) {
+    if (errorState.error == null) return localization.errorGeneric;
     final code = errorState.error!.code;
     switch (code) {
       case 'NETWORK_ERROR':
-        return 'Network error. Check your connection.';
+        return localization.errorNetwork;
       case 'TIMEOUT':
-        return 'The request timed out. Please try again.';
+        return localization.errorTimeout;
       case 'NOT_FOUND':
-        return 'Story not found or deleted.';
+        return localization.errorNotFound;
       case 'PERMISSION_DENIED':
-        return 'You don\'t have permission to view this story.';
+        return localization.errorPermission;
       default:
         return errorState.error!.message;
     }
@@ -55,6 +57,10 @@ class VErrorRecoveryWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localization = VLocalizationProvider.maybeOf(context);
+    if (localization == null) {
+      return const SizedBox.shrink();
+    }
     return Container(
       width: double.infinity,
       color: Colors.red.withValues(alpha: 0.2),
@@ -72,14 +78,14 @@ class VErrorRecoveryWidget extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      'Error',
+                      localization.errorHeader,
                       style: Theme.of(
                         context,
                       ).textTheme.labelLarge?.copyWith(color: Colors.red),
                     ),
                     SizedBox(height: VSpacingTokens.xs),
                     Text(
-                      _getErrorMessage(),
+                      _getErrorMessage(localization),
                       style: Theme.of(
                         context,
                       ).textTheme.bodySmall?.copyWith(color: Colors.white),
@@ -98,14 +104,14 @@ class VErrorRecoveryWidget extends StatelessWidget {
               children: [
                 if (errorState.remainingRetries > 0)
                   Text(
-                    'Retries left: ${errorState.remainingRetries}',
+                    localization.errorRetriesLeft(errorState.remainingRetries),
                     style: Theme.of(
                       context,
                     ).textTheme.labelSmall?.copyWith(color: Colors.white70),
                   )
                 else
                   Text(
-                    'Max retries reached',
+                    localization.errorMaxRetries,
                     style: Theme.of(
                       context,
                     ).textTheme.labelSmall?.copyWith(color: Colors.red),
@@ -126,7 +132,9 @@ class VErrorRecoveryWidget extends StatelessWidget {
                           )
                         : const Icon(Icons.refresh, size: 16),
                     label: Text(
-                      errorState.isRetrying ? 'Retrying...' : 'Retry',
+                      errorState.isRetrying
+                          ? localization.errorRetrying
+                          : localization.retry,
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,

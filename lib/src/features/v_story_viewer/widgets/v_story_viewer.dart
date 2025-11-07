@@ -30,6 +30,7 @@ class VStoryViewer extends StatefulWidget {
     this.callbacks,
     this.cacheController,
     this.headerConfig,
+    this.localization,
     super.key,
   }) : assert(storyGroups.length > 0, 'Story groups cannot be empty');
 
@@ -40,6 +41,7 @@ class VStoryViewer extends StatefulWidget {
   final VStoryViewerCallbacks? callbacks;
   final VCacheController? cacheController;
   final VHeaderConfig? headerConfig;
+  final VLocalization? localization;
 
   @override
   State<VStoryViewer> createState() => _VStoryViewerState();
@@ -374,6 +376,7 @@ class _VStoryViewerState extends State<VStoryViewer>
 
   @override
   Widget build(BuildContext context) {
+    final localization = widget.localization ?? VLocalization.en();
     final storyContent = _buildStoryContent();
     final isWebPlatform = kIsWeb;
 
@@ -412,6 +415,10 @@ class _VStoryViewerState extends State<VStoryViewer>
     }
 
     final scaffoldBackgroundColor = _getScaffoldBackgroundColor();
+    body = VLocalizationProvider(
+      localization: localization,
+      child: body,
+    );
     if (isWebPlatform) {
       return Scaffold(
         backgroundColor: scaffoldBackgroundColor,

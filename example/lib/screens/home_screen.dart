@@ -86,6 +86,7 @@ class HomeScreen extends StatelessWidget {
               debugPrint('Error: $error');
             },
           ),
+          localization: VLocalization.ar(),
         ),
       ),
     );

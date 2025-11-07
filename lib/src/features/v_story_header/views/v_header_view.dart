@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../../v_localization/providers/v_localization_provider.dart';
 import '../../v_media_viewer/controllers/v_base_media_controller.dart';
 import '../../v_media_viewer/controllers/v_video_controller.dart';
 import '../../v_story_models/models/v_base_story.dart';
 import '../../v_story_models/models/v_story_user.dart';
-import '../../v_theme_system/models/v_responsive_utils.dart';
 import '../models/v_header_config.dart';
 import '../widgets/v_action_menu.dart';
 import '../widgets/v_header_container.dart';
@@ -99,16 +99,6 @@ class _VHeaderViewState extends State<VHeaderView> {
       widget.currentStory != null &&
       widget.currentStory!.runtimeType.toString().contains('VVideoStory');
 
-  /// Calculate responsive icon button size based on screen width
-  double _getResponsiveIconSize(BuildContext context) {
-    return VResponsiveUtils.getIconSize(
-      context,
-      mobileSize: 48,
-      tabletSize: 52,
-      desktopSize: 56,
-    );
-  }
-
   void _showActionMenu(BuildContext context) {
     final actions = widget.config?.getEffectiveActions() ?? [];
     if (actions.isEmpty) {
@@ -146,109 +136,125 @@ class _VHeaderViewState extends State<VHeaderView> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final responsiveIconSize = _getResponsiveIconSize(context);
-
-    return VHeaderContainer(
-      padding: widget.config?.padding,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          GestureDetector(
-            onTap: widget.onHeaderTap,
-            child: Row(
-              children: [
-                VUserAvatar(avatarUrl: widget.user.profilePicture),
-                const SizedBox(width: 8),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    VUserInfo(
-                      user: widget.user,
-                      textStyle: widget.config?.titleTextStyle,
-                    ),
-                    VTimestamp(
-                      createdAt: widget.createdAt,
-                      textStyle: widget.config?.subtitleTextStyle,
-                    ),
-                  ],
-                ),
-              ],
+  List<Widget> _buildTrailingActions(BuildContext context) {
+    final localization = VLocalizationProvider.maybeOf(context);
+    final trailing = <Widget>[];
+    if (widget.config?.showPlaybackControls ?? true) {
+      if (_isVideoStory()) {
+        trailing.add(
+          Semantics(
+            label: _isMuted
+                ? (localization?.tooltipUnmuteVideo ?? 'Unmute video')
+                : (localization?.tooltipMuteVideo ?? 'Mute video'),
+            button: true,
+            enabled: true,
+            onTap: widget.onMutePressed,
+            child: IconButton(
+              icon: Icon(_isMuted ? Icons.volume_off : Icons.volume_up),
+              color: widget.config?.controlButtonColor ?? Colors.white,
+              onPressed: widget.onMutePressed,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
             ),
           ),
-          const SizedBox(width: 8),
-          Expanded(child: const SizedBox()),
-          if (widget.config?.showPlaybackControls ?? true) ...[
-            // Play/pause button removed
-            if (_isVideoStory())
-              SizedBox(
-                height: responsiveIconSize,
-                width: responsiveIconSize,
-                child: Semantics(
-                  label: _isMuted ? 'Unmute video' : 'Mute video',
-                  button: true,
-                  enabled: true,
-                  onTap: widget.onMutePressed,
-                  child: IconButton(
-                    icon: Icon(_isMuted ? Icons.volume_off : Icons.volume_up),
-                    color: widget.config?.controlButtonColor ?? Colors.white,
-                    onPressed: widget.onMutePressed,
-                  ),
-                ),
-              ),
-          ],
-          if (widget.config?.getEffectiveActions() != null &&
-              widget.config!.getEffectiveActions()!.isNotEmpty)
-            SizedBox(
-              key: _actionButtonKey,
-              height: responsiveIconSize,
-              width: responsiveIconSize,
-              child: Semantics(
-                label: 'More options',
-                button: true,
-                enabled: true,
-                onTap: () => _showActionMenu(context),
-                child: IconButton(
-                  icon: const Icon(Icons.more_vert),
-                  color: widget.config?.actionButtonColor ?? Colors.white,
-                  onPressed: () => _showActionMenu(context),
-                ),
-              ),
-            )
-          else if (widget.onActionPressed != null)
-            SizedBox(
-              height: responsiveIconSize,
-              width: responsiveIconSize,
-              child: Semantics(
-                label: 'More options',
-                button: true,
-                enabled: true,
-                onTap: widget.onActionPressed,
-                child: IconButton(
-                  icon: const Icon(Icons.more_vert),
-                  color: widget.config?.actionButtonColor ?? Colors.white,
-                  onPressed: widget.onActionPressed,
-                ),
-              ),
-            ),
-          if (widget.onClosePressed != null)
-            SizedBox(
-              height: responsiveIconSize,
-              width: responsiveIconSize,
-              child: Semantics(
-                label: 'Close story viewer',
-                button: true,
-                enabled: true,
-                onTap: widget.onClosePressed,
-                child: IconButton(
-                  icon: const Icon(Icons.close),
-                  color: widget.config?.closeButtonColor ?? Colors.white,
-                  onPressed: widget.onClosePressed,
-                ),
-              ),
-            ),
-        ],
+        );
+      }
+    }
+    if (widget.config?.getEffectiveActions() != null &&
+        widget.config!.getEffectiveActions().isNotEmpty) {
+      trailing.add(
+        Semantics(
+          label: localization?.tooltipMoreOptions ?? 'More options',
+          button: true,
+          enabled: true,
+          onTap: () => _showActionMenu(context),
+          child: IconButton(
+            key: _actionButtonKey,
+            icon: const Icon(Icons.more_vert),
+            color: widget.config?.actionButtonColor ?? Colors.white,
+            onPressed: () => _showActionMenu(context),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+          ),
+        ),
+      );
+    } else if (widget.onActionPressed != null) {
+      trailing.add(
+        Semantics(
+          label: localization?.tooltipMoreOptions ?? 'More options',
+          button: true,
+          enabled: true,
+          onTap: widget.onActionPressed,
+          child: IconButton(
+            icon: const Icon(Icons.more_vert),
+            color: widget.config?.actionButtonColor ?? Colors.white,
+            onPressed: widget.onActionPressed,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+          ),
+        ),
+      );
+    }
+    if (widget.onClosePressed != null) {
+      trailing.add(
+        Semantics(
+          label: localization?.tooltipCloseViewer ?? 'Close story viewer',
+          button: true,
+          enabled: true,
+          onTap: widget.onClosePressed,
+          child: IconButton(
+            icon: const Icon(Icons.close),
+            color: widget.config?.closeButtonColor ?? Colors.white,
+            onPressed: widget.onClosePressed,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+          ),
+        ),
+      );
+    }
+    return trailing;
+  }
+
+  double _getTrailingWidth() {
+    int buttonCount = 0;
+    if (widget.config?.showPlaybackControls ?? true) {
+      if (_isVideoStory()) buttonCount++;
+    }
+    if (widget.config?.getEffectiveActions() != null &&
+        widget.config!.getEffectiveActions().isNotEmpty) {
+      buttonCount++;
+    } else if (widget.onActionPressed != null) {
+      buttonCount++;
+    }
+    if (widget.onClosePressed != null) {
+      buttonCount++;
+    }
+    return buttonCount * 48.0;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return VHeaderContainer(
+      padding: widget.config?.padding,
+      child: ListTile(
+        onTap: widget.onHeaderTap,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        leading: VUserAvatar(avatarUrl: widget.user.profilePicture),
+        title: VUserInfo(
+          user: widget.user,
+          textStyle: widget.config?.titleTextStyle,
+        ),
+        subtitle: VTimestamp(
+          createdAt: widget.createdAt,
+          textStyle: widget.config?.subtitleTextStyle,
+        ),
+        trailing: SizedBox(
+          width: _getTrailingWidth(),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: _buildTrailingActions(context),
+          ),
+        ),
       ),
     );
   }
