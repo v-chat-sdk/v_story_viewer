@@ -62,7 +62,7 @@ class HomeScreen extends StatelessWidget {
           ),
           headerConfig: VHeaderConfig(
             showPlaybackControls: true,
-            showDefaultActions: true,
+            actions: [],
             controlButtonColor: Colors.white,
             actionButtonColor: Colors.white,
             closeButtonColor: Colors.white,

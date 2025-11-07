@@ -43,7 +43,6 @@ class VStoryContentBuilder {
     required FocusNode replyTextFieldFocusNode,
     required double maxContentWidth,
     required bool isPaused,
-    VoidCallback? onPlayPausePressed,
     VoidCallback? onMutePressed,
     Color? loadingSpinnerColor,
     VFooterConfig? footerConfig,
@@ -83,7 +82,6 @@ class VStoryContentBuilder {
                           context,
                           mediaController,
                           maxContentWidth,
-                          onPlayPausePressed,
                           onMutePressed,
                           headerConfig,
                         ),
@@ -155,7 +153,6 @@ class VStoryContentBuilder {
     BuildContext context,
     VBaseMediaController mediaController,
     double maxContentWidth,
-    VoidCallback? onPlayPausePressed,
     VoidCallback? onMutePressed,
     VHeaderConfig? config,
   ) {
@@ -169,7 +166,6 @@ class VStoryContentBuilder {
         onClosePressed: () => Navigator.of(context).pop(),
         mediaController: mediaController,
         currentStory: story,
-        onPlayPausePressed: onPlayPausePressed,
         onMutePressed: onMutePressed,
       ),
     );

@@ -77,20 +77,6 @@ class _VReplyInputState extends State<VReplyInput> {
     }
   }
 
-  void _handleEmojiSelected(Category? category, Emoji emoji) {
-    final text = _controller.text;
-    final selection = _controller.selection;
-    final newText = text.replaceRange(
-      selection.start,
-      selection.end,
-      emoji.emoji,
-    );
-    _controller.text = newText;
-    _controller.selection = TextSelection.fromPosition(
-      TextPosition(offset: selection.start + emoji.emoji.length),
-    );
-  }
-
   void _toggleEmojiPicker() {
     setState(() {
       _showEmojiPicker = !_showEmojiPicker;
@@ -137,6 +123,7 @@ class _VReplyInputState extends State<VReplyInput> {
             ),
           ),
         ),
+
         categoryViewConfig: CategoryViewConfig(
           backgroundColor: const Color(0xFFF5F5F5),
           iconColorSelected: Colors.black,
@@ -155,97 +142,150 @@ class _VReplyInputState extends State<VReplyInput> {
   @override
   Widget build(BuildContext context) {
     final isDarkMode = VResponsiveUtils.isDarkMode(context);
+    final screenHeight = MediaQuery.of(context).size.height;
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+
+    // Calculate maximum available height for emoji picker
+    // Reserve space for input and keyboard
+    final availableHeightForEmoji = _showEmojiPicker
+        ? (screenHeight - _inputHeight - 100 - bottomInset).clamp(150.0, 280.0)
+        : 0.0;
+
+    // Add bottom padding when emoji picker is shown to prevent overflow
+    final bottomPadding = _showEmojiPicker ? 16.0 : 24.0;
+
     return ConstrainedBox(
       constraints: BoxConstraints(maxWidth: widget.maxContentWidth),
       child: Align(
         alignment: Alignment.bottomCenter,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 16, 12, 24),
-              child: Row(
-                children: [
-                  if (_showEmojiPicker)
-                    VReplyCloseButton(
+        child: SingleChildScrollView(
+          reverse: true,
+          physics: const NeverScrollableScrollPhysics(),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: EdgeInsets.fromLTRB(12, 16, 12, bottomPadding),
+                child: Row(
+                  children: [
+                    if (_showEmojiPicker)
+                      VReplyCloseButton(onPressed: _toggleEmojiPicker),
+                    if (_showEmojiPicker) const SizedBox(width: 8),
+                    VReplyEmojiButton(
                       onPressed: _toggleEmojiPicker,
+                      isEmojiPickerOpen: _showEmojiPicker,
                     ),
-                  if (_showEmojiPicker) const SizedBox(width: 8),
-                  VReplyEmojiButton(
-                    onPressed: _toggleEmojiPicker,
-                    isEmojiPickerOpen: _showEmojiPicker,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.6),
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.2),
-                          width: 1.5,
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.6),
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            width: 1.5,
+                          ),
                         ),
-                      ),
-                      child: SizedBox(
-                        height: _inputHeight,
-                        child: TextField(
-                          controller: _controller,
-                          focusNode: widget.focusNode,
-                          maxLines: _maxLines,
-                          minLines: 1,
-                          textCapitalization: TextCapitalization.sentences,
-                          style: widget.config?.textStyle ??
-                              const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                height: 1.4,
-                              ),
-                          decoration: widget.config?.inputDecoration ??
-                              InputDecoration(
-                                hintText:
-                                    widget.config?.placeholderText ??
-                                    'Send a message',
-                                hintStyle: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.5),
+                        child: SizedBox(
+                          height: _inputHeight,
+                          child: TextField(
+                            controller: _controller,
+                            focusNode: widget.focusNode,
+                            maxLines: _maxLines,
+                            minLines: 1,
+                            textCapitalization: TextCapitalization.sentences,
+                            style:
+                                widget.config?.textStyle ??
+                                const TextStyle(
+                                  color: Colors.white,
                                   fontSize: 16,
+                                  height: 1.4,
                                 ),
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 12,
+                            decoration:
+                                widget.config?.inputDecoration ??
+                                InputDecoration(
+                                  hintText:
+                                      widget.config?.placeholderText ??
+                                      'Send a message',
+                                  hintStyle: TextStyle(
+                                    color: Colors.white.withValues(alpha: 0.5),
+                                    fontSize: 16,
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 12,
+                                  ),
+                                  border: InputBorder.none,
+                                  isDense: true,
                                 ),
-                                border: InputBorder.none,
-                                isDense: true,
-                              ),
-                          onSubmitted: (_) => _handleSubmit(),
-                          onChanged: (_) => _updateInputHeight(),
+                            onSubmitted: (_) => _handleSubmit(),
+                            onChanged: (_) => _updateInputHeight(),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  VReplySendButton(
-                    onPressed: _handleSubmit,
-                    color: widget.config?.sendButtonColor,
-                  ),
-                ],
-              ),
-            ),
-            if (_showEmojiPicker)
-              SizedBox(
-                height: 280,
-                child: EmojiPicker(
-                  onEmojiSelected: _handleEmojiSelected,
-                  onBackspacePressed: () {
-                    _controller.text = _controller.text.characters
-                        .skipLast(1)
-                        .string;
-                    _updateInputHeight();
-                  },
-                  textEditingController: _controller,
-                  config: _buildEmojiPickerConfig(context, isDarkMode),
+                    const SizedBox(width: 8),
+                    VReplySendButton(
+                      onPressed: _handleSubmit,
+                      color: widget.config?.sendButtonColor,
+                    ),
+                  ],
                 ),
               ),
-          ],
+              if (_showEmojiPicker)
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: availableHeightForEmoji,
+                    minHeight: availableHeightForEmoji,
+                  ),
+                  child: EmojiPicker(
+                    onBackspacePressed: () {
+                      _controller.text = _controller.text.characters
+                          .skipLast(1)
+                          .string;
+                      _updateInputHeight();
+                    },
+                    textEditingController: _controller,
+                    config: Config(
+                      emojiViewConfig: EmojiViewConfig(
+                        backgroundColor: isDarkMode
+                            ? Colors.black
+                            : Colors.white,
+                      ),
+                      categoryViewConfig: CategoryViewConfig(
+                        backgroundColor: isDarkMode
+                            ? Colors.black
+                            : Colors.white,
+                        indicatorColor: isDarkMode
+                            ? Colors.white
+                            : Colors.black,
+                        iconColor: isDarkMode ? Colors.white : Colors.black,
+                        iconColorSelected: isDarkMode
+                            ? Colors.blueAccent
+                            : Colors.blue,
+                      ),
+                      bottomActionBarConfig: BottomActionBarConfig(
+                        backgroundColor: isDarkMode
+                            ? Colors.black
+                            : Colors.white,
+                        buttonIconColor: isDarkMode
+                            ? Colors.white
+                            : Colors.black,
+                      ),
+                      searchViewConfig: SearchViewConfig(
+                        backgroundColor: isDarkMode
+                            ? Colors.black
+                            : Colors.white,
+                        buttonIconColor: isDarkMode
+                            ? Colors.white
+                            : Colors.black,
+                        hintText: 'Search',
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

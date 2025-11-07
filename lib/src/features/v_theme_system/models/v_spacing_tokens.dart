@@ -4,22 +4,22 @@ class VSpacingTokens {
   const VSpacingTokens();
 
   /// Extra small spacing (4px) - Used for tight layouts
-  static const double xs = 4.0;
+  static const double xs = 4;
 
   /// Small spacing (8px) - Used for small gaps and padding
-  static const double sm = 8.0;
+  static const double sm = 8;
 
   /// Medium spacing (12px) - Used for component internal spacing
-  static const double md = 12.0;
+  static const double md = 12;
 
   /// Standard spacing (16px) - Default spacing between components
-  static const double lg = 16.0;
+  static const double lg = 16;
 
   /// Large spacing (24px) - Used for major sections
-  static const double xl = 24.0;
+  static const double xl = 24;
 
   /// Extra large spacing (32px) - Used for page-level spacing
-  static const double xxl = 32.0;
+  static const double xxl = 32;
 
   /// Header padding vertical
   static const double headerPaddingVertical = lg;
@@ -28,7 +28,7 @@ class VSpacingTokens {
   static const double headerPaddingHorizontal = lg;
 
   /// Progress bar spacing (vertical gap between bars)
-  static const double progressBarGap = 4.0;
+  static const double progressBarGap = 4;
 
   /// Progress bar padding horizontal
   static const double progressBarPaddingHorizontal = lg;

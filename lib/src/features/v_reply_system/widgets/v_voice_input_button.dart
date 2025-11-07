@@ -111,8 +111,8 @@ class _VVoiceInputButtonState extends State<VVoiceInputButton>
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: isListening
-                  ? Colors.red.withOpacity(0.2)
-                  : Colors.blue.withOpacity(0.1),
+                  ? Colors.red.withValues(alpha: 0.2)
+                  : Colors.blue.withValues(alpha: 0.1),
               border: Border.all(
                 color: isListening ? Colors.red : Colors.blue,
                 width: 2,
@@ -148,7 +148,7 @@ class VVoiceInputResult extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.red.withOpacity(0.1),
+          color: Colors.red.withValues(alpha: 0.1),
           border: Border.all(color: Colors.red),
           borderRadius: BorderRadius.circular(8),
         ),
@@ -176,7 +176,7 @@ class VVoiceInputResult extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.green.withOpacity(0.1),
+        color: Colors.green.withValues(alpha: 0.1),
         border: Border.all(color: Colors.green),
         borderRadius: BorderRadius.circular(8),
       ),

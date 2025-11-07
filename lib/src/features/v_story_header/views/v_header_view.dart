@@ -6,7 +6,6 @@ import '../../v_story_models/models/v_base_story.dart';
 import '../../v_story_models/models/v_story_user.dart';
 import '../../v_theme_system/models/v_responsive_utils.dart';
 import '../models/v_header_config.dart';
-import '../models/v_story_action.dart';
 import '../widgets/v_action_menu.dart';
 import '../widgets/v_header_container.dart';
 import '../widgets/v_timestamp.dart';
@@ -24,7 +23,6 @@ class VHeaderView extends StatefulWidget {
     this.onActionPressed,
     this.mediaController,
     this.currentStory,
-    this.onPlayPausePressed,
     this.onMutePressed,
     super.key,
   });
@@ -50,9 +48,6 @@ class VHeaderView extends StatefulWidget {
   /// Current story being displayed
   final VBaseStory? currentStory;
 
-  /// Callback for play/pause button press
-  final VoidCallback? onPlayPausePressed;
-
   /// Callback for mute button press
   final VoidCallback? onMutePressed;
 
@@ -61,14 +56,12 @@ class VHeaderView extends StatefulWidget {
 }
 
 class _VHeaderViewState extends State<VHeaderView> {
-  late bool _isPaused;
   late bool _isMuted;
   final _actionButtonKey = GlobalKey();
 
   @override
   void initState() {
     super.initState();
-    _isPaused = widget.mediaController?.isPaused ?? false;
     _isMuted = _getIsMuted();
     widget.mediaController?.addListener(_onMediaStateChanged);
   }
@@ -79,7 +72,6 @@ class _VHeaderViewState extends State<VHeaderView> {
     if (oldWidget.mediaController != widget.mediaController) {
       oldWidget.mediaController?.removeListener(_onMediaStateChanged);
       widget.mediaController?.addListener(_onMediaStateChanged);
-      _isPaused = widget.mediaController?.isPaused ?? false;
       _isMuted = _getIsMuted();
     }
   }
@@ -87,7 +79,6 @@ class _VHeaderViewState extends State<VHeaderView> {
   void _onMediaStateChanged() {
     if (!mounted) return;
     setState(() {
-      _isPaused = widget.mediaController?.isPaused ?? false;
       _isMuted = _getIsMuted();
     });
   }
@@ -125,17 +116,13 @@ class _VHeaderViewState extends State<VHeaderView> {
     final buttonContext = _actionButtonKey.currentContext;
     if (buttonContext == null) return;
 
-    final buttonBox = buttonContext.findRenderObject() as RenderBox;
-    final buttonSize = buttonBox.size;
-    final buttonPosition = buttonBox.localToGlobal(Offset.zero);
+    final renderObject = buttonContext.findRenderObject();
+    if (renderObject is! RenderBox) return;
 
-    // Track if we need to resume the story after menu closes
-    final shouldResume = !_isPaused;
+    final buttonSize = renderObject.size;
+    final buttonPosition = renderObject.localToGlobal(Offset.zero);
 
-    // Pause the story before showing menu (if it's playing)
-    if (shouldResume) {
-      widget.onPlayPausePressed?.call();
-    }
+    // No need to track pause state - play/pause button removed
 
     VActionMenu.show(
       context: context,
@@ -145,10 +132,7 @@ class _VHeaderViewState extends State<VHeaderView> {
     ).then((selectedAction) {
       selectedAction?.onPressed();
 
-      // Resume the story after menu closes (if we paused it)
-      if (shouldResume) {
-        widget.onPlayPausePressed?.call();
-      }
+      // No need to resume - play/pause button removed
     });
   }
 
@@ -185,21 +169,7 @@ class _VHeaderViewState extends State<VHeaderView> {
             ),
           ),
           if (widget.config?.showPlaybackControls ?? true) ...[
-            SizedBox(
-              height: responsiveIconSize,
-              width: responsiveIconSize,
-              child: Semantics(
-                label: _isPaused ? 'Play story' : 'Pause story',
-                button: true,
-                enabled: true,
-                onTap: widget.onPlayPausePressed,
-                child: IconButton(
-                  icon: Icon(_isPaused ? Icons.play_arrow : Icons.pause),
-                  color: widget.config?.controlButtonColor ?? Colors.white,
-                  onPressed: widget.onPlayPausePressed,
-                ),
-              ),
-            ),
+            // Play/pause button removed
             if (_isVideoStory())
               SizedBox(
                 height: responsiveIconSize,

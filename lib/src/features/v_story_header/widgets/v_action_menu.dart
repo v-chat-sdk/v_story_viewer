@@ -13,7 +13,9 @@ class VActionMenu {
     required Offset buttonPosition,
     required Size buttonSize,
   }) {
-    if (actions.isEmpty) return Future.value(null);
+    if (actions.isEmpty) {
+      return Future<VStoryAction?>.value();
+    }
 
     final screenSize = MediaQuery.of(context).size;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
@@ -39,7 +41,6 @@ class VActionMenu {
           .map(
             (action) => PopupMenuItem<VStoryAction>(
               value: action,
-              padding: EdgeInsets.zero,
               child: _ActionMenuItemWidget(
                 action: action,
                 isDarkMode: isDarkMode,
@@ -59,8 +60,8 @@ class VActionMenu {
     required double menuHeight,
   }) {
     // Always position menu below the button
-    double left = buttonPosition.dx + buttonSize.width - menuWidth;
-    double top = buttonPosition.dy + buttonSize.height + 8;
+    var left = buttonPosition.dx + buttonSize.width - menuWidth;
+    var top = buttonPosition.dy + buttonSize.height + 8;
 
     // Adjust horizontal position to keep menu on screen
     if (left < 8) {
@@ -70,7 +71,8 @@ class VActionMenu {
     }
 
     // Adjust vertical position to keep menu on screen (but always below button)
-    double bottom = 0;
+    final bottom = 0.0;
+
     if (top + menuHeight > screenSize.height - 8) {
       // Position menu as low as possible while keeping it on screen
       top = screenSize.height - menuHeight - 8;

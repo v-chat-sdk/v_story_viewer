@@ -15,7 +15,6 @@ class VHeaderConfig {
     this.actions,
     this.showPlaybackControls = true,
     this.controlButtonColor,
-    this.showDefaultActions = true,
   });
 
   /// The text style for the user's name.
@@ -45,47 +44,8 @@ class VHeaderConfig {
   /// The color of playback control buttons
   final Color? controlButtonColor;
 
-  /// Whether to show default actions (Share, Save, Report) when no custom actions provided
-  final bool showDefaultActions;
-
-  /// Get the effective actions list (custom actions or defaults)
-  List<VStoryAction>? getEffectiveActions() {
-    // If custom actions are provided, use them
-    if (actions != null && actions!.isNotEmpty) {
-      return actions;
-    }
-    // If showDefaultActions is enabled, return default actions
-    if (showDefaultActions) {
-      return _getDefaultActions();
-    }
-    // Otherwise return null
-    return null;
-  }
-
-  /// Default actions (Share, Save, Report)
-  static List<VStoryAction> _getDefaultActions() {
-    return [
-      VStoryAction(
-        label: 'Share',
-        icon: Icons.share,
-        onPressed: () {
-          debugPrint('Share story');
-        },
-      ),
-      VStoryAction(
-        label: 'Save',
-        icon: Icons.bookmark,
-        onPressed: () {
-          debugPrint('Save story');
-        },
-      ),
-      VStoryAction(
-        label: 'Report',
-        icon: Icons.flag,
-        onPressed: () {
-          debugPrint('Report story');
-        },
-      ),
-    ];
+  /// Get the effective actions list (custom actions or empty)
+  List<VStoryAction> getEffectiveActions() {
+    return actions ?? [];
   }
 }

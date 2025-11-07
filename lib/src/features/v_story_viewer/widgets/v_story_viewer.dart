@@ -6,6 +6,9 @@ import 'package:flutter/services.dart';
 
 import '../../../../v_story_viewer.dart';
 import '../../../core/models/v_story_events.dart';
+import '../../v_pause_resume/controllers/v_pause_resume_controller.dart';
+import '../../v_pause_resume/models/v_pause_reason.dart';
+import '../../v_pause_resume/models/v_pause_resume_callbacks.dart';
 import '../../v_theme_system/models/v_responsive_utils.dart';
 import '../utils/v_carousel_manager.dart';
 import '../utils/v_controller_initializer.dart';
@@ -51,6 +54,7 @@ class _VStoryViewerState extends State<VStoryViewer> {
   late VStoryViewerConfig _config;
   late VCubePageManager _cubePageManager;
   late VStoryGestureHandler _gestureHandler;
+  late VPauseResumeController _pauseResumeController;
   final _keyboardFocusNode = FocusNode();
   final _replyTextFieldFocusNode = FocusNode();
 
@@ -104,6 +108,19 @@ class _VStoryViewerState extends State<VStoryViewer> {
       storyGroups: widget.storyGroups,
       initialGroupIndex: widget.initialGroupIndex,
       initialStoryIndex: widget.initialStoryIndex,
+    );
+
+    _pauseResumeController = VPauseResumeController(
+      callbacks: VPauseResumeCallbacks(
+        onPause: (reason) {
+          _progressController?.pauseProgress();
+          _mediaController?.pause();
+        },
+        onResume: () {
+          _progressController?.resumeProgress();
+          _mediaController?.resume();
+        },
+      ),
     );
 
     _progressController = VControllerInitializer.createProgressController(
@@ -167,9 +184,9 @@ class _VStoryViewerState extends State<VStoryViewer> {
           );
         case VReplyFocusChangedEvent():
           if (event.hasFocus) {
-            _handlePause();
+            _pauseResumeController.pause(VPauseReason.replyFocus);
           } else {
-            _handleResume();
+            _pauseResumeController.resumeIfPausedFor(VPauseReason.replyFocus);
           }
         case VStoryPauseStateChangedEvent():
           // Handled by media controller itself
@@ -248,9 +265,9 @@ class _VStoryViewerState extends State<VStoryViewer> {
 
   void _handleCarouselScrollStateChanged(bool isScrolling) {
     if (isScrolling) {
-      _handlePause();
+      _pauseResumeController.pause(VPauseReason.carouselScroll);
     } else {
-      _handleResume();
+      _pauseResumeController.resumeIfPausedFor(VPauseReason.carouselScroll);
     }
   }
 
@@ -311,14 +328,6 @@ class _VStoryViewerState extends State<VStoryViewer> {
     Navigator.of(context).pop();
   }
 
-  void _handlePlayPausePressed() {
-    if (_state.isPlaying) {
-      _handlePause();
-    } else if (_state.isPaused) {
-      _handleResume();
-    }
-  }
-
   Future<void> _handleMutePressed() async {
     final controller = _mediaController;
     if (controller is VVideoController) {
@@ -327,17 +336,13 @@ class _VStoryViewerState extends State<VStoryViewer> {
   }
 
   void _handlePause() {
-    if (!_state.isPaused && _state.isPlaying) {
-      _progressController?.pauseProgress();
-      _mediaController?.pause();
-      _updateState(_state.copyWith(playbackState: VStoryPlaybackState.paused));
-    }
+    _pauseResumeController.pause(VPauseReason.manual);
+    _updateState(_state.copyWith(playbackState: VStoryPlaybackState.paused));
   }
 
   void _handleResume() {
     if (_state.isPaused) {
-      _progressController?.resumeProgress();
-      _mediaController?.resume();
+      _pauseResumeController.resume();
       _updateState(_state.copyWith(playbackState: VStoryPlaybackState.playing));
     }
   }
@@ -355,10 +360,7 @@ class _VStoryViewerState extends State<VStoryViewer> {
   }
 
   void _handleCarouselPageChanged(int index) {
-    _navigationController.jumpTo(
-      groupIndex: index,
-      storyIndex: 0,
-    );
+    _navigationController.jumpTo(groupIndex: index, storyIndex: 0);
     _reinitializeProgressController();
     _loadCurrentStory();
 
@@ -398,16 +400,13 @@ class _VStoryViewerState extends State<VStoryViewer> {
         _navigationController.currentGroup.stories.length > 1;
     // Show arrows if there are multiple stories in current group OR multiple groups
     final shouldShowArrows =
-        isWebPlatform && isDesktopWide && (hasMultipleStories || hasMultipleGroups);
+        isWebPlatform &&
+        isDesktopWide &&
+        (hasMultipleStories || hasMultipleGroups);
 
     // Add navigation arrows overlay for web/desktop
     if (shouldShowArrows) {
-      body = Stack(
-        children: [
-          body,
-          _buildNavigationArrowsOverlay(),
-        ],
-      );
+      body = Stack(children: [body, _buildNavigationArrowsOverlay()]);
     }
 
     final scaffoldBackgroundColor = _getScaffoldBackgroundColor();
@@ -420,11 +419,7 @@ class _VStoryViewerState extends State<VStoryViewer> {
           onKeyEvent: (KeyEvent event) {
             if (_isTextFieldFocused()) return;
             if (event is KeyDownEvent) {
-              // Space: Pause/Resume
-              if (event.logicalKey == LogicalKeyboardKey.space) {
-                _handlePlayPausePressed();
-                return;
-              }
+              // Space key removed - play/pause button functionality removed
               // Arrow Right / D: Next story
               if (event.logicalKey == LogicalKeyboardKey.arrowRight ||
                   event.logicalKey == LogicalKeyboardKey.keyD) {
@@ -460,10 +455,7 @@ class _VStoryViewerState extends State<VStoryViewer> {
       );
     }
 
-    return Scaffold(
-      backgroundColor: scaffoldBackgroundColor,
-      body: body,
-    );
+    return Scaffold(backgroundColor: scaffoldBackgroundColor, body: body);
   }
 
   Widget _buildNavigationArrowsOverlay() {
@@ -477,7 +469,8 @@ class _VStoryViewerState extends State<VStoryViewer> {
           child: Center(
             child: _buildNavigationButton(
               icon: Icons.arrow_back_ios_new,
-              onPressed: (_navigationController.hasPreviousStory ||
+              onPressed:
+                  (_navigationController.hasPreviousStory ||
                       _navigationController.hasPreviousGroup)
                   ? _handleTapPrevious
                   : null,
@@ -492,8 +485,10 @@ class _VStoryViewerState extends State<VStoryViewer> {
           child: Center(
             child: _buildNavigationButton(
               icon: Icons.arrow_forward_ios,
-              onPressed: (_navigationController.hasNextStory ||
-                      (_navigationController.hasNextGroup && _config.autoMoveToNextGroup))
+              onPressed:
+                  (_navigationController.hasNextStory ||
+                      (_navigationController.hasNextGroup &&
+                          _config.autoMoveToNextGroup))
                   ? _handleTapNext
                   : null,
             ),
@@ -542,7 +537,10 @@ class _VStoryViewerState extends State<VStoryViewer> {
       gestureCallbacks: VGestureCallbacks(
         onTapPrevious: _gestureHandler.handleTapPrevious,
         onTapNext: _gestureHandler.handleTapNext,
-        onLongPressStart: _gestureHandler.handleLongPressStart,
+        onLongPressStart: () {
+          print('?  onLongPressStart ? ${DateTime.now()}');
+          _gestureHandler.handleLongPressStart();
+        },
         onLongPressEnd: _gestureHandler.handleLongPressEnd,
         onSwipeDown: () => _gestureHandler.handleSwipeDown(context),
         onDoubleTap: _gestureHandler.handleDoubleTap,
@@ -559,7 +557,6 @@ class _VStoryViewerState extends State<VStoryViewer> {
       replyTextFieldFocusNode: _replyTextFieldFocusNode,
       maxContentWidth: responsiveMaxWidth,
       isPaused: _state.isPaused,
-      onPlayPausePressed: _handlePlayPausePressed,
       onMutePressed: _handleMutePressed,
       loadingSpinnerColor: _config.loadingSpinnerColor,
       transitionConfig: _config.transitionConfig,
@@ -578,6 +575,7 @@ class _VStoryViewerState extends State<VStoryViewer> {
     _progressController?.dispose();
     _mediaController?.dispose();
     _reactionController.dispose();
+    _pauseResumeController.dispose();
     _cubePageManager.dispose();
     if (widget.cacheController == null) {
       _cacheController.dispose();
@@ -595,8 +593,10 @@ class _VStoryViewerState extends State<VStoryViewer> {
         return true;
       }
       // Also check the context for TextField or TextFormField
-      return focusNode.context!.findAncestorWidgetOfExactType<TextField>() != null ||
-          focusNode.context!.findAncestorWidgetOfExactType<TextFormField>() != null;
+      return focusNode.context!.findAncestorWidgetOfExactType<TextField>() !=
+              null ||
+          focusNode.context!.findAncestorWidgetOfExactType<TextFormField>() !=
+              null;
     }
     return false;
   }

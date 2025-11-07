@@ -92,7 +92,8 @@ class VResponsiveUtils {
 
   /// Get text scale for current device
   static double getTextScale(BuildContext context) =>
-      MediaQuery.of(context).textScaleFactor;
+      MediaQuery.of(context).textScaler.scale(1);
+
 
   /// Get device pixel ratio
   static double getDevicePixelRatio(BuildContext context) =>

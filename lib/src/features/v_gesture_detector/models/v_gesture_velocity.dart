@@ -22,28 +22,6 @@ class VGestureVelocityData {
     this.speed = VGestureSpeed.slow,
   });
 
-  /// Velocity in pixels per second
-  final double pixelsPerSecond;
-
-  /// Direction of the swipe gesture
-  final VSwipeDirection direction;
-
-  /// Total distance traveled in pixels
-  final double distance;
-
-  /// Duration of the gesture in milliseconds
-  final int duration;
-
-  /// Whether this gesture qualifies as a swipe
-  /// (velocity > 100 pixels/second)
-  final bool isSwipe;
-
-  /// Speed category of the gesture
-  final VGestureSpeed speed;
-
-  /// Minimum velocity threshold for swipe detection (pixels/second)
-  static const double minSwipeVelocity = 100;
-
   /// Factory constructor from raw gesture data
   factory VGestureVelocityData.fromGestureData({
     required Offset startPosition,
@@ -56,7 +34,7 @@ class VGestureVelocityData {
 
     // Calculate velocity (pixels per second)
     final pixelsPerSecond = duration > 0
-        ? ((distance / duration) * 1000).toDouble()
+        ? (distance / duration) * 1000
         : 0.0;
 
     // Determine swipe direction
@@ -90,6 +68,28 @@ class VGestureVelocityData {
       speed: speed,
     );
   }
+
+  /// Velocity in pixels per second
+  final double pixelsPerSecond;
+
+  /// Direction of the swipe gesture
+  final VSwipeDirection direction;
+
+  /// Total distance traveled in pixels
+  final double distance;
+
+  /// Duration of the gesture in milliseconds
+  final int duration;
+
+  /// Whether this gesture qualifies as a swipe
+  /// (velocity > 100 pixels/second)
+  final bool isSwipe;
+
+  /// Speed category of the gesture
+  final VGestureSpeed speed;
+
+  /// Minimum velocity threshold for swipe detection (pixels/second)
+  static const double minSwipeVelocity = 100;
 
   /// Categorize velocity into speed categories
   static VGestureSpeed _categorizeSpeed(double pixelsPerSecond) {

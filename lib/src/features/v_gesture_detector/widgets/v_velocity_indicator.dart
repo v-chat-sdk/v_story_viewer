@@ -30,7 +30,7 @@ class VVelocityIndicator extends StatelessWidget {
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: _getSpeedColor().withOpacity(0.3),
+          color: _getSpeedColor().withValues(alpha: 0.3),
           border: Border.all(
             color: _getSpeedColor(),
             width: 2,
@@ -164,7 +164,7 @@ class _VSwipeProgressIndicatorState extends State<VSwipeProgressIndicator>
           child: LinearProgressIndicator(
             value: _progressAnimation.value,
             minHeight: widget.height,
-            backgroundColor: Colors.grey.withOpacity(0.3),
+            backgroundColor: Colors.grey.withValues(alpha: 0.3),
             valueColor: AlwaysStoppedAnimation<Color>(
               _getProgressColor(_progressAnimation.value),
             ),

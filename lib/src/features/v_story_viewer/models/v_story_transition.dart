@@ -76,9 +76,9 @@ class VSlidePageRoute<T> extends PageRouteBuilder<T> {
 class VFadePageRoute<T> extends PageRouteBuilder<T> {
   VFadePageRoute({
     required WidgetBuilder pageBuilder,
-    required Duration transitionDuration,
+    required super.transitionDuration,
     required Curve curve,
-    RouteSettings? settings,
+    super.settings,
   }) : super(
          pageBuilder: (context, animation, secondaryAnimation) =>
              pageBuilder(context),
@@ -90,8 +90,6 @@ class VFadePageRoute<T> extends PageRouteBuilder<T> {
              child: child,
            );
          },
-         transitionDuration: transitionDuration,
-         settings: settings,
        );
 }
 
@@ -99,9 +97,9 @@ class VFadePageRoute<T> extends PageRouteBuilder<T> {
 class VZoomPageRoute<T> extends PageRouteBuilder<T> {
   VZoomPageRoute({
     required WidgetBuilder pageBuilder,
-    required Duration transitionDuration,
+    required super.transitionDuration,
     required Curve curve,
-    RouteSettings? settings,
+    super.settings,
   }) : super(
          pageBuilder: (context, animation, secondaryAnimation) =>
              pageBuilder(context),
@@ -124,8 +122,6 @@ class VZoomPageRoute<T> extends PageRouteBuilder<T> {
              ),
            );
          },
-         transitionDuration: transitionDuration,
-         settings: settings,
        );
 }
 
