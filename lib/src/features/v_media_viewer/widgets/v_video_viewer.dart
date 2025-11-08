@@ -25,10 +25,12 @@ class VVideoViewer extends StatelessWidget {
       return SizedBox();
     }
 
-    // Display video with full-screen gesture coverage
-    return SizedBox.expand(
-      child: AspectRatio(
-        aspectRatio: videoController.value.aspectRatio,
+    // Display video with proper aspect ratio for mobile
+    return FittedBox(
+      fit: BoxFit.cover,
+      child: SizedBox(
+        width: videoController.value.size.width,
+        height: videoController.value.size.height,
         child: VideoPlayer(videoController),
       ),
     );
