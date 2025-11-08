@@ -9,6 +9,10 @@ A production-ready Flutter package for displaying WhatsApp/Instagram-style stori
   <img src="https://github.com/user-attachments/assets/d23d50b4-add1-4808-a6f4-8004ef729d41" alt="Story Viewer Demo 2" width="300" />
 </div>
 
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/df7145e6-dc5a-43d4-8e50-f3a22272c8b8" alt="Story Viewer Wide Screen Demo" width="800" />
+</div>
+
 [![pub package](https://img.shields.io/pub/v/v_story_viewer.svg)](https://pub.dev/packages/v_story_viewer)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Flutter](https://img.shields.io/badge/flutter-3.0+-blue.svg)](https://flutter.dev)
