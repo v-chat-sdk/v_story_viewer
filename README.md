@@ -2,6 +2,13 @@
 
 A production-ready Flutter package for displaying WhatsApp/Instagram-style stories with intuitive gesture controls, smart media caching, and extensive customization options. Built for performance with 60 FPS animations and full cross-platform support.
 
+## 📸 Showcase
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/b751584c-f104-4bd4-8508-708a5f38d271" alt="Story Viewer Demo 1" width="300" />
+  <img src="https://github.com/user-attachments/assets/d23d50b4-add1-4808-a6f4-8004ef729d41" alt="Story Viewer Demo 2" width="300" />
+</div>
+
 [![pub package](https://img.shields.io/pub/v/v_story_viewer.svg)](https://pub.dev/packages/v_story_viewer)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Flutter](https://img.shields.io/badge/flutter-3.0+-blue.svg)](https://flutter.dev)
@@ -15,6 +22,13 @@ A production-ready Flutter package for displaying WhatsApp/Instagram-style stori
 - **🌍 Cross-Platform** - iOS, Android, Web, macOS, Windows, Linux
 - **🔄 Smart Caching** - Automatic media caching with offline support
 - **🌐 Internationalization** - RTL support and multi-language ready
+
+## 📋 Roadmap (Upcoming Features)
+
+- **🎙️ Voice Stories** - Support for audio/voice recordings as stories
+- Video trimming capabilities
+- Advanced filters and effects
+- Story analytics and metrics
 
 ## 📦 Installation
 
