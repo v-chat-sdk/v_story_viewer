@@ -4,14 +4,13 @@ A production-ready Flutter package for displaying WhatsApp/Instagram-style stori
 
 ## 📸 Showcase
 
-<div align="center">
-  <img src="https://github.com/user-attachments/assets/b751584c-f104-4bd4-8508-708a5f38d271" alt="Story Viewer Demo 1" width="300" />
-  <img src="https://github.com/user-attachments/assets/d23d50b4-add1-4808-a6f4-8004ef729d41" alt="Story Viewer Demo 2" width="300" />
-</div>
+Check out the screenshots to see the package in action:
 
-<div align="center">
-  <img src="https://github.com/user-attachments/assets/df7145e6-dc5a-43d4-8e50-f3a22272c8b8" alt="Story Viewer Wide Screen Demo" width="800" />
-</div>
+- **Mobile Demo**: WhatsApp-style story viewer with smooth transitions
+- **Tablet/Desktop Support**: Responsive design works on all screen sizes
+- **Rich Media**: Images, videos, text, and custom widgets
+
+See full demonstrations on [GitHub](https://github.com/v-chat-sdk/v_story_viewer)
 
 [![pub package](https://img.shields.io/pub/v/v_story_viewer.svg)](https://pub.dev/packages/v_story_viewer)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
