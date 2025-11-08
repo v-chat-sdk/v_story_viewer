@@ -59,6 +59,7 @@ class HomeScreen extends StatelessWidget {
             pauseOnLongPress: true,
             dismissOnSwipeDown: true,
             autoMoveToNextGroup: true,
+            groupSwipeDirection: Axis.horizontal,
           ),
           headerConfig: VHeaderConfig(
             showPlaybackControls: true,

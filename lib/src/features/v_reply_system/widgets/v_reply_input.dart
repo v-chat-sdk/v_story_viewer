@@ -88,57 +88,6 @@ class _VReplyInputState extends State<VReplyInput> {
     });
   }
 
-  Config _buildEmojiPickerConfig(BuildContext context, bool isDarkMode) {
-    if (isDarkMode) {
-      return Config(
-        emojiViewConfig: EmojiViewConfig(
-          noRecents: Text(
-            'No recent emojis',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.5),
-              fontSize: 14,
-            ),
-          ),
-        ),
-        categoryViewConfig: CategoryViewConfig(
-          backgroundColor: const Color(0xFF000000),
-          iconColorSelected: Colors.white,
-          iconColor: Colors.white.withValues(alpha: 0.5),
-          backspaceColor: Colors.white.withValues(alpha: 0.5),
-          indicatorColor: Colors.white,
-          dividerColor: Colors.white.withValues(alpha: 0.1),
-        ),
-        bottomActionBarConfig: BottomActionBarConfig(
-          backgroundColor: const Color(0xFF000000),
-        ),
-      );
-    } else {
-      return Config(
-        emojiViewConfig: EmojiViewConfig(
-          noRecents: Text(
-            'No recent emojis',
-            style: TextStyle(
-              color: Colors.black.withValues(alpha: 0.5),
-              fontSize: 14,
-            ),
-          ),
-        ),
-
-        categoryViewConfig: CategoryViewConfig(
-          backgroundColor: const Color(0xFFF5F5F5),
-          iconColorSelected: Colors.black,
-          iconColor: Colors.black.withValues(alpha: 0.5),
-          backspaceColor: Colors.black.withValues(alpha: 0.6),
-          indicatorColor: Colors.black,
-          dividerColor: Colors.black.withValues(alpha: 0.1),
-        ),
-        bottomActionBarConfig: BottomActionBarConfig(
-          backgroundColor: const Color(0xFFF5F5F5),
-        ),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDarkMode = VResponsiveUtils.isDarkMode(context);
@@ -279,7 +228,6 @@ class _VReplyInputState extends State<VReplyInput> {
                         buttonIconColor: isDarkMode
                             ? Colors.white
                             : Colors.black,
-                        hintText: 'Search',
                       ),
                     ),
                   ),

@@ -126,7 +126,12 @@ class _VGestureWrapperState extends State<VGestureWrapper> {
           onDoubleTap: widget.callbacks.onDoubleTap,
 
           // VERTICAL DRAG: Swipe dismiss (full screen)
+          // DISABLED when using vertical group swipe to avoid gesture conflicts
           onVerticalDragEnd: (DragEndDetails details) {
+            // Skip if using vertical direction for group navigation
+            if (widget.config.groupSwipeDirection == Axis.vertical) {
+              return;
+            }
             if (widget.config.enableSwipe) {
               final velocity = details.velocity.pixelsPerSecond.dy;
               if (velocity > widget.config.swipeVelocityThreshold) {

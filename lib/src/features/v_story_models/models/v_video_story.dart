@@ -21,9 +21,9 @@ final class VVideoStory extends VMediaStory {
     this.muted = false,
     this.looping = false,
     super.metadata,
-    String? caption,
-    String? source,
-  }) : super(storyType: VStoryType.video, caption: caption, source: source);
+    super.caption,
+    super.source,
+  }) : super(storyType: VStoryType.video);
 
   /// Media file containing the video resource
   @override

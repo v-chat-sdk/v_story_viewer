@@ -7,8 +7,8 @@ issue_tracker: https://github.com/hatemragap/v_story_viewer/issues
 documentation: https://github.com/hatemragap/v_story_viewer#readme
 
 environment:
-  sdk: ^3.9.0
-  flutter: ">=3.0.0"
+  sdk: ">=3.2.0 <4.0.0"
+  flutter: ">=3.3.0"
 
 dependencies:
   flutter:
@@ -40,3 +40,11 @@ dev_dependencies:
   dart_code_linter: ^3.0.0
 
 flutter:
+
+platforms:
+  android:
+  ios:
+  web:
+  windows:
+  linux:
+  macos:

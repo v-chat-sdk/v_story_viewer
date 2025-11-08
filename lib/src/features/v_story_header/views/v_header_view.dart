@@ -216,7 +216,7 @@ class _VHeaderViewState extends State<VHeaderView> {
   }
 
   double _getTrailingWidth() {
-    int buttonCount = 0;
+    var buttonCount = 0;
     if (widget.config?.showPlaybackControls ?? true) {
       if (_isVideoStory()) buttonCount++;
     }

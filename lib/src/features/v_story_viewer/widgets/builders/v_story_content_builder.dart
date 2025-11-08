@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/callbacks/v_reply_callbacks.dart';
+import '../../../v_gesture_detector/models/v_gesture_config.dart';
 import '../../../v_gesture_detector/widgets/v_gesture_callbacks.dart';
 import '../../../v_gesture_detector/widgets/v_gesture_wrapper.dart';
 import '../../../v_media_viewer/controllers/v_base_media_controller.dart';
@@ -51,6 +52,7 @@ class VStoryContentBuilder {
     VErrorRecoveryState? errorState,
     VoidCallback? onFooterRetry,
     VTransitionConfig? transitionConfig,
+    VGestureConfig gestureConfig = const VGestureConfig(),
     int storyIndex = 0,
     int groupIndex = 0,
   }) {
@@ -59,6 +61,7 @@ class VStoryContentBuilder {
     final storyContent = SafeArea(
       child: VGestureWrapper(
         callbacks: gestureCallbacks,
+        config: gestureConfig,
         child: ColoredBox(
           color: backgroundColor,
           child: Column(

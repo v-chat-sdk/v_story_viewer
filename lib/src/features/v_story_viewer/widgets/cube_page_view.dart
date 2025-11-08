@@ -2,16 +2,20 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-/// A PageView with 3D cube transition effect
+import '../models/v_story_transition.dart';
+
+/// A PageView with 3D cube transition effect or fade animation
 ///
-/// Creates a 3D cube rotation effect when transitioning between pages.
-/// Each page rotates along the Y-axis creating a cube-like appearance.
+/// Creates either a 3D cube rotation effect or fade animation when transitioning between pages.
+/// Supports both horizontal and vertical swipe directions.
 ///
 /// **Usage:**
 /// ```dart
 /// CubePageView(
 ///   controller: _pageController,
 ///   itemCount: items.length,
+///   scrollDirection: Axis.horizontal,
+///   transitionType: VTransitionType.slide,
 ///   onPageChanged: (index) => print('Page: $index'),
 ///   itemBuilder: (context, index) => YourWidget(items[index]),
 /// )
@@ -27,6 +31,8 @@ class CubePageView extends StatefulWidget {
     this.physics,
     this.perspective = 0.001,
     this.rotationAngle,
+    this.scrollDirection = Axis.horizontal,
+    this.transitionType = VTransitionType.slide,
   });
 
   final PageController controller;
@@ -41,6 +47,12 @@ class CubePageView extends StatefulWidget {
 
   /// Custom rotation angle multiplier (default: π/2 for 90° rotation)
   final double? rotationAngle;
+
+  /// Scroll direction for page navigation (horizontal or vertical)
+  final Axis scrollDirection;
+
+  /// Transition type for page changes (slide/fade/zoom)
+  final VTransitionType transitionType;
 
   @override
   State<CubePageView> createState() => _CubePageViewState();
@@ -73,7 +85,39 @@ class _CubePageViewState extends State<CubePageView> {
       itemCount: widget.itemCount,
       pageSnapping: widget.pageSnapping,
       physics: widget.physics,
-      itemBuilder: (context, index) => _buildCubePage(index),
+      scrollDirection: widget.scrollDirection,
+      itemBuilder: (context, index) => _buildPage(index),
+    );
+  }
+
+  Widget _buildPage(int index) {
+    return switch (widget.transitionType) {
+      VTransitionType.fade => _buildFadePage(index),
+      VTransitionType.zoom => _buildZoomPage(index),
+      VTransitionType.slide => _buildCubePage(index),
+    };
+  }
+
+  Widget _buildFadePage(int index) {
+    final pageOffset = _calculatePageOffset(index);
+    final opacity = (1.0 - pageOffset.abs()).clamp(0.0, 1.0);
+
+    return Opacity(
+      opacity: opacity,
+      child: widget.itemBuilder(context, index),
+    );
+  }
+
+  Widget _buildZoomPage(int index) {
+    final pageOffset = _calculatePageOffset(index);
+    final scale = math.max(0.8, 1.0 - pageOffset.abs() * 0.2);
+
+    return Transform.scale(
+      scale: scale,
+      child: Opacity(
+        opacity: (1.0 - pageOffset.abs()).clamp(0.0, 1.0),
+        child: widget.itemBuilder(context, index),
+      ),
     );
   }
 
@@ -110,12 +154,22 @@ class _CubePageViewState extends State<CubePageView> {
   }
 
   Alignment _getRotationAlignment(double pageOffset) {
-    return pageOffset > 0 ? Alignment.centerLeft : Alignment.centerRight;
+    if (widget.scrollDirection == Axis.horizontal) {
+      return pageOffset > 0 ? Alignment.centerLeft : Alignment.centerRight;
+    } else {
+      return pageOffset > 0 ? Alignment.topCenter : Alignment.bottomCenter;
+    }
   }
 
   Matrix4 _createTransformMatrix(double pageOffset, double rotationAngle) {
-    return Matrix4.identity()
-      ..setEntry(3, 2, widget.perspective)
-      ..rotateY(pageOffset * rotationAngle);
+    final matrix = Matrix4.identity()..setEntry(3, 2, widget.perspective);
+
+    if (widget.scrollDirection == Axis.horizontal) {
+      matrix.rotateY(pageOffset * rotationAngle);
+    } else {
+      matrix.rotateX(pageOffset * rotationAngle);
+    }
+
+    return matrix;
   }
 }

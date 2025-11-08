@@ -1,45 +1,24 @@
 # v_story_viewer
 
-A Flutter package for WhatsApp/Instagram-style story viewing with comprehensive gesture controls, media caching, and cross-platform support.
+A production-ready Flutter package for displaying WhatsApp/Instagram-style stories with intuitive gesture controls, smart media caching, and extensive customization options. Built for performance with 60 FPS animations and full cross-platform support.
 
 [![pub package](https://img.shields.io/pub/v/v_story_viewer.svg)](https://pub.dev/packages/v_story_viewer)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Flutter](https://img.shields.io/badge/flutter-3.0+-blue.svg)](https://flutter.dev)
 
-## Features
+## ✨ Key Features
 
-✨ **Multiple Media Types**
-- Image stories (network, asset, file, bytes)
-- Video stories with automatic playback
-- Text stories with customizable backgrounds
-- Custom widget stories
+- **📱 Multiple Media Types** - Images, videos, text, and custom widgets
+- **🎮 Intuitive Gestures** - Tap to navigate, swipe to dismiss, long press to pause
+- **⚡ High Performance** - 60 FPS animations with efficient caching
+- **🎨 Fully Customizable** - Themes, headers, footers, and custom content
+- **🌍 Cross-Platform** - iOS, Android, Web, macOS, Windows, Linux
+- **🔄 Smart Caching** - Automatic media caching with offline support
+- **🌐 Internationalization** - RTL support and multi-language ready
 
-🎮 **Intuitive Gesture Controls**
-- Tap navigation (left/right zones)
-- Swipe down to dismiss
-- Horizontal swipe between story groups
-- Double tap for reactions
-- Long press to pause
+## 📦 Installation
 
-⚡ **Performance Optimized**
-- Media caching with flutter_cache_manager
-- Efficient progress animations using LinearProgressIndicator
-- Single video controller instance
-- Selective widget rebuilds
-
-🎨 **Highly Customizable**
-- Custom themes and colors
-- Customizable headers, footers, and actions
-- Reply and reaction systems
-- RTL support with localization
-
-🌍 **Cross-Platform Support**
-- iOS, Android, Web, macOS, Windows, Linux
-- Platform-specific optimizations
-- Unified file handling with v_platform
-
-## Installation
-
-Add this to your package's `pubspec.yaml` file:
+Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
@@ -52,21 +31,29 @@ Then run:
 flutter pub get
 ```
 
-## Quick Start
+## 🚀 Quick Start
 
 ```dart
+import 'package:flutter/material.dart';
 import 'package:v_story_viewer/v_story_viewer.dart';
 
+void main() => runApp(const MyApp());
+
 class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: StoryViewerExample(),
+      title: 'Story Viewer Demo',
+      home: const StoryViewerScreen(),
     );
   }
 }
 
-class StoryViewerExample extends StatelessWidget {
+class StoryViewerScreen extends StatelessWidget {
+  const StoryViewerScreen({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     final storyGroups = [
@@ -74,17 +61,35 @@ class StoryViewerExample extends StatelessWidget {
         id: 'user1',
         user: VStoryUser(
           name: 'John Doe',
-          profileUrl: 'https://example.com/profile.jpg',
+          profileUrl: 'https://example.com/profile1.jpg',
+          verified: true,
         ),
         stories: [
           VImageStory(
             id: 'story1',
             url: 'https://example.com/image1.jpg',
-            duration: Duration(seconds: 5),
+            duration: const Duration(seconds: 5),
+            caption: 'Beautiful sunset 🌅',
           ),
           VVideoStory(
             id: 'story2',
             url: 'https://example.com/video1.mp4',
+            caption: 'Amazing moments 🎥',
+          ),
+        ],
+      ),
+      VStoryGroup(
+        id: 'user2',
+        user: VStoryUser(
+          name: 'Jane Smith',
+          profileUrl: 'https://example.com/profile2.jpg',
+        ),
+        stories: [
+          VTextStory(
+            id: 'story3',
+            text: 'Hello World! 👋',
+            backgroundColor: Colors.blue,
+            duration: const Duration(seconds: 3),
           ),
         ],
       ),
@@ -93,157 +98,168 @@ class StoryViewerExample extends StatelessWidget {
     return Scaffold(
       body: VStoryViewer(
         storyGroups: storyGroups,
-        onComplete: () {
-          Navigator.pop(context);
-        },
+        onComplete: () => Navigator.pop(context),
       ),
     );
   }
 }
 ```
 
-## Story Types
+## 📖 Story Types
 
-### Image Story
+### Image Stories
 
-Display image stories from various sources:
+Display images from various sources:
 
 ```dart
 // Network URL
 VImageStory(
   id: 'img1',
   url: 'https://example.com/image.jpg',
-  duration: Duration(seconds: 5),
-  caption: 'Beautiful sunset',
+  duration: const Duration(seconds: 5),
+  caption: 'Optional caption',
 )
 
-// Asset path
+// Asset
 VImageStory(
   id: 'img2',
   url: 'assets/images/story.jpg',
-  duration: Duration(seconds: 5),
+  duration: const Duration(seconds: 5),
 )
 
-// File path
+// Local file
 VImageStory(
   id: 'img3',
-  url: '/path/to/local/image.jpg',
-  duration: Duration(seconds: 5),
+  url: '/path/to/image.jpg',
+  duration: const Duration(seconds: 5),
 )
 ```
 
-### Video Story
+### Video Stories
 
-Videos play automatically with sound:
+Play videos automatically:
 
 ```dart
 VVideoStory(
   id: 'vid1',
   url: 'https://example.com/video.mp4',
-  caption: 'Amazing moments',
+  caption: 'Video story',
+  autoPlay: true,
+  muted: false,
 )
 ```
 
-### Text Story
+### Text Stories
 
-Create text-only stories with custom styling:
+Create text-based stories:
 
 ```dart
 VTextStory(
   id: 'txt1',
   text: 'Hello World!',
   backgroundColor: Colors.blue,
-  textStyle: TextStyle(
+  textStyle: const TextStyle(
     fontSize: 32,
     color: Colors.white,
     fontWeight: FontWeight.bold,
   ),
-  duration: Duration(seconds: 3),
+  duration: const Duration(seconds: 5),
 )
 ```
 
-### Custom Story
+### Custom Stories
 
-Display any Flutter widget as a story:
+Display any Flutter widget:
 
 ```dart
 VCustomStory(
   id: 'custom1',
-  duration: Duration(seconds: 5),
+  duration: const Duration(seconds: 5),
   builder: (context) => Center(
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(Icons.star, size: 100, color: Colors.yellow),
-        SizedBox(height: 20),
-        Text('Custom Content', style: TextStyle(fontSize: 24)),
+        const Icon(Icons.star, size: 100, color: Colors.yellow),
+        const SizedBox(height: 20),
+        const Text(
+          'Custom Content',
+          style: TextStyle(fontSize: 24, color: Colors.white),
+        ),
       ],
     ),
   ),
 )
 ```
 
-## Gesture Controls
+## 🎮 Gesture Controls
 
-The story viewer supports WhatsApp/Instagram-style gestures:
+Built-in WhatsApp-style gestures:
 
 | Gesture | Action |
 |---------|--------|
-| Tap left side | Previous story |
-| Tap right side | Next story |
+| Tap left | Previous story |
+| Tap right | Next story |
 | Swipe down | Dismiss viewer |
-| Swipe left/right | Navigate between user groups |
-| Double tap | Trigger reaction |
+| Swipe left/right | Navigate between groups |
+| Double tap | Send reaction |
 | Long press | Pause story |
 
-### Customizing Tap Zones
+Customize gesture behavior:
 
 ```dart
 VStoryViewer(
   storyGroups: storyGroups,
   gestureConfig: VGestureConfig(
-    leftTapZoneWidth: 0.4, // 40% of screen width
-    rightTapZoneWidth: 0.6, // 60% of screen width
+    leftTapZoneWidth: 0.4,      // 40% of screen
+    rightTapZoneWidth: 0.6,     // 60% of screen
     enableVerticalSwipe: true,
     enableHorizontalSwipe: true,
+    enableDoubleTap: true,
+    enableLongPress: true,
   ),
 )
 ```
 
-## Story Controller
+## 🎛️ Programmatic Control
 
-Programmatically control story playback:
+Use `VStoryController` for programmatic control:
 
 ```dart
 final controller = VStoryController();
 
-// Control playback
+// Playback control
 controller.play();
 controller.pause();
 controller.stop();
 controller.reset();
 
-// Navigate programmatically
+// Navigation
 controller.nextStory();
 controller.previousStory();
-controller.nextGroup();
-controller.previousGroup();
-
-// Jump to specific story
 controller.jumpToStory(groupIndex: 0, storyIndex: 2);
 
-// Listen to state changes
+// Listen to changes
 controller.addListener(() {
   print('Current state: ${controller.state}');
 });
 
-// Dispose when done
+// Cleanup
 controller.dispose();
 ```
 
-## Customization
+Use the controller with VStoryViewer:
 
-### Theme Customization
+```dart
+VStoryViewer(
+  storyGroups: storyGroups,
+  controller: controller,
+  onComplete: () => Navigator.pop(context),
+)
+```
+
+## 🎨 Customization
+
+### Theme Configuration
 
 ```dart
 VStoryViewer(
@@ -251,50 +267,17 @@ VStoryViewer(
   theme: VStoryTheme(
     progressBarStyle: VProgressBarStyle(
       activeColor: Colors.white,
-      inactiveColor: Colors.white.withOpacity(0.3),
+      inactiveColor: Colors.white30,
       height: 2.0,
     ),
     headerStyle: VHeaderStyle(
-      backgroundColor: Colors.black.withOpacity(0.3),
-      textStyle: TextStyle(color: Colors.white),
+      backgroundColor: Colors.black26,
+      textStyle: const TextStyle(color: Colors.white),
     ),
     footerStyle: VFooterStyle(
-      backgroundColor: Colors.black.withOpacity(0.5),
+      backgroundColor: Colors.black54,
+      textStyle: const TextStyle(color: Colors.white),
     ),
-  ),
-)
-```
-
-### Reply System
-
-Enable reply functionality:
-
-```dart
-VStoryViewer(
-  storyGroups: storyGroups,
-  replyConfig: VReplyConfig(
-    enabled: true,
-    placeholder: 'Reply to story...',
-    onReply: (String reply, String storyId) {
-      print('Reply: $reply for story: $storyId');
-    },
-  ),
-)
-```
-
-### Reaction System
-
-Enable quick reactions:
-
-```dart
-VStoryViewer(
-  storyGroups: storyGroups,
-  reactionConfig: VReactionConfig(
-    enabled: true,
-    reactions: ['❤️', '😂', '😮', '😢', '👏'],
-    onReaction: (String reaction, String storyId) {
-      print('Reaction: $reaction for story: $storyId');
-    },
   ),
 )
 ```
@@ -304,21 +287,75 @@ VStoryViewer(
 ```dart
 VStoryViewer(
   storyGroups: storyGroups,
-  headerBuilder: (context, storyGroup, story) {
-    return CustomHeader(
-      user: storyGroup.user,
-      timestamp: story.timestamp,
+  headerBuilder: (context, group, story) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          CircleAvatar(
+            backgroundImage: NetworkImage(group.user.profileUrl ?? ''),
+          ),
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(group.user.name),
+              Text(
+                'Just now',
+                style: Theme.of(context).textTheme.caption,
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   },
-  footerBuilder: (context, storyGroup, story) {
-    return CustomFooter(
-      caption: story.caption,
+  footerBuilder: (context, group, story) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Text(
+        story.caption ?? '',
+        style: const TextStyle(color: Colors.white),
+      ),
     );
   },
 )
 ```
 
-## Callbacks
+### Reply System
+
+```dart
+VStoryViewer(
+  storyGroups: storyGroups,
+  replyConfig: VReplyConfig(
+    enabled: true,
+    placeholder: 'Reply to story...',
+    maxLength: 280,
+    onReply: (message, storyId) {
+      // Handle reply
+      print('Reply: $message to story: $storyId');
+    },
+  ),
+)
+```
+
+### Reaction System
+
+```dart
+VStoryViewer(
+  storyGroups: storyGroups,
+  reactionConfig: VReactionConfig(
+    enabled: true,
+    reactions: ['❤️', '😂', '😮', '😢', '👏', '🔥'],
+    onReaction: (emoji, storyId) {
+      // Handle reaction
+      print('Reaction: $emoji on story: $storyId');
+    },
+  ),
+)
+```
+
+## 📡 Event Callbacks
 
 Track story viewer events:
 
@@ -332,90 +369,220 @@ VStoryViewer(
     print('Group changed: $groupIndex');
   },
   onComplete: () {
-    print('All stories completed');
+    print('All stories viewed');
     Navigator.pop(context);
   },
   onDispose: () {
-    print('Story viewer disposed');
+    print('Viewer disposed');
   },
 )
 ```
 
-## Caching
-
-The package uses `flutter_cache_manager` for efficient media caching:
+## 🌍 Localization & RTL
 
 ```dart
 VStoryViewer(
   storyGroups: storyGroups,
-  cacheManager: CustomCacheManager(), // Optional custom cache manager
+  locale: const Locale('ar'),           // Arabic
+  textDirection: TextDirection.rtl,      // Right-to-left
 )
 ```
 
-## Localization
+Supported languages: English, Arabic, Spanish, and more.
 
-The package supports internationalization:
+## 💾 Caching
+
+The package automatically uses `flutter_cache_manager` for efficient media caching:
 
 ```dart
+// Use default cache manager (automatic)
 VStoryViewer(
   storyGroups: storyGroups,
-  locale: Locale('ar'), // Arabic
-  textDirection: TextDirection.rtl, // Right-to-left
+)
+
+// Or provide custom cache manager
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+
+class CustomCacheManager extends BaseCacheManager {
+  static const key = 'customStoryCache';
+  CustomCacheManager() : super(key);
+}
+
+VStoryViewer(
+  storyGroups: storyGroups,
+  cacheManager: CustomCacheManager(),
 )
 ```
 
-## Platform Support
+## 📋 API Reference
 
-| Platform | Support |
-|----------|---------|
-| iOS | ✅ |
-| Android | ✅ |
-| Web | ✅ |
-| macOS | ✅ |
-| Windows | ✅ |
-| Linux | ✅ |
+### Core Classes
 
-## Requirements
+#### VStoryViewer
 
-- Flutter SDK: `>=3.0.0`
-- Dart SDK: `^3.9.0`
+Main widget for displaying stories.
 
-## Dependencies
+**Properties:**
+- `storyGroups: List<VStoryGroup>` - Story groups to display
+- `controller: VStoryController?` - Optional controller for programmatic control
+- `onComplete: VoidCallback?` - Called when all stories complete
+- `onDispose: VoidCallback?` - Called when widget disposed
+- `onStoryChanged: Function(int, int)?` - Called on story change
+- `onGroupChanged: Function(int)?` - Called on group change
+- `theme: VStoryTheme?` - Customize appearance
+- `gestureConfig: VGestureConfig?` - Configure gestures
+- `replyConfig: VReplyConfig?` - Enable replies
+- `reactionConfig: VReactionConfig?` - Enable reactions
+- `headerBuilder: Function?` - Custom header widget
+- `footerBuilder: Function?` - Custom footer widget
+- `locale: Locale?` - Language/region setting
+- `textDirection: TextDirection?` - RTL/LTR support
+
+#### VStoryController
+
+Programmatic control over story playback.
+
+**Methods:**
+- `play()` - Resume playback
+- `pause()` - Pause playback
+- `stop()` - Stop playback
+- `reset()` - Reset to start
+- `nextStory()` - Go to next story
+- `previousStory()` - Go to previous story
+- `jumpToStory({required int groupIndex, required int storyIndex})` - Jump to specific story
+- `addListener(VoidCallback)` - Listen to state changes
+- `dispose()` - Cleanup resources
+
+### Data Models
+
+#### VStoryGroup
+
+```dart
+VStoryGroup({
+  required String id,
+  required VStoryUser user,
+  required List<VBaseStory> stories,
+})
+```
+
+#### VStoryUser
+
+```dart
+VStoryUser({
+  required String name,
+  String? profileUrl,
+  bool verified = false,
+})
+```
+
+#### Story Types
+
+- **VImageStory** - Display images from network, assets, or files
+- **VVideoStory** - Play videos with auto-play and controls
+- **VTextStory** - Text with custom background and styling
+- **VCustomStory** - Any Flutter widget as story content
+
+### Configuration Classes
+
+- **VStoryTheme** - Progress bar, header, and footer styling
+- **VGestureConfig** - Gesture behavior customization
+- **VReplyConfig** - Reply system setup
+- **VReactionConfig** - Reaction emoji configuration
+
+For detailed API documentation, see [API_REFERENCE.md](API_REFERENCE.md).
+
+## 🔧 Troubleshooting
+
+### Videos not playing
+
+Ensure the video URL is accessible and in a supported format (MP4, WebM). Check platform permissions for video playback.
+
+### Images not loading
+
+Verify image URLs are correct and accessible. For local files, ensure paths are absolute. For assets, check `pubspec.yaml` configuration.
+
+### Gestures not responding
+
+Verify `gestureConfig` properties are correctly set. Ensure the device has proper touch capabilities.
+
+### Performance issues
+
+- Reduce story count per session
+- Use cached URLs instead of streaming
+- Enable caching with `flutter_cache_manager`
+- Use `const` constructors for static stories
+
+### Memory leaks
+
+Always dispose the controller when done:
+
+```dart
+@override
+void dispose() {
+  _controller.dispose();
+  super.dispose();
+}
+```
+
+## 📱 Platform Support
+
+| Platform | Status |
+|----------|--------|
+| iOS | ✅ Fully supported |
+| Android | ✅ Fully supported |
+| Web | ✅ Fully supported |
+| macOS | ✅ Fully supported |
+| Windows | ✅ Fully supported |
+| Linux | ✅ Fully supported |
+
+## 📋 Requirements
+
+- **Flutter**: >=3.0.0
+- **Dart**: ^3.9.0
+
+## 📦 Dependencies
 
 - `flutter_cache_manager: ^3.4.1` - Media caching
 - `video_player: ^2.10.0` - Video playback
 - `cached_network_image: ^3.4.1` - Image caching
 - `v_platform: ^2.1.4` - Cross-platform file handling
-- `share_plus: ^12.0.0` - Share functionality
-- `gal: ^2.3.2` - Gallery access
-- `permission_handler: ^12.0.1` - Permission management
 
-## Examples
+## 📚 Examples
 
-Check out the [example](example/) directory for complete working examples:
+Complete examples are available in the [example](example/) directory:
 
 - Basic story viewer
-- Custom themes
+- Multiple story types
+- Custom themes and styling
 - Reply and reaction systems
 - Programmatic navigation
-- Custom story content
+- Error handling
 
-## Contributing
+Run the example:
 
-Contributions are welcome! Please read our [contributing guidelines](CONTRIBUTING.md) before submitting pull requests.
+```bash
+cd example
+flutter run
+```
 
-## Issues and Feedback
+## 🤝 Contributing
 
-Please file issues and feedback on the [GitHub issue tracker](https://github.com/hatemragap/v_story_viewer/issues).
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-## License
+## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - See [LICENSE](LICENSE) file for details.
 
-## Credits
+## 🎯 Need Help?
 
-Developed and maintained by [Hatem Ragap](https://github.com/hatemragap).
+- **Documentation**: Full API reference available in [API_REFERENCE.md](API_REFERENCE.md)
+- **Issues**: Report bugs on [GitHub Issues](https://github.com/hatemragap/v_story_viewer/issues)
+- **Discussions**: Ask questions in [GitHub Discussions](https://github.com/hatemragap/v_story_viewer/discussions)
 
-## Changelog
+## ✍️ Author
 
-See [CHANGELOG.md](CHANGELOG.md) for version history and updates.
+Created and maintained by [Hatem Ragap](https://github.com/hatemragap)
+
+---
+
+**Made with ❤️ for the Flutter community**

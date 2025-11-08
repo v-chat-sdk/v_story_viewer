@@ -386,6 +386,8 @@ class _VStoryViewerState extends State<VStoryViewer>
         controller: _cubePageManager.pageController!,
         itemCount: widget.storyGroups.length,
         onPageChanged: _handleCarouselPageChanged,
+        scrollDirection: _config.groupSwipeDirection,
+        transitionType: _config.groupTransitionType,
         itemBuilder: (context, index) {
           if (index == _navigationController.currentGroupIndex) {
             return storyContent;
@@ -569,6 +571,9 @@ class _VStoryViewerState extends State<VStoryViewer>
       onMutePressed: _handleMutePressed,
       loadingSpinnerColor: _config.loadingSpinnerColor,
       transitionConfig: _config.transitionConfig,
+      gestureConfig: VGestureConfig(
+        groupSwipeDirection: _config.groupSwipeDirection,
+      ),
       headerConfig: widget.headerConfig,
       storyIndex: _navigationController.currentStoryIndex,
       groupIndex: _navigationController.currentGroupIndex,

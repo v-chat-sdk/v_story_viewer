@@ -17,6 +17,8 @@ class VStoryViewerConfig {
     this.maxContentWidth = 600.0,
     this.loadingSpinnerColor,
     this.transitionConfig = const VTransitionConfig(),
+    this.groupSwipeDirection = Axis.horizontal,
+    this.groupTransitionType = VTransitionType.slide,
   });
 
   /// Enable haptic feedback for gestures
@@ -59,6 +61,20 @@ class VStoryViewerConfig {
   /// Configuration for story transition animations
   final VTransitionConfig transitionConfig;
 
+  /// Swipe direction for group-to-group navigation
+  ///
+  /// Controls whether users swipe horizontally (Axis.horizontal) or
+  /// vertically (Axis.vertical) to navigate between story groups.
+  /// Defaults to horizontal.
+  final Axis groupSwipeDirection;
+
+  /// Transition type for group-to-group navigation
+  ///
+  /// Controls the animation style when transitioning between story groups.
+  /// Supports slide, fade, and zoom transitions.
+  /// Defaults to slide (cube effect for horizontal, smooth transitions).
+  final VTransitionType groupTransitionType;
+
   /// Default configuration
   static const defaultConfig = VStoryViewerConfig();
 
@@ -74,6 +90,8 @@ class VStoryViewerConfig {
     double? maxContentWidth,
     Color? loadingSpinnerColor,
     VTransitionConfig? transitionConfig,
+    Axis? groupSwipeDirection,
+    VTransitionType? groupTransitionType,
   }) {
     return VStoryViewerConfig(
       enableHapticFeedback: enableHapticFeedback ?? this.enableHapticFeedback,
@@ -90,6 +108,8 @@ class VStoryViewerConfig {
       maxContentWidth: maxContentWidth ?? this.maxContentWidth,
       loadingSpinnerColor: loadingSpinnerColor ?? this.loadingSpinnerColor,
       transitionConfig: transitionConfig ?? this.transitionConfig,
+      groupSwipeDirection: groupSwipeDirection ?? this.groupSwipeDirection,
+      groupTransitionType: groupTransitionType ?? this.groupTransitionType,
     );
   }
 }

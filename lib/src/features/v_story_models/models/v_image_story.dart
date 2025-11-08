@@ -16,13 +16,13 @@ final class VImageStory extends VMediaStory {
     required super.groupId,
     required super.createdAt,
     this.fit = BoxFit.contain,
-    String? caption,
+    super.caption,
     this.aspectRatio,
     this.dimensions,
     super.metadata,
-    String? source,
+    super.source,
   }) : _caption = caption,
-       super(storyType: VStoryType.image, caption: caption, source: source);
+       super(storyType: VStoryType.image);
 
   @override
   final VPlatformFile media;
