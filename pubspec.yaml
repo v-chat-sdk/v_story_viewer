@@ -1,10 +1,16 @@
 name: v_story_viewer
-description: "Flutter package for WhatsApp/Instagram-style story viewing with gestures, caching, and cross-platform support."
-version: 1.0.5
+description: "A high-performance Flutter story viewer like WhatsApp/Instagram. Supports image, video, text, voice stories with 3D cube transitions."
+version: 2.0.0
 homepage: https://github.com/v-chat-sdk/v_story_viewer
 repository: https://github.com/v-chat-sdk/v_story_viewer
 issue_tracker: https://github.com/v-chat-sdk/v_story_viewer/issues
 documentation: https://github.com/v-chat-sdk/v_story_viewer#readme
+topics:
+  - story-viewer
+  - instagram-stories
+  - whatsapp-stories
+  - story
+  - v-story-viewer
 
 environment:
   sdk: ">=3.2.0 <4.0.0"
@@ -13,31 +19,18 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  video_player: ^2.10.1
+  extended_image: ^10.0.1
+  audioplayers: ^6.5.1
+  timeago: ^3.7.1
+  emoji_picker_flutter: ^4.4.0
   flutter_cache_manager: ^3.4.1
-  video_player: ^2.10.0
-  cached_network_image: ^3.4.1
-  share_plus: ^12.0.0
-  gal: ^2.3.2
-  permission_handler: ^12.0.1
-  v_platform: ^2.1.4
-  step_progress: ^2.6.2
-  intl: ^0.19.0
-  shared_preferences: ^2.5.3
-  crypto: ^3.0.3
-  event_bus: ^2.0.1
-  emoji_picker_flutter: ^4.3.0
-dependency_overrides:
-  analyzer: ^8.1.1
-  custom_lint_builder: ^0.8.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
   lints: ^6.0.0
-  leancode_lint: ^18.0.0
-  custom_lint: ^0.8.1
-  markup_analyzer: ^3.0.8
-  dart_code_linter: ^3.0.0
 
 flutter:
 

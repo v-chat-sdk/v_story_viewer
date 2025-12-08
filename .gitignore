@@ -29,7 +29,3 @@ migrate_working_dir/
 .flutter-plugins-dependencies
 /build/
 /coverage/
-**/build/
-**/.dart_tool/
-**/.gradle/
-**/ios/Flutter/Flutter.podspec
