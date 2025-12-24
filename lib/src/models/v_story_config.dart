@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'v_story_error.dart';
 import 'v_story_group.dart';
 import 'v_story_item.dart';
 import 'v_story_user.dart';
@@ -18,7 +19,7 @@ typedef StoryLoadingBuilder = Widget Function(BuildContext context);
 ///
 /// Parameters:
 /// - [context]: Build context
-/// - [error]: The error that occurred
+/// - [error]: Structured error with type and details
 /// - [retry]: Callback to retry loading
 ///
 /// Example:
@@ -28,14 +29,18 @@ typedef StoryLoadingBuilder = Widget Function(BuildContext context);
 ///     mainAxisSize: MainAxisSize.min,
 ///     children: [
 ///       Icon(Icons.error, color: Colors.red),
-///       Text('Failed: $error'),
+///       Text(switch (error) {
+///         VStoryNetworkError() => 'No internet connection',
+///         VStoryTimeoutError() => 'Request timed out',
+///         _ => 'Failed to load',
+///       }),
 ///       ElevatedButton(onPressed: retry, child: Text('Retry')),
 ///     ],
 ///   ),
 /// );
 /// ```
 typedef StoryErrorBuilder = Widget Function(
-    BuildContext context, Object error, VoidCallback retry);
+    BuildContext context, VStoryError error, VoidCallback retry);
 
 /// Builder for custom header replacing the default story header.
 ///
@@ -150,7 +155,7 @@ typedef StoryImageBuilder = Widget Function(
   BuildContext context,
   VImageStory story,
   VoidCallback onLoaded,
-  void Function(Object error) onError,
+  void Function(VStoryError error) onError,
 );
 
 /// Builder for custom video content replacing the default VideoContent widget.
@@ -181,7 +186,7 @@ typedef StoryVideoBuilder = Widget Function(
   bool isPaused,
   bool isMuted,
   void Function(Duration duration) onLoaded,
-  void Function(Object error) onError,
+  void Function(VStoryError error) onError,
 );
 
 /// Builder for custom voice content replacing the default VoiceContent widget.
@@ -211,7 +216,7 @@ typedef StoryVoiceBuilder = Widget Function(
   bool isPaused,
   bool isMuted,
   void Function(Duration duration) onLoaded,
-  void Function(Object error) onError,
+  void Function(VStoryError error) onError,
 );
 
 /// Configuration for [VStoryViewer] appearance and behavior.
@@ -407,4 +412,324 @@ class VStoryConfig {
     this.voiceBuilder,
   })  : assert(networkTimeout > 0, 'Network timeout must be greater than 0'),
         assert(maxRetries >= 0, 'Max retries must be 0 or greater');
+
+  /// Configuration preset for viewing your own stories.
+  ///
+  /// Optimized for story owner with:
+  /// - No reply field (can't reply to own stories)
+  /// - Menu button visible (for delete/insights/share)
+  /// - No emoji button
+  ///
+  /// ## Usage
+  /// ```dart
+  /// VStoryViewer(
+  ///   storyGroups: myStories,
+  ///   config: VStoryConfig.forOwner(),
+  ///   onMenuTap: (group, item) async {
+  ///     final action = await showOwnerMenu(); // delete, insights, share
+  ///     if (action == 'delete') deleteStory(item);
+  ///     return true;
+  ///   },
+  /// )
+  /// ```
+  const VStoryConfig.forOwner({
+    List<Color> unseenGradient = const [Color(0xFFDD2A7B), Color(0xFFF58529)],
+    Color seenColor = const Color(0xFF9E9E9E),
+    Color progressColor = const Color(0xFFFFFFFF),
+    Color progressBackgroundColor = const Color(0x40FFFFFF),
+    Duration defaultDuration = const Duration(seconds: 5),
+    int networkTimeout = 30,
+    int maxRetries = 5,
+    bool enableCaching = true,
+    int maxCacheSize = 500 * 1024 * 1024,
+    Duration maxCacheAge = const Duration(days: 7),
+    int maxCacheObjects = 100,
+    bool enablePreloading = true,
+    bool showHeader = true,
+    bool showProgressBar = true,
+    bool showBackButton = true,
+    bool showUserInfo = true,
+    bool showCloseButton = true,
+    bool autoPauseOnBackground = true,
+    bool hideStatusBar = true,
+    VStoryTexts texts = const VStoryTexts(),
+    StoryLoadingBuilder? loadingBuilder,
+    StoryErrorBuilder? errorBuilder,
+    StoryHeaderBuilder? headerBuilder,
+    StoryFooterBuilder? footerBuilder,
+    StoryProgressBuilder? progressBuilder,
+    StoryImageBuilder? imageBuilder,
+    StoryVideoBuilder? videoBuilder,
+    StoryVoiceBuilder? voiceBuilder,
+  })  : unseenGradient = unseenGradient,
+        seenColor = seenColor,
+        progressColor = progressColor,
+        progressBackgroundColor = progressBackgroundColor,
+        defaultDuration = defaultDuration,
+        networkTimeout = networkTimeout,
+        maxRetries = maxRetries,
+        enableCaching = enableCaching,
+        maxCacheSize = maxCacheSize,
+        maxCacheAge = maxCacheAge,
+        maxCacheObjects = maxCacheObjects,
+        enablePreloading = enablePreloading,
+        showHeader = showHeader,
+        showProgressBar = showProgressBar,
+        showBackButton = showBackButton,
+        showUserInfo = showUserInfo,
+        showMenuButton = true,
+        showCloseButton = showCloseButton,
+        showReplyField = false,
+        showEmojiButton = false,
+        autoPauseOnBackground = autoPauseOnBackground,
+        hideStatusBar = hideStatusBar,
+        texts = texts,
+        loadingBuilder = loadingBuilder,
+        errorBuilder = errorBuilder,
+        headerBuilder = headerBuilder,
+        footerBuilder = footerBuilder,
+        progressBuilder = progressBuilder,
+        imageBuilder = imageBuilder,
+        videoBuilder = videoBuilder,
+        voiceBuilder = voiceBuilder,
+        assert(networkTimeout > 0, 'Network timeout must be greater than 0'),
+        assert(maxRetries >= 0, 'Max retries must be 0 or greater');
+
+  /// Configuration preset for viewing others' stories.
+  ///
+  /// Optimized for story viewer with:
+  /// - Reply field visible (can send replies)
+  /// - Emoji button visible
+  /// - Menu button visible (for report/mute options)
+  ///
+  /// ## Usage
+  /// ```dart
+  /// VStoryViewer(
+  ///   storyGroups: otherUserStories,
+  ///   config: VStoryConfig.forViewer(),
+  ///   onReply: (group, item, text) => sendReply(group.user.id, text),
+  ///   onMenuTap: (group, item) async {
+  ///     final action = await showViewerMenu(); // report, mute
+  ///     if (action == 'report') reportStory(item);
+  ///     return true;
+  ///   },
+  /// )
+  /// ```
+  const VStoryConfig.forViewer({
+    List<Color> unseenGradient = const [Color(0xFFDD2A7B), Color(0xFFF58529)],
+    Color seenColor = const Color(0xFF9E9E9E),
+    Color progressColor = const Color(0xFFFFFFFF),
+    Color progressBackgroundColor = const Color(0x40FFFFFF),
+    Duration defaultDuration = const Duration(seconds: 5),
+    int networkTimeout = 30,
+    int maxRetries = 5,
+    bool enableCaching = true,
+    int maxCacheSize = 500 * 1024 * 1024,
+    Duration maxCacheAge = const Duration(days: 7),
+    int maxCacheObjects = 100,
+    bool enablePreloading = true,
+    bool showHeader = true,
+    bool showProgressBar = true,
+    bool showBackButton = true,
+    bool showUserInfo = true,
+    bool showCloseButton = true,
+    bool autoPauseOnBackground = true,
+    bool hideStatusBar = true,
+    VStoryTexts texts = const VStoryTexts(),
+    StoryLoadingBuilder? loadingBuilder,
+    StoryErrorBuilder? errorBuilder,
+    StoryHeaderBuilder? headerBuilder,
+    StoryFooterBuilder? footerBuilder,
+    StoryProgressBuilder? progressBuilder,
+    StoryImageBuilder? imageBuilder,
+    StoryVideoBuilder? videoBuilder,
+    StoryVoiceBuilder? voiceBuilder,
+  })  : unseenGradient = unseenGradient,
+        seenColor = seenColor,
+        progressColor = progressColor,
+        progressBackgroundColor = progressBackgroundColor,
+        defaultDuration = defaultDuration,
+        networkTimeout = networkTimeout,
+        maxRetries = maxRetries,
+        enableCaching = enableCaching,
+        maxCacheSize = maxCacheSize,
+        maxCacheAge = maxCacheAge,
+        maxCacheObjects = maxCacheObjects,
+        enablePreloading = enablePreloading,
+        showHeader = showHeader,
+        showProgressBar = showProgressBar,
+        showBackButton = showBackButton,
+        showUserInfo = showUserInfo,
+        showMenuButton = true,
+        showCloseButton = showCloseButton,
+        showReplyField = true,
+        showEmojiButton = true,
+        autoPauseOnBackground = autoPauseOnBackground,
+        hideStatusBar = hideStatusBar,
+        texts = texts,
+        loadingBuilder = loadingBuilder,
+        errorBuilder = errorBuilder,
+        headerBuilder = headerBuilder,
+        footerBuilder = footerBuilder,
+        progressBuilder = progressBuilder,
+        imageBuilder = imageBuilder,
+        videoBuilder = videoBuilder,
+        voiceBuilder = voiceBuilder,
+        assert(networkTimeout > 0, 'Network timeout must be greater than 0'),
+        assert(maxRetries >= 0, 'Max retries must be 0 or greater');
+
+  /// Minimal configuration for clean, distraction-free viewing.
+  ///
+  /// Optimized for media-focused experience:
+  /// - No reply field
+  /// - No menu button
+  /// - No emoji button
+  /// - Header and progress bar visible
+  ///
+  /// ## Usage
+  /// ```dart
+  /// VStoryViewer(
+  ///   storyGroups: stories,
+  ///   config: VStoryConfig.minimal(),
+  /// )
+  /// ```
+  const VStoryConfig.minimal({
+    List<Color> unseenGradient = const [Color(0xFFDD2A7B), Color(0xFFF58529)],
+    Color seenColor = const Color(0xFF9E9E9E),
+    Color progressColor = const Color(0xFFFFFFFF),
+    Color progressBackgroundColor = const Color(0x40FFFFFF),
+    Duration defaultDuration = const Duration(seconds: 5),
+    int networkTimeout = 30,
+    int maxRetries = 5,
+    bool enableCaching = true,
+    int maxCacheSize = 500 * 1024 * 1024,
+    Duration maxCacheAge = const Duration(days: 7),
+    int maxCacheObjects = 100,
+    bool enablePreloading = true,
+    bool showHeader = true,
+    bool showProgressBar = true,
+    bool showUserInfo = true,
+    bool showCloseButton = true,
+    bool autoPauseOnBackground = true,
+    bool hideStatusBar = true,
+    VStoryTexts texts = const VStoryTexts(),
+    StoryLoadingBuilder? loadingBuilder,
+    StoryErrorBuilder? errorBuilder,
+    StoryHeaderBuilder? headerBuilder,
+    StoryProgressBuilder? progressBuilder,
+    StoryImageBuilder? imageBuilder,
+    StoryVideoBuilder? videoBuilder,
+    StoryVoiceBuilder? voiceBuilder,
+  })  : unseenGradient = unseenGradient,
+        seenColor = seenColor,
+        progressColor = progressColor,
+        progressBackgroundColor = progressBackgroundColor,
+        defaultDuration = defaultDuration,
+        networkTimeout = networkTimeout,
+        maxRetries = maxRetries,
+        enableCaching = enableCaching,
+        maxCacheSize = maxCacheSize,
+        maxCacheAge = maxCacheAge,
+        maxCacheObjects = maxCacheObjects,
+        enablePreloading = enablePreloading,
+        showHeader = showHeader,
+        showProgressBar = showProgressBar,
+        showBackButton = false,
+        showUserInfo = showUserInfo,
+        showMenuButton = false,
+        showCloseButton = showCloseButton,
+        showReplyField = false,
+        showEmojiButton = false,
+        autoPauseOnBackground = autoPauseOnBackground,
+        hideStatusBar = hideStatusBar,
+        texts = texts,
+        loadingBuilder = loadingBuilder,
+        errorBuilder = errorBuilder,
+        headerBuilder = headerBuilder,
+        footerBuilder = null,
+        progressBuilder = progressBuilder,
+        imageBuilder = imageBuilder,
+        videoBuilder = videoBuilder,
+        voiceBuilder = voiceBuilder,
+        assert(networkTimeout > 0, 'Network timeout must be greater than 0'),
+        assert(maxRetries >= 0, 'Max retries must be 0 or greater');
+
+  /// Creates a copy of this config with the given fields replaced.
+  ///
+  /// Useful for making small adjustments to preset configs:
+  /// ```dart
+  /// VStoryConfig.forViewer().copyWith(
+  ///   showEmojiButton: false,
+  ///   progressColor: Colors.blue,
+  /// )
+  /// ```
+  VStoryConfig copyWith({
+    List<Color>? unseenGradient,
+    Color? seenColor,
+    Color? progressColor,
+    Color? progressBackgroundColor,
+    Duration? defaultDuration,
+    int? networkTimeout,
+    int? maxRetries,
+    bool? enableCaching,
+    int? maxCacheSize,
+    Duration? maxCacheAge,
+    int? maxCacheObjects,
+    bool? enablePreloading,
+    bool? showHeader,
+    bool? showProgressBar,
+    bool? showBackButton,
+    bool? showUserInfo,
+    bool? showMenuButton,
+    bool? showCloseButton,
+    bool? showReplyField,
+    bool? showEmojiButton,
+    bool? autoPauseOnBackground,
+    bool? hideStatusBar,
+    VStoryTexts? texts,
+    StoryLoadingBuilder? loadingBuilder,
+    StoryErrorBuilder? errorBuilder,
+    StoryHeaderBuilder? headerBuilder,
+    StoryFooterBuilder? footerBuilder,
+    StoryProgressBuilder? progressBuilder,
+    StoryImageBuilder? imageBuilder,
+    StoryVideoBuilder? videoBuilder,
+    StoryVoiceBuilder? voiceBuilder,
+  }) {
+    return VStoryConfig(
+      unseenGradient: unseenGradient ?? this.unseenGradient,
+      seenColor: seenColor ?? this.seenColor,
+      progressColor: progressColor ?? this.progressColor,
+      progressBackgroundColor:
+          progressBackgroundColor ?? this.progressBackgroundColor,
+      defaultDuration: defaultDuration ?? this.defaultDuration,
+      networkTimeout: networkTimeout ?? this.networkTimeout,
+      maxRetries: maxRetries ?? this.maxRetries,
+      enableCaching: enableCaching ?? this.enableCaching,
+      maxCacheSize: maxCacheSize ?? this.maxCacheSize,
+      maxCacheAge: maxCacheAge ?? this.maxCacheAge,
+      maxCacheObjects: maxCacheObjects ?? this.maxCacheObjects,
+      enablePreloading: enablePreloading ?? this.enablePreloading,
+      showHeader: showHeader ?? this.showHeader,
+      showProgressBar: showProgressBar ?? this.showProgressBar,
+      showBackButton: showBackButton ?? this.showBackButton,
+      showUserInfo: showUserInfo ?? this.showUserInfo,
+      showMenuButton: showMenuButton ?? this.showMenuButton,
+      showCloseButton: showCloseButton ?? this.showCloseButton,
+      showReplyField: showReplyField ?? this.showReplyField,
+      showEmojiButton: showEmojiButton ?? this.showEmojiButton,
+      autoPauseOnBackground:
+          autoPauseOnBackground ?? this.autoPauseOnBackground,
+      hideStatusBar: hideStatusBar ?? this.hideStatusBar,
+      texts: texts ?? this.texts,
+      loadingBuilder: loadingBuilder ?? this.loadingBuilder,
+      errorBuilder: errorBuilder ?? this.errorBuilder,
+      headerBuilder: headerBuilder ?? this.headerBuilder,
+      footerBuilder: footerBuilder ?? this.footerBuilder,
+      progressBuilder: progressBuilder ?? this.progressBuilder,
+      imageBuilder: imageBuilder ?? this.imageBuilder,
+      videoBuilder: videoBuilder ?? this.videoBuilder,
+      voiceBuilder: voiceBuilder ?? this.voiceBuilder,
+    );
+  }
 }

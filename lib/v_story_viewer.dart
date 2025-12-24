@@ -9,6 +9,7 @@ export 'src/models/v_story_user.dart';
 export 'src/models/v_story_config.dart';
 export 'src/models/v_story_circle_config.dart';
 export 'src/models/v_story_texts.dart';
+export 'src/models/v_story_error.dart';
 // Widgets
 export 'src/widgets/v_story_circle.dart';
 export 'src/widgets/v_story_circle_list.dart';

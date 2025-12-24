@@ -77,6 +77,44 @@ class VStoryGroup {
   /// Number of seen (non-expired) stories in this group.
   int get seenCount => validStories.where((s) => s.isSeen).length;
 
+  /// Returns only unseen (non-expired) stories.
+  ///
+  /// Use to display only new stories or count unread content.
+  List<VStoryItem> get unseenStories =>
+      validStories.where((s) => !s.isSeen).toList();
+
+  /// Returns only seen (non-expired) stories.
+  ///
+  /// Use to display previously viewed stories.
+  List<VStoryItem> get seenStories =>
+      validStories.where((s) => s.isSeen).toList();
+
+  /// Returns the first unseen story, or `null` if all stories are seen.
+  ///
+  /// Useful for starting the viewer at the first unread story.
+  VStoryItem? get firstUnseenStory {
+    final unseen = unseenStories;
+    return unseen.isEmpty ? null : unseen.first;
+  }
+
+  /// Returns the most recently created story (by [createdAt]).
+  ///
+  /// Returns `null` if no valid stories exist.
+  VStoryItem? get latestStory {
+    final valid = validStories;
+    if (valid.isEmpty) return null;
+    return valid.reduce((a, b) => a.createdAt.isAfter(b.createdAt) ? a : b);
+  }
+
+  /// Returns the oldest story (by [createdAt]).
+  ///
+  /// Returns `null` if no valid stories exist.
+  VStoryItem? get oldestStory {
+    final valid = validStories;
+    if (valid.isEmpty) return null;
+    return valid.reduce((a, b) => a.createdAt.isBefore(b.createdAt) ? a : b);
+  }
+
   /// Returns stories sorted for viewer display: unseen first, then seen.
   ///
   /// This is the order used by [VStoryViewer] when navigating through stories.

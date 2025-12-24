@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:extended_image/extended_image.dart';
+import '../../models/v_story_error.dart';
 import '../../models/v_story_item.dart';
 import '../../models/v_story_config.dart';
 
@@ -8,7 +9,7 @@ import '../../models/v_story_config.dart';
 class ImageContent extends StatefulWidget {
   final VImageStory story;
   final VoidCallback onLoaded;
-  final void Function(Object error) onError;
+  final void Function(VStoryError error) onError;
   final void Function(double progress)? onProgress;
   final StoryLoadingBuilder? loadingBuilder;
   final StoryErrorBuilder? errorBuilder;
@@ -115,12 +116,43 @@ class _ImageContentState extends State<ImageContent> {
     });
   }
 
-  void _notifyError(Object error) {
+  void _notifyError(Object error, [StackTrace? stackTrace]) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        widget.onError(error);
+        widget.onError(_classifyError(error, stackTrace));
       }
     });
+  }
+
+  VStoryError _classifyError(Object error, [StackTrace? stackTrace]) {
+    final errorString = error.toString().toLowerCase();
+    if (errorString.contains('socket') ||
+        errorString.contains('connection') ||
+        errorString.contains('network') ||
+        errorString.contains('unreachable')) {
+      return VStoryNetworkError.fromException(error, stackTrace);
+    }
+    if (errorString.contains('timeout')) {
+      return VStoryTimeoutError(
+        message: 'Image load timed out',
+        originalError: error,
+        stackTrace: stackTrace,
+      );
+    }
+    if (errorString.contains('permission') ||
+        errorString.contains('denied')) {
+      return VStoryPermissionError.denied('storage', error, stackTrace);
+    }
+    if (errorString.contains('format') ||
+        errorString.contains('codec') ||
+        errorString.contains('unsupported')) {
+      return VStoryFormatError(
+        message: 'Unsupported image format',
+        originalError: error,
+        stackTrace: stackTrace,
+      );
+    }
+    return VStoryLoadError.fromException(error, stackTrace);
   }
 
   Widget _buildLoading({double? progress}) {
@@ -150,12 +182,9 @@ class _ImageContentState extends State<ImageContent> {
   }
 
   Widget _buildError() {
+    final error = VStoryLoadError(message: 'Failed to load image');
     if (widget.errorBuilder != null) {
-      return widget.errorBuilder!(
-        context,
-        Exception('Failed to load image'),
-        _retry,
-      );
+      return widget.errorBuilder!(context, error, _retry);
     }
     return Container(
       color: Colors.black,

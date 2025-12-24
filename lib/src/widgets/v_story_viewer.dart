@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/v_story_config.dart';
+import '../models/v_story_error.dart';
 import '../models/v_story_group.dart';
 import '../models/v_story_item.dart';
 import '../controllers/story_controller.dart';
@@ -179,8 +180,26 @@ class VStoryViewer extends StatefulWidget {
 
   /// Called when content fails to load.
   ///
-  /// The [error] parameter contains the exception or error object.
-  final void Function(VStoryGroup group, VStoryItem item, Object error)?
+  /// Provides structured error information for specific error handling:
+  /// ```dart
+  /// onError: (group, item, error) {
+  ///   switch (error) {
+  ///     case VStoryNetworkError():
+  ///       showSnackBar('Check your internet connection');
+  ///     case VStoryTimeoutError():
+  ///       showSnackBar('Loading timed out');
+  ///     case VStoryCacheError():
+  ///       clearCache();
+  ///     case VStoryFormatError():
+  ///       log('Unsupported: ${error.format}');
+  ///     case VStoryPermissionError():
+  ///       requestPermission();
+  ///     case VStoryLoadError():
+  ///       log('Failed: ${error.message}');
+  ///   }
+  /// },
+  /// ```
+  final void Function(VStoryGroup group, VStoryItem item, VStoryError error)?
       onError;
 
   /// Called when content finishes loading.
@@ -493,8 +512,9 @@ class _VStoryViewerState extends State<VStoryViewer>
   }
 
   void _preloadNextMedia() {
-    if (!widget.config.enableCaching || !StoryCacheManager.isCachingSupported)
+    if (!widget.config.enableCaching || !StoryCacheManager.isCachingSupported) {
       return;
+    }
     if (_preloadingUrls.length >= _maxConcurrentPreloads) return;
     // Find next media story to preload
     VStoryItem? nextMedia;
@@ -559,7 +579,7 @@ class _VStoryViewerState extends State<VStoryViewer>
     }
   }
 
-  void _onContentError(Object error) {
+  void _onContentError(VStoryError error) {
     widget.onError?.call(
       _controller.currentGroup,
       _controller.currentItem,

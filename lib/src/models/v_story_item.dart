@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'v_story_error.dart';
 
 /// Builder for overlay content displayed on top of story content.
 ///
@@ -175,10 +176,36 @@ final class VImageStory extends VStoryItem {
     if (url!.isEmpty) return null;
     try {
       final uri = Uri.parse(url!);
-      return '${uri.scheme}://${uri.host}${uri.path}';
+      return '${uri.scheme}://${uri.host}${uri.path}'.hashCode.toString();
     } catch (e) {
       return null;
     }
+  }
+
+  /// Creates a copy of this story with the given fields replaced.
+  ///
+  /// Useful for updating seen state or other properties:
+  /// ```dart
+  /// final seenStory = story.copyWith(isSeen: true);
+  /// ```
+  VImageStory copyWith({
+    String? url,
+    String? filePath,
+    String? caption,
+    Duration? duration,
+    DateTime? createdAt,
+    bool? isSeen,
+    StoryOverlayBuilder? overlayBuilder,
+  }) {
+    return VImageStory(
+      url: url ?? this.url,
+      filePath: filePath ?? this.filePath,
+      caption: caption ?? this.caption,
+      duration: duration ?? this.duration,
+      createdAt: createdAt ?? this.createdAt,
+      isSeen: isSeen ?? this.isSeen,
+      overlayBuilder: overlayBuilder ?? this.overlayBuilder,
+    );
   }
 }
 
@@ -246,6 +273,32 @@ final class VVideoStory extends VStoryItem {
     } catch (e) {
       return null;
     }
+  }
+
+  /// Creates a copy of this story with the given fields replaced.
+  ///
+  /// Useful for updating seen state or other properties:
+  /// ```dart
+  /// final seenStory = story.copyWith(isSeen: true);
+  /// ```
+  VVideoStory copyWith({
+    String? url,
+    String? filePath,
+    String? caption,
+    Duration? duration,
+    DateTime? createdAt,
+    bool? isSeen,
+    StoryOverlayBuilder? overlayBuilder,
+  }) {
+    return VVideoStory(
+      url: url ?? this.url,
+      filePath: filePath ?? this.filePath,
+      caption: caption ?? this.caption,
+      duration: duration ?? this.duration,
+      createdAt: createdAt ?? this.createdAt,
+      isSeen: isSeen ?? this.isSeen,
+      overlayBuilder: overlayBuilder ?? this.overlayBuilder,
+    );
   }
 }
 
@@ -338,6 +391,36 @@ final class VTextStory extends VStoryItem {
     required super.isSeen,
     super.overlayBuilder,
   });
+
+  /// Creates a copy of this story with the given fields replaced.
+  ///
+  /// Useful for updating seen state or other properties:
+  /// ```dart
+  /// final seenStory = story.copyWith(isSeen: true);
+  /// ```
+  VTextStory copyWith({
+    String? text,
+    Color? backgroundColor,
+    TextStyle? textStyle,
+    InlineSpan? richText,
+    StoryTextBuilder? textBuilder,
+    Duration? duration,
+    DateTime? createdAt,
+    bool? isSeen,
+    StoryOverlayBuilder? overlayBuilder,
+  }) {
+    return VTextStory(
+      text: text ?? this.text,
+      backgroundColor: backgroundColor ?? this.backgroundColor,
+      textStyle: textStyle ?? this.textStyle,
+      richText: richText ?? this.richText,
+      textBuilder: textBuilder ?? this.textBuilder,
+      duration: duration ?? this.duration,
+      createdAt: createdAt ?? this.createdAt,
+      isSeen: isSeen ?? this.isSeen,
+      overlayBuilder: overlayBuilder ?? this.overlayBuilder,
+    );
+  }
 }
 
 /// Displays an audio player with a progress slider (voice message style).
@@ -412,6 +495,34 @@ final class VVoiceStory extends VStoryItem {
       return null;
     }
   }
+
+  /// Creates a copy of this story with the given fields replaced.
+  ///
+  /// Useful for updating seen state or other properties:
+  /// ```dart
+  /// final seenStory = story.copyWith(isSeen: true);
+  /// ```
+  VVoiceStory copyWith({
+    String? url,
+    String? filePath,
+    Color? backgroundColor,
+    String? caption,
+    Duration? duration,
+    DateTime? createdAt,
+    bool? isSeen,
+    StoryOverlayBuilder? overlayBuilder,
+  }) {
+    return VVoiceStory(
+      url: url ?? this.url,
+      filePath: filePath ?? this.filePath,
+      backgroundColor: backgroundColor ?? this.backgroundColor,
+      caption: caption ?? this.caption,
+      duration: duration ?? this.duration,
+      createdAt: createdAt ?? this.createdAt,
+      isSeen: isSeen ?? this.isSeen,
+      overlayBuilder: overlayBuilder ?? this.overlayBuilder,
+    );
+  }
 }
 
 /// Builder for fully custom story content with full lifecycle control.
@@ -435,6 +546,7 @@ final class VVoiceStory extends VStoryItem {
 ///   return LottieAnimation(
 ///     onLoaded: () => onLoaded(Duration(seconds: 3)),
 ///     isPaused: isPaused,
+///     onError: (e) => onError(VStoryLoadError.fromException(e)),
 ///   );
 /// };
 /// ```
@@ -443,7 +555,7 @@ typedef CustomStoryContentBuilder = Widget Function(
   bool isPaused,
   bool isMuted,
   void Function(Duration? duration) onLoaded,
-  void Function(Object error) onError,
+  void Function(VStoryError error) onError,
 );
 
 /// Provides full control over story content rendering.
@@ -480,7 +592,7 @@ typedef CustomStoryContentBuilder = Widget Function(
 ///         onLoaded(composition.duration);
 ///       },
 ///       errorBuilder: (_, __, error) {
-///         onError(error ?? 'Failed to load animation');
+///         onError(VStoryLoadError.fromException(error ?? 'Failed to load'));
 ///         return const Icon(Icons.error);
 ///       },
 ///     );
@@ -521,4 +633,28 @@ final class VCustomStory extends VStoryItem {
     required super.isSeen,
     super.overlayBuilder,
   });
+
+  /// Creates a copy of this story with the given fields replaced.
+  ///
+  /// Useful for updating seen state or other properties:
+  /// ```dart
+  /// final seenStory = story.copyWith(isSeen: true);
+  /// ```
+  VCustomStory copyWith({
+    CustomStoryContentBuilder? contentBuilder,
+    String? caption,
+    Duration? duration,
+    DateTime? createdAt,
+    bool? isSeen,
+    StoryOverlayBuilder? overlayBuilder,
+  }) {
+    return VCustomStory(
+      contentBuilder: contentBuilder ?? this.contentBuilder,
+      caption: caption ?? this.caption,
+      duration: duration ?? this.duration,
+      createdAt: createdAt ?? this.createdAt,
+      isSeen: isSeen ?? this.isSeen,
+      overlayBuilder: overlayBuilder ?? this.overlayBuilder,
+    );
+  }
 }

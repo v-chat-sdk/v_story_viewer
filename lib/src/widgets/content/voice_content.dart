@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
+import '../../models/v_story_error.dart';
 import '../../models/v_story_item.dart';
 import '../../models/v_story_config.dart';
 import '../../utils/story_cache_manager.dart';
@@ -23,7 +24,7 @@ class VoiceContent extends StatefulWidget {
   final bool isMuted;
   final bool enableCaching;
   final void Function(Duration duration) onLoaded;
-  final void Function(Object error) onError;
+  final void Function(VStoryError error) onError;
   final void Function(Duration position)? onProgress;
   final StoryLoadingBuilder? loadingBuilder;
   final StoryErrorBuilder? errorBuilder;
@@ -196,7 +197,7 @@ class _VoiceContentState extends State<VoiceContent> {
     widget.onLoaded(duration ?? const Duration(seconds: 30));
   }
 
-  void _handleError(Object error) {
+  void _handleError(Object error, [StackTrace? stackTrace]) {
     if (!mounted) return;
     if (_retryCount < _maxRetries) {
       _retryCount++;
@@ -206,8 +207,44 @@ class _VoiceContentState extends State<VoiceContent> {
       });
     } else {
       setState(() => _loadState = _VoiceLoadState.error);
-      widget.onError(error);
+      widget.onError(_classifyError(error, stackTrace));
     }
+  }
+
+  VStoryError _classifyError(Object error, [StackTrace? stackTrace]) {
+    final errorString = error.toString().toLowerCase();
+    if (error is TimeoutException || errorString.contains('timeout')) {
+      return VStoryTimeoutError(
+        message: 'Audio load timed out',
+        originalError: error,
+        stackTrace: stackTrace,
+      );
+    }
+    if (errorString.contains('socket') ||
+        errorString.contains('connection') ||
+        errorString.contains('network') ||
+        errorString.contains('unreachable')) {
+      return VStoryNetworkError.fromException(error, stackTrace);
+    }
+    if (errorString.contains('cache') ||
+        errorString.contains('disk') ||
+        errorString.contains('storage full')) {
+      return VStoryCacheError.fromException(error, stackTrace);
+    }
+    if (errorString.contains('permission') ||
+        errorString.contains('denied')) {
+      return VStoryPermissionError.denied('storage', error, stackTrace);
+    }
+    if (errorString.contains('format') ||
+        errorString.contains('codec') ||
+        errorString.contains('unsupported')) {
+      return VStoryFormatError(
+        message: 'Unsupported audio format',
+        originalError: error,
+        stackTrace: stackTrace,
+      );
+    }
+    return VStoryLoadError.fromException(error, stackTrace);
   }
 
   @override
@@ -369,12 +406,9 @@ class _VoiceContentState extends State<VoiceContent> {
   }
 
   Widget _buildError() {
+    final error = VStoryLoadError(message: 'Failed to load audio');
     if (widget.errorBuilder != null) {
-      return widget.errorBuilder!(
-        context,
-        Exception('Failed to load audio'),
-        _retry,
-      );
+      return widget.errorBuilder!(context, error, _retry);
     }
     return Column(
       mainAxisSize: MainAxisSize.min,
