@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../models/v_story_item.dart';
+import '../../utils/text_parser.dart';
 
-/// Widget for displaying text stories with auto-fit text
+/// Widget for displaying text stories with auto-fit text and optional parsing
 class TextContent extends StatefulWidget {
   final VTextStory story;
   final VoidCallback onLoaded;
@@ -15,6 +16,7 @@ class TextContent extends StatefulWidget {
 }
 
 class _TextContentState extends State<TextContent> {
+  final _parser = VTextParser();
   @override
   void initState() {
     super.initState();
@@ -23,7 +25,6 @@ class _TextContentState extends State<TextContent> {
       widget.onLoaded();
     });
   }
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -36,10 +37,9 @@ class _TextContentState extends State<TextContent> {
       ),
     );
   }
-
   Widget _buildAutoFitText() {
     final story = widget.story;
-    // Priority: textBuilder > richText > text
+    // Priority: textBuilder > richText > parsed text > plain text
     if (story.textBuilder != null) {
       return story.textBuilder!(context, story.text);
     }
@@ -64,6 +64,25 @@ class _TextContentState extends State<TextContent> {
         ),
       );
     }
+    // Use parser when enabled
+    if (story.enableParsing) {
+      final parsedSpan = _parser.parse(
+        story.text,
+        baseStyle: defaultStyle,
+        config: story.parserConfig ?? const VTextParserConfig(),
+      );
+      return FittedBox(
+        fit: BoxFit.scaleDown,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: maxWidth),
+          child: Text.rich(
+            parsedSpan,
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
+    // Plain text fallback
     return FittedBox(
       fit: BoxFit.scaleDown,
       child: ConstrainedBox(

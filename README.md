@@ -182,6 +182,57 @@ VTextStory(
 )
 ```
 
+### Built-in Text Parsing
+
+Enable automatic text parsing for markdown-style formatting, links, phones, emails, mentions, and hashtags - **no external packages required**:
+
+```dart
+VTextStory(
+  text: 'Hello **World**! Contact @john at john@email.com or call +1234567890 #flutter',
+  enableParsing: true,
+  parserConfig: VTextParserConfig(
+    // Tap callbacks
+    onUrlTap: (url) => launchUrl(Uri.parse(url)),
+    onPhoneTap: (phone) => launchUrl(Uri.parse('tel:$phone')),
+    onEmailTap: (email) => launchUrl(Uri.parse('mailto:$email')),
+    onMentionTap: (mention) => openProfile(mention), // 'john' (without @)
+    onHashtagTap: (tag) => searchHashtag(tag),       // 'flutter' (without #)
+  ),
+  backgroundColor: Colors.purple,
+  createdAt: DateTime.now(),
+  isSeen: false,
+)
+```
+
+**Supported Patterns:**
+
+| Pattern | Syntax | Example |
+|---------|--------|---------|
+| Bold | `**text**` or `__text__` | **bold text** |
+| Italic | `*text*` or `_text_` | *italic text* |
+| Code | `` `code` `` | `inline code` |
+| Link | `[text](url)` | [Click here](https://...) |
+| URL | Auto-detected | https://example.com |
+| Email | Auto-detected | user@example.com |
+| Phone | Auto-detected | +1 (234) 567-8900 |
+| Mention | `@username` | @john |
+| Hashtag | `#tag` | #flutter |
+
+**Custom Styling:**
+
+```dart
+VTextParserConfig(
+  boldStyle: TextStyle(fontWeight: FontWeight.w900, color: Colors.yellow),
+  italicStyle: TextStyle(fontStyle: FontStyle.italic, color: Colors.cyan),
+  codeStyle: TextStyle(fontFamily: 'Courier', backgroundColor: Colors.black45),
+  urlStyle: TextStyle(color: Colors.blue, decoration: TextDecoration.underline),
+  phoneStyle: TextStyle(color: Colors.green),
+  emailStyle: TextStyle(color: Colors.orange),
+  mentionStyle: TextStyle(color: Colors.cyan, fontWeight: FontWeight.w600),
+  hashtagStyle: TextStyle(color: Colors.pink, fontWeight: FontWeight.w600),
+)
+```
+
 ### VVoiceStory
 
 Audio with visual progress slider.

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/text_parser.dart';
 import 'v_story_error.dart';
 
 /// Builder for overlay content displayed on top of story content.
@@ -355,6 +356,34 @@ typedef StoryTextBuilder = Widget Function(BuildContext context, String text);
 ///   isSeen: false,
 /// )
 /// ```
+///
+/// ## Built-in Text Parsing (No External Dependencies)
+/// Enable `enableParsing: true` for automatic detection of:
+/// - **Bold**: `**text**` or `__text__`
+/// - **Italic**: `*text*` or `_text_`
+/// - **Code**: `` `code` ``
+/// - **Links**: `[text](url)` or auto-detected URLs
+/// - **Phones**: Auto-detected (+1234567890)
+/// - **Emails**: Auto-detected (user@example.com)
+/// - **Mentions**: `@username`
+/// - **Hashtags**: `#tag`
+///
+/// ```dart
+/// VTextStory(
+///   text: 'Hello **World**! Contact @john at john@email.com or call +1234567890',
+///   enableParsing: true,
+///   parserConfig: VTextParserConfig(
+///     onMentionTap: (mention) => openProfile(mention),
+///     onPhoneTap: (phone) => launchDialer(phone),
+///     onEmailTap: (email) => launchEmail(email),
+///     onUrlTap: (url) => launchUrl(url),
+///     onHashtagTap: (tag) => searchHashtag(tag),
+///   ),
+///   backgroundColor: Colors.purple,
+///   createdAt: DateTime.now(),
+///   isSeen: false,
+/// )
+/// ```
 final class VTextStory extends VStoryItem {
   /// The text content to display.
   ///
@@ -380,12 +409,25 @@ final class VTextStory extends VStoryItem {
   ///
   /// Overrides both [text] and [richText]. Use for markdown, HTML, etc.
   final StoryTextBuilder? textBuilder;
+
+  /// Enable built-in text parsing for markdown, links, phones, emails, mentions, hashtags.
+  ///
+  /// When `true`, the text will be automatically parsed and styled.
+  /// Ignored when [textBuilder] or [richText] is provided.
+  final bool enableParsing;
+
+  /// Configuration for text parsing including tap callbacks and custom styles.
+  ///
+  /// Only used when [enableParsing] is `true`.
+  final VTextParserConfig? parserConfig;
   const VTextStory({
     required this.text,
     this.backgroundColor = const Color(0xFF2196F3),
     this.textStyle,
     this.richText,
     this.textBuilder,
+    this.enableParsing = false,
+    this.parserConfig,
     super.duration = const Duration(seconds: 5),
     required super.createdAt,
     required super.isSeen,
@@ -404,6 +446,8 @@ final class VTextStory extends VStoryItem {
     TextStyle? textStyle,
     InlineSpan? richText,
     StoryTextBuilder? textBuilder,
+    bool? enableParsing,
+    VTextParserConfig? parserConfig,
     Duration? duration,
     DateTime? createdAt,
     bool? isSeen,
@@ -415,6 +459,8 @@ final class VTextStory extends VStoryItem {
       textStyle: textStyle ?? this.textStyle,
       richText: richText ?? this.richText,
       textBuilder: textBuilder ?? this.textBuilder,
+      enableParsing: enableParsing ?? this.enableParsing,
+      parserConfig: parserConfig ?? this.parserConfig,
       duration: duration ?? this.duration,
       createdAt: createdAt ?? this.createdAt,
       isSeen: isSeen ?? this.isSeen,

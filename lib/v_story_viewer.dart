@@ -21,3 +21,4 @@ export 'src/controllers/story_controller.dart';
 // Utils
 export 'src/utils/time_formatter.dart';
 export 'src/utils/story_cache_manager.dart';
+export 'src/utils/text_parser.dart';

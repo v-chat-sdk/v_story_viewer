@@ -1,3 +1,41 @@
+## 2.0.2
+
+### New Features
+* **Built-in Text Parser** - Lightweight regex-based text parsing for `VTextStory`:
+  * **Markdown-style formatting**: Bold (`**text**`, `__text__`), Italic (`*text*`, `_text_`), Inline code (`` `code` ``)
+  * **Auto-detected links**: URLs (http/https/www), Emails, Phone numbers
+  * **Social patterns**: @mentions, #hashtags
+  * **Markdown links**: `[text](url)` syntax
+* **Tap Callbacks** - Handle user interactions with parsed elements:
+  * `onUrlTap(String url)` - URL/link taps
+  * `onPhoneTap(String phone)` - Phone number taps
+  * `onEmailTap(String email)` - Email taps
+  * `onMentionTap(String mention)` - @mention taps (without @)
+  * `onHashtagTap(String hashtag)` - #hashtag taps (without #)
+* **Custom Styling** - Override default styles for each parsed element type
+* **Zero Dependencies** - No external markdown or parsing packages required
+
+### Usage
+```dart
+VTextStory(
+  text: 'Hello **World**! Contact @john at john@email.com #flutter',
+  enableParsing: true,
+  parserConfig: VTextParserConfig(
+    onMentionTap: (mention) => openProfile(mention),
+    onHashtagTap: (tag) => searchHashtag(tag),
+    onUrlTap: (url) => launchUrl(url),
+    onPhoneTap: (phone) => launchDialer(phone),
+    onEmailTap: (email) => launchEmail(email),
+    // Optional custom styles
+    boldStyle: TextStyle(fontWeight: FontWeight.w900),
+    mentionStyle: TextStyle(color: Colors.blue),
+  ),
+  backgroundColor: Colors.purple,
+  createdAt: DateTime.now(),
+  isSeen: false,
+)
+```
+
 ## 2.0.1
 
 ### Breaking Changes
