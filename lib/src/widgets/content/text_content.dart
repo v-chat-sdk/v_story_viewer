@@ -25,6 +25,7 @@ class _TextContentState extends State<TextContent> {
       widget.onLoaded();
     });
   }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -37,6 +38,7 @@ class _TextContentState extends State<TextContent> {
       ),
     );
   }
+
   Widget _buildAutoFitText() {
     final story = widget.story;
     // Priority: textBuilder > richText > parsed text > plain text

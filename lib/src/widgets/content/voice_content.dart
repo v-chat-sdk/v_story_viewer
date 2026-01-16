@@ -231,8 +231,7 @@ class _VoiceContentState extends State<VoiceContent> {
         errorString.contains('storage full')) {
       return VStoryCacheError.fromException(error, stackTrace);
     }
-    if (errorString.contains('permission') ||
-        errorString.contains('denied')) {
+    if (errorString.contains('permission') || errorString.contains('denied')) {
       return VStoryPermissionError.denied('storage', error, stackTrace);
     }
     if (errorString.contains('format') ||

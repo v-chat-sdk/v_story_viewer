@@ -12,28 +12,40 @@ typedef OnHashtagTap = void Function(String hashtag);
 class VTextParserConfig {
   /// Called when a URL is tapped
   final OnUrlTap? onUrlTap;
+
   /// Called when a phone number is tapped
   final OnPhoneTap? onPhoneTap;
+
   /// Called when an email is tapped
   final OnEmailTap? onEmailTap;
+
   /// Called when a @mention is tapped
   final OnMentionTap? onMentionTap;
+
   /// Called when a #hashtag is tapped
   final OnHashtagTap? onHashtagTap;
+
   /// Style for bold text (**text** or __text__)
   final TextStyle? boldStyle;
+
   /// Style for italic text (*text* or _text_)
   final TextStyle? italicStyle;
+
   /// Style for inline code (`code`)
   final TextStyle? codeStyle;
+
   /// Style for URLs
   final TextStyle? urlStyle;
+
   /// Style for phone numbers
   final TextStyle? phoneStyle;
+
   /// Style for emails
   final TextStyle? emailStyle;
+
   /// Style for @mentions
   final TextStyle? mentionStyle;
+
   /// Style for #hashtags
   final TextStyle? hashtagStyle;
   const VTextParserConfig({
@@ -51,6 +63,7 @@ class VTextParserConfig {
     this.mentionStyle,
     this.hashtagStyle,
   });
+
   /// Creates a copy with modified values
   VTextParserConfig copyWith({
     OnUrlTap? onUrlTap,
@@ -86,7 +99,18 @@ class VTextParserConfig {
 }
 
 /// Parsed text element types
-enum _ParsedType { text, bold, italic, code, url, phone, email, mention, hashtag, link }
+enum _ParsedType {
+  text,
+  bold,
+  italic,
+  code,
+  url,
+  phone,
+  email,
+  mention,
+  hashtag,
+  link
+}
 
 class _ParsedElement {
   final _ParsedType type;
@@ -130,20 +154,24 @@ class VTextParser {
     // Bold **text** or __text__
     _ParsedType.bold: RegExp(r'\*\*(.+?)\*\*|__(.+?)__'),
     // Italic *text* or _text_ (not preceded/followed by same char)
-    _ParsedType.italic: RegExp(r'(?<!\*)\*([^*]+)\*(?!\*)|(?<!_)_([^_]+)_(?!_)'),
+    _ParsedType.italic:
+        RegExp(r'(?<!\*)\*([^*]+)\*(?!\*)|(?<!_)_([^_]+)_(?!_)'),
     // Inline code `code`
     _ParsedType.code: RegExp(r'`([^`]+)`'),
     // Email (before URL to avoid conflicts)
-    _ParsedType.email: RegExp(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'),
+    _ParsedType.email:
+        RegExp(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'),
     // URL (http, https, www)
     _ParsedType.url: RegExp(r'https?://[^\s<>\[\]]+|www\.[^\s<>\[\]]+'),
     // Phone numbers
-    _ParsedType.phone: RegExp(r'(?:\+\d{1,3}[-.\s]?)?\(?\d{2,4}\)?[-.\s]?\d{3,4}[-.\s]?\d{3,4}'),
+    _ParsedType.phone: RegExp(
+        r'(?:\+\d{1,3}[-.\s]?)?\(?\d{2,4}\)?[-.\s]?\d{3,4}[-.\s]?\d{3,4}'),
     // Mention @username
     _ParsedType.mention: RegExp(r'@[\w]+'),
     // Hashtag #tag
     _ParsedType.hashtag: RegExp(r'#[\w]+'),
   };
+
   /// Parses text and returns a [TextSpan] tree with styling and tap handlers
   TextSpan parse(
     String text, {
@@ -151,9 +179,11 @@ class VTextParser {
     VTextParserConfig config = const VTextParserConfig(),
   }) {
     final elements = _parseText(text);
-    final spans = elements.map((e) => _buildSpan(e, baseStyle, config)).toList();
+    final spans =
+        elements.map((e) => _buildSpan(e, baseStyle, config)).toList();
     return TextSpan(children: spans, style: baseStyle);
   }
+
   List<_ParsedElement> _parseText(String text) {
     final elements = <_ParsedElement>[];
     var remaining = text;
@@ -164,7 +194,8 @@ class VTextParser {
       for (final entry in _patterns.entries) {
         final match = entry.value.firstMatch(remaining);
         if (match != null) {
-          if (earliestMatch == null || match.start < earliestMatch.match.start) {
+          if (earliestMatch == null ||
+              match.start < earliestMatch.match.start) {
             earliestMatch = _Match(match, entry.key);
             matchType = entry.key;
           }
@@ -178,7 +209,8 @@ class VTextParser {
       final match = earliestMatch.match;
       // Add text before match
       if (match.start > 0) {
-        elements.add(_ParsedElement(_ParsedType.text, remaining.substring(0, match.start)));
+        elements.add(_ParsedElement(
+            _ParsedType.text, remaining.substring(0, match.start)));
       }
       // Add matched element
       final element = _createElementFromMatch(match, matchType!);
@@ -188,6 +220,7 @@ class VTextParser {
     }
     return elements;
   }
+
   _ParsedElement _createElementFromMatch(RegExpMatch match, _ParsedType type) {
     switch (type) {
       case _ParsedType.bold:
@@ -214,15 +247,19 @@ class VTextParser {
         return _ParsedElement(_ParsedType.text, match.group(0) ?? '');
     }
   }
-  TextSpan _buildSpan(_ParsedElement element, TextStyle baseStyle, VTextParserConfig config) {
+
+  TextSpan _buildSpan(
+      _ParsedElement element, TextStyle baseStyle, VTextParserConfig config) {
     switch (element.type) {
       case _ParsedType.text:
         return TextSpan(text: element.text);
       case _ParsedType.bold:
-        final style = config.boldStyle ?? baseStyle.copyWith(fontWeight: FontWeight.bold);
+        final style =
+            config.boldStyle ?? baseStyle.copyWith(fontWeight: FontWeight.bold);
         return TextSpan(text: element.text, style: style);
       case _ParsedType.italic:
-        final style = config.italicStyle ?? baseStyle.copyWith(fontStyle: FontStyle.italic);
+        final style = config.italicStyle ??
+            baseStyle.copyWith(fontStyle: FontStyle.italic);
         return TextSpan(text: element.text, style: style);
       case _ParsedType.code:
         final style = config.codeStyle ??
@@ -241,7 +278,8 @@ class VTextParser {
           text: element.text,
           style: style,
           recognizer: config.onUrlTap != null
-              ? (TapGestureRecognizer()..onTap = () => config.onUrlTap!(element.url ?? element.text))
+              ? (TapGestureRecognizer()
+                ..onTap = () => config.onUrlTap!(element.url ?? element.text))
               : null,
         );
       case _ParsedType.url:
@@ -254,7 +292,8 @@ class VTextParser {
           text: element.text,
           style: style,
           recognizer: config.onUrlTap != null
-              ? (TapGestureRecognizer()..onTap = () => config.onUrlTap!(element.text))
+              ? (TapGestureRecognizer()
+                ..onTap = () => config.onUrlTap!(element.text))
               : null,
         );
       case _ParsedType.phone:
@@ -267,7 +306,8 @@ class VTextParser {
           text: element.text,
           style: style,
           recognizer: config.onPhoneTap != null
-              ? (TapGestureRecognizer()..onTap = () => config.onPhoneTap!(element.text))
+              ? (TapGestureRecognizer()
+                ..onTap = () => config.onPhoneTap!(element.text))
               : null,
         );
       case _ParsedType.email:
@@ -280,7 +320,8 @@ class VTextParser {
           text: element.text,
           style: style,
           recognizer: config.onEmailTap != null
-              ? (TapGestureRecognizer()..onTap = () => config.onEmailTap!(element.text))
+              ? (TapGestureRecognizer()
+                ..onTap = () => config.onEmailTap!(element.text))
               : null,
         );
       case _ParsedType.mention:

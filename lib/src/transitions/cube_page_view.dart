@@ -1,11 +1,13 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
-/// 3D Cube page view transition for story groups
+/// 3D Cube page view transition for story groups.
+/// Falls back to a standard PageView for vertical scrolling.
 class CubePageView extends StatefulWidget {
   final int itemCount;
   final Widget Function(BuildContext context, int index) itemBuilder;
   final PageController? controller;
+  final Axis scrollDirection;
   final void Function(int index)? onPageChanged;
   final void Function()? onDragStart;
   final void Function()? onDragEnd;
@@ -15,6 +17,7 @@ class CubePageView extends StatefulWidget {
     required this.itemCount,
     required this.itemBuilder,
     this.controller,
+    this.scrollDirection = Axis.horizontal,
     this.onPageChanged,
     this.onDragStart,
     this.onDragEnd,
@@ -75,13 +78,18 @@ class _CubePageViewState extends State<CubePageView> {
       },
       child: PageView.builder(
         controller: _controller,
+        scrollDirection: widget.scrollDirection,
         itemCount: widget.itemCount,
         physics: const BouncingScrollPhysics(),
         onPageChanged: widget.onPageChanged,
         itemBuilder: (context, index) {
+          final child = widget.itemBuilder(context, index);
+          if (widget.scrollDirection == Axis.vertical) {
+            return child;
+          }
           final diff = index - _currentPage;
           return _buildCubePage(
-            child: widget.itemBuilder(context, index),
+            child: child,
             index: index,
             diff: diff,
           );

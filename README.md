@@ -18,7 +18,8 @@ A high-performance Flutter story viewer package inspired by WhatsApp and Instagr
 ## Features
 
 - **Multiple Story Types**: Image, Video, Text, Voice, and fully Custom content
-- **3D Cube Transition**: Smooth cube-style page transitions between users
+- **3D Cube Transition**: Smooth cube-style page transitions between users (horizontal)
+- **Vertical Group Paging**: Optional vertical navigation between story groups
 - **Auto-Progress**: Automatic advancement with synced progress bar
 - **Gesture Controls**: Tap, long-press, swipe navigation with RTL support
 - **Keyboard Support**: Arrow keys, Space, Escape for desktop/web
@@ -35,7 +36,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  v_story_viewer: ^2.0.0
+  v_story_viewer: ^2.1.0
 ```
 
 Then run:
@@ -98,6 +99,11 @@ VStoryCircleList(
   },
 )
 ```
+
+## Example App
+
+The `example/` app includes tabs for Basic, Advanced, Vertical, and Custom
+setups so you can quickly compare behaviors.
 
 ## Story Types
 
@@ -309,6 +315,7 @@ VStoryViewer(
     maxCacheAge: Duration(days: 7),
     maxCacheObjects: 100,
     enablePreloading: true,
+    groupScrollDirection: Axis.horizontal,
 
     // Visibility toggles
     showHeader: true,
@@ -346,6 +353,21 @@ VStoryViewer(
 | `showEmojiButton` | `true` | Show/hide emoji picker |
 | `autoPauseOnBackground` | `true` | Auto-pause when app backgrounds |
 | `hideStatusBar` | `true` | Immersive mode (mobile) |
+
+### Group Scroll Direction
+
+Use `groupScrollDirection` to control how users move between story groups:
+
+```dart
+VStoryConfig(
+  groupScrollDirection: Axis.vertical, // or Axis.horizontal
+)
+```
+
+Notes:
+- `Axis.horizontal` uses the 3D cube transition.
+- `Axis.vertical` uses a standard PageView (no cube) and disables swipe up/down
+  callbacks to avoid gesture conflicts.
 
 ### VStoryCircleConfig
 
@@ -417,10 +439,19 @@ VStoryConfig(
 
 ```dart
 VStoryConfig(
-  footerBuilder: (context, group, item) => Padding(
+  footerBuilder: (context, group, item, onReplyFocusChanged) => Padding(
     padding: EdgeInsets.all(16),
     child: Row(
       children: [
+        Expanded(
+          child: Focus(
+            onFocusChange: onReplyFocusChanged,
+            child: TextField(
+              decoration: InputDecoration(hintText: 'Reply...'),
+            ),
+          ),
+        ),
+        SizedBox(width: 12),
         Icon(Icons.favorite_border, color: Colors.white),
         SizedBox(width: 16),
         Icon(Icons.share, color: Colors.white),
@@ -544,7 +575,7 @@ VStoryViewer(
     preloadNextContent();
   },
 
-  // Called on swipe up gesture
+  // Called on swipe up gesture (horizontal group paging only)
   onSwipeUp: (group, item) {
     openLinkInBrowser();
   },
@@ -571,9 +602,10 @@ VStoryViewer(
 | Tap left side | Previous story |
 | Tap right side | Next story |
 | Long press | Pause story |
-| Swipe left/right | Navigate between users (3D cube) |
-| Swipe down | Close viewer |
-| Swipe up | Triggers `onSwipeUp` callback |
+| Swipe left/right | Navigate between users (when horizontal) |
+| Swipe up/down | Navigate between users (when vertical) |
+| Swipe down | Close viewer (horizontal only) |
+| Swipe up | Triggers `onSwipeUp` callback (horizontal only) |
 
 ## Keyboard Controls (Desktop/Web)
 

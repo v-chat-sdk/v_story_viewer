@@ -79,24 +79,28 @@ typedef StoryHeaderBuilder = Widget Function(
 /// - [context]: Build context
 /// - [group]: The current story group
 /// - [item]: The current story being displayed
+/// - [onReplyFocusChanged]: Call with true/false when a reply input gains/loses
+///   focus to pause/resume playback (and show the reply overlay)
 ///
 /// Example:
 /// ```dart
-/// StoryFooterBuilder footerBuilder = (context, group, item) => Container(
-///   padding: EdgeInsets.all(16),
-///   child: Row(
-///     children: [
-///       Icon(Icons.favorite_border, color: Colors.white),
-///       SizedBox(width: 16),
-///       Icon(Icons.share, color: Colors.white),
-///     ],
-///   ),
-/// );
+/// StoryFooterBuilder footerBuilder =
+///     (context, group, item, onReplyFocusChanged) => Container(
+///           padding: EdgeInsets.all(16),
+///           child: Row(
+///             children: [
+///               Icon(Icons.favorite_border, color: Colors.white),
+///               SizedBox(width: 16),
+///               Icon(Icons.share, color: Colors.white),
+///             ],
+///           ),
+///         );
 /// ```
 typedef StoryFooterBuilder = Widget Function(
   BuildContext context,
   VStoryGroup group,
   VStoryItem item,
+  ValueChanged<bool> onReplyFocusChanged,
 );
 
 /// Builder for custom progress bar replacing the default segmented progress.
@@ -318,6 +322,9 @@ class VStoryConfig {
 
   /// Preload next video/audio while current story plays
   final bool enablePreloading;
+
+  /// Scroll direction for navigating between story groups (users).
+  final Axis groupScrollDirection;
   // Visibility toggles
   /// Show/hide entire header (includes all header elements)
   final bool showHeader;
@@ -363,7 +370,8 @@ class VStoryConfig {
   final StoryHeaderBuilder? headerBuilder;
 
   /// Custom footer builder - replaces reply field area
-  /// When provided, showReplyField is ignored
+  /// When provided, showReplyField is ignored; call onReplyFocusChanged to
+  /// pause/resume playback when a custom input focuses.
   final StoryFooterBuilder? footerBuilder;
 
   /// Custom progress bar builder - replaces default segmented progress
@@ -391,6 +399,7 @@ class VStoryConfig {
     this.maxCacheAge = const Duration(days: 7),
     this.maxCacheObjects = 100,
     this.enablePreloading = true,
+    this.groupScrollDirection = Axis.horizontal,
     this.showHeader = true,
     this.showProgressBar = true,
     this.showBackButton = true,
@@ -445,6 +454,7 @@ class VStoryConfig {
     Duration maxCacheAge = const Duration(days: 7),
     int maxCacheObjects = 100,
     bool enablePreloading = true,
+    Axis groupScrollDirection = Axis.horizontal,
     bool showHeader = true,
     bool showProgressBar = true,
     bool showBackButton = true,
@@ -473,6 +483,7 @@ class VStoryConfig {
         maxCacheAge = maxCacheAge,
         maxCacheObjects = maxCacheObjects,
         enablePreloading = enablePreloading,
+        groupScrollDirection = groupScrollDirection,
         showHeader = showHeader,
         showProgressBar = showProgressBar,
         showBackButton = showBackButton,
@@ -528,6 +539,7 @@ class VStoryConfig {
     Duration maxCacheAge = const Duration(days: 7),
     int maxCacheObjects = 100,
     bool enablePreloading = true,
+    Axis groupScrollDirection = Axis.horizontal,
     bool showHeader = true,
     bool showProgressBar = true,
     bool showBackButton = true,
@@ -556,6 +568,7 @@ class VStoryConfig {
         maxCacheAge = maxCacheAge,
         maxCacheObjects = maxCacheObjects,
         enablePreloading = enablePreloading,
+        groupScrollDirection = groupScrollDirection,
         showHeader = showHeader,
         showProgressBar = showProgressBar,
         showBackButton = showBackButton,
@@ -606,6 +619,7 @@ class VStoryConfig {
     Duration maxCacheAge = const Duration(days: 7),
     int maxCacheObjects = 100,
     bool enablePreloading = true,
+    Axis groupScrollDirection = Axis.horizontal,
     bool showHeader = true,
     bool showProgressBar = true,
     bool showUserInfo = true,
@@ -632,6 +646,7 @@ class VStoryConfig {
         maxCacheAge = maxCacheAge,
         maxCacheObjects = maxCacheObjects,
         enablePreloading = enablePreloading,
+        groupScrollDirection = groupScrollDirection,
         showHeader = showHeader,
         showProgressBar = showProgressBar,
         showBackButton = false,
@@ -676,6 +691,7 @@ class VStoryConfig {
     Duration? maxCacheAge,
     int? maxCacheObjects,
     bool? enablePreloading,
+    Axis? groupScrollDirection,
     bool? showHeader,
     bool? showProgressBar,
     bool? showBackButton,
@@ -710,6 +726,7 @@ class VStoryConfig {
       maxCacheAge: maxCacheAge ?? this.maxCacheAge,
       maxCacheObjects: maxCacheObjects ?? this.maxCacheObjects,
       enablePreloading: enablePreloading ?? this.enablePreloading,
+      groupScrollDirection: groupScrollDirection ?? this.groupScrollDirection,
       showHeader: showHeader ?? this.showHeader,
       showProgressBar: showProgressBar ?? this.showProgressBar,
       showBackButton: showBackButton ?? this.showBackButton,

@@ -210,6 +210,7 @@ class VStoryViewer extends StatefulWidget {
   /// Called when user swipes up on a story.
   ///
   /// Typically used for "See more" or link navigation.
+  /// Disabled when [VStoryConfig.groupScrollDirection] is [Axis.vertical].
   final void Function(VStoryGroup group, VStoryItem item)? onSwipeUp;
 
   /// Called when the user taps on user avatar/name in header.
@@ -718,6 +719,7 @@ class _VStoryViewerState extends State<VStoryViewer>
             CubePageView(
               controller: _pageController,
               itemCount: widget.storyGroups.length,
+              scrollDirection: widget.config.groupScrollDirection,
               onDragStart: _pauseProgress,
               onDragEnd: () {},
               onDragCancel: _resumeProgress,
@@ -758,6 +760,13 @@ class _VStoryViewerState extends State<VStoryViewer>
                               context,
                               _controller.currentGroup,
                               _controller.currentItem,
+                              (hasFocus) {
+                                if (hasFocus) {
+                                  _onReplyFieldFocus();
+                                } else {
+                                  _onReplyFieldUnfocus();
+                                }
+                              },
                             )
                           : VStoryReplyField(
                               onSubmit: (text) {
@@ -786,18 +795,23 @@ class _VStoryViewerState extends State<VStoryViewer>
   Widget _buildStoryPage(int groupIndex) {
     final group = widget.storyGroups[groupIndex];
     final isCurrentGroup = groupIndex == _controller.currentGroupIndex;
+    final allowVerticalGestures =
+        widget.config.groupScrollDirection == Axis.horizontal;
     return GestureDetector(
-      onVerticalDragEnd: (details) {
-        if (details.primaryVelocity != null && details.primaryVelocity! > 300) {
-          _close();
-        } else if (details.primaryVelocity != null &&
-            details.primaryVelocity! < -300) {
-          widget.onSwipeUp?.call(
-            _controller.currentGroup,
-            _controller.currentItem,
-          );
-        }
-      },
+      onVerticalDragEnd: allowVerticalGestures
+          ? (details) {
+              if (details.primaryVelocity != null &&
+                  details.primaryVelocity! > 300) {
+                _close();
+              } else if (details.primaryVelocity != null &&
+                  details.primaryVelocity! < -300) {
+                widget.onSwipeUp?.call(
+                  _controller.currentGroup,
+                  _controller.currentItem,
+                );
+              }
+            }
+          : null,
       child: Stack(
         children: [
           // Story content

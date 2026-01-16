@@ -1,3 +1,12 @@
+## 2.1.0
+
+### New Features
+* **Group Scroll Direction** - Configure story group navigation axis via `VStoryConfig.groupScrollDirection` (horizontal/vertical).
+* **Vertical Demo Tab** - Example app now includes a vertical paging tab.
+* add `onReplyFocusChanged` to the `StoryFooterBuilder footerBuilder` so you can create your own style and change the **focus** of the story
+### Notes
+* Vertical group paging uses a standard PageView (no cube) and disables swipe up/down callbacks to avoid gesture conflicts.
+
 ## 2.0.2
 
 ### New Features
