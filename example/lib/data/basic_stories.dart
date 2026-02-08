@@ -17,7 +17,8 @@ List<VStoryGroup> createBasicStories() {
           createdAt: now.subtract(const Duration(hours: 2)),
           isSeen: false,
           duration: const Duration(seconds: 4),
-          caption: 'This is a caption',
+          caption:
+              'Amazing sunset at the beach with friends! We had such a wonderful time watching the waves crash against the shore while the sky turned into beautiful shades of orange, pink, and purple. Truly one of the best evenings of the summer. Can\'t wait to come back next weekend!',
         ),
         VImageStory(
           url: 'https://picsum.photos/seed/nature2/1080/1920',

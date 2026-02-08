@@ -280,6 +280,7 @@ class _VStoryViewerState extends State<VStoryViewer>
   bool _isLongPressed = false;
   // Reply overlay state
   bool _isReplyFieldFocused = false;
+  bool _isCaptionExpanded = false;
   // Mute state for web
   bool _isMuted = false;
   // Pointer tracking for instant pause (tap vs hold detection)
@@ -485,6 +486,7 @@ class _VStoryViewerState extends State<VStoryViewer>
     _isLongPressed = false;
     _isContentLoaded = false;
     _isPaused = false;
+    _isCaptionExpanded = false;
     _progressAnimController.reset();
     setState(() {});
   }
@@ -688,6 +690,17 @@ class _VStoryViewerState extends State<VStoryViewer>
     }
   }
 
+  void _toggleCaptionExpanded() {
+    setState(() {
+      _isCaptionExpanded = !_isCaptionExpanded;
+    });
+    if (_isCaptionExpanded) {
+      _pauseProgress();
+    } else {
+      _resumeProgress();
+    }
+  }
+
   bool get _isMediaStory {
     final story = _controller.currentItem;
     return story is VVideoStory || story is VVoiceStory;
@@ -859,17 +872,31 @@ class _VStoryViewerState extends State<VStoryViewer>
                 child: Center(
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 650),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      decoration: _captionDecoration,
-                      child: Text(
-                        _getCaptionForStory(_controller.currentItem)!,
-                        style:
-                            const TextStyle(color: Colors.white, fontSize: 14),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center,
+                    child: GestureDetector(
+                      onTap: _toggleCaptionExpanded,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        decoration: _captionDecoration,
+                        constraints: _isCaptionExpanded
+                            ? BoxConstraints(
+                                maxHeight:
+                                    MediaQuery.sizeOf(context).height * 0.4)
+                            : null,
+                        child: _isCaptionExpanded
+                            ? SingleChildScrollView(
+                                child: Text(
+                                  _getCaptionForStory(
+                                      _controller.currentItem)!,
+                                  style: const TextStyle(
+                                      color: Colors.white, fontSize: 14),
+                                  textAlign: TextAlign.center,
+                                ),
+                              )
+                            : _CollapsedCaption(
+                                text: _getCaptionForStory(
+                                    _controller.currentItem)!,
+                              ),
                       ),
                     ),
                   ),
@@ -1117,6 +1144,48 @@ class _VStoryViewerState extends State<VStoryViewer>
           ),
         ),
       ),
+    );
+  }
+}
+
+class _CollapsedCaption extends StatelessWidget {
+  const _CollapsedCaption({required this.text});
+  final String text;
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final textSpan = TextSpan(
+          text: text,
+          style: const TextStyle(color: Colors.white, fontSize: 14),
+        );
+        final tp = TextPainter(
+          text: textSpan,
+          maxLines: 2,
+          textDirection: Directionality.of(context),
+        )..layout(maxWidth: constraints.maxWidth);
+        final isOverflowing = tp.didExceedMaxLines;
+        return RichText(
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          text: TextSpan(
+            style: const TextStyle(color: Colors.white, fontSize: 14),
+            children: [
+              TextSpan(text: text),
+              if (isOverflowing)
+                const TextSpan(
+                  text: ' more',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

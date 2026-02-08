@@ -1,3 +1,8 @@
+## 2.1.1
+
+### New Features
+* **Expandable Captions** - Story captions now show 2 lines collapsed with a "more" indicator. Tap to expand full text (scrollable). Story progress pauses while caption is expanded and resumes on collapse.
+
 ## 2.1.0
 
 ### New Features
