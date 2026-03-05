@@ -885,17 +885,33 @@ class _VStoryViewerState extends State<VStoryViewer>
                             : null,
                         child: _isCaptionExpanded
                             ? SingleChildScrollView(
-                                child: Text(
-                                  _getCaptionForStory(
-                                      _controller.currentItem)!,
-                                  style: const TextStyle(
-                                      color: Colors.white, fontSize: 14),
-                                  textAlign: TextAlign.center,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      _getCaptionForStory(
+                                          _controller.currentItem)!,
+                                      style: const TextStyle(
+                                          color: Colors.white, fontSize: 14),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      widget.config.texts.showLessLabel,
+                                      style: const TextStyle(
+                                        color: Colors.white70,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               )
                             : _CollapsedCaption(
                                 text: _getCaptionForStory(
                                     _controller.currentItem)!,
+                                showMoreLabel:
+                                    widget.config.texts.showMoreLabel,
                               ),
                       ),
                     ),
@@ -1149,8 +1165,12 @@ class _VStoryViewerState extends State<VStoryViewer>
 }
 
 class _CollapsedCaption extends StatelessWidget {
-  const _CollapsedCaption({required this.text});
+  const _CollapsedCaption({
+    required this.text,
+    required this.showMoreLabel,
+  });
   final String text;
+  final String showMoreLabel;
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -1165,25 +1185,30 @@ class _CollapsedCaption extends StatelessWidget {
           textDirection: Directionality.of(context),
         )..layout(maxWidth: constraints.maxWidth);
         final isOverflowing = tp.didExceedMaxLines;
-        return RichText(
-          textAlign: TextAlign.center,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          text: TextSpan(
-            style: const TextStyle(color: Colors.white, fontSize: 14),
-            children: [
-              TextSpan(text: text),
-              if (isOverflowing)
-                const TextSpan(
-                  text: ' more',
-                  style: TextStyle(
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              text,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.white, fontSize: 14),
+            ),
+            if (isOverflowing)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  showMoreLabel,
+                  style: const TextStyle(
                     color: Colors.white70,
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
                   ),
                 ),
-            ],
-          ),
+              ),
+          ],
         );
       },
     );

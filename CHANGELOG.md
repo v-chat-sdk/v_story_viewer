@@ -1,3 +1,9 @@
+## 2.1.2
+
+### Improvements
+* **Translatable Show More/Less** - Caption expand/collapse buttons now use `VStoryTexts.showMoreLabel` and `VStoryTexts.showLessLabel` for full i18n support (defaults: "Show more" / "Show less").
+* **Better Caption Overflow** - "Show more" label is now displayed below truncated text instead of inline, ensuring it's always visible when caption overflows.
+
 ## 2.1.1
 
 ### New Features

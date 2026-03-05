@@ -144,6 +144,16 @@ class VStoryTexts {
   /// Default: "Search emoji"
   final String searchEmoji;
 
+  /// Label for expanding a truncated caption.
+  ///
+  /// Shown when caption text overflows. Default: "Show more"
+  final String showMoreLabel;
+
+  /// Label for collapsing an expanded caption.
+  ///
+  /// Shown when caption is fully expanded. Default: "Show less"
+  final String showLessLabel;
+
   /// Creates configurable texts for [VStoryViewer].
   ///
   /// All parameters have English defaults.
@@ -166,6 +176,8 @@ class VStoryTexts {
     this.keyboardLabel = 'Keyboard',
     this.noRecentEmojis = 'No recent emojis',
     this.searchEmoji = 'Search emoji',
+    this.showMoreLabel = 'Show more',
+    this.showLessLabel = 'Show less',
   });
   VStoryTexts copyWith({
     String? replyHint,
@@ -186,6 +198,8 @@ class VStoryTexts {
     String? keyboardLabel,
     String? noRecentEmojis,
     String? searchEmoji,
+    String? showMoreLabel,
+    String? showLessLabel,
   }) {
     return VStoryTexts(
       replyHint: replyHint ?? this.replyHint,
@@ -206,6 +220,8 @@ class VStoryTexts {
       keyboardLabel: keyboardLabel ?? this.keyboardLabel,
       noRecentEmojis: noRecentEmojis ?? this.noRecentEmojis,
       searchEmoji: searchEmoji ?? this.searchEmoji,
+      showMoreLabel: showMoreLabel ?? this.showMoreLabel,
+      showLessLabel: showLessLabel ?? this.showLessLabel,
     );
   }
 }
