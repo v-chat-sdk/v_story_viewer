@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../utils/text_parser.dart';
 import 'v_story_error.dart';
+import 'v_story_music.dart';
 
 /// Builder for overlay content displayed on top of story content.
 ///
@@ -28,6 +29,7 @@ typedef StoryOverlayBuilder = Widget Function(BuildContext context);
 /// - [createdAt]: When the story was created (used for 24h expiry)
 /// - [isSeen]: Whether the user has viewed this story
 /// - [overlayBuilder]: Optional overlay widget rendered on top of content
+/// - [music]: Optional synchronized background music
 ///
 /// ## Story Types
 /// - [VImageStory]: Static image from URL or file
@@ -89,11 +91,16 @@ sealed class VStoryItem {
   /// The builder receives the current [BuildContext] and should return a
   /// widget that will be positioned in a [Stack] above the story content.
   final StoryOverlayBuilder? overlayBuilder;
+
+  /// Optional background music synchronized to this story's timeline.
+  final VStoryMusic? music;
+
   const VStoryItem({
     this.duration,
     required this.createdAt,
     required this.isSeen,
     this.overlayBuilder,
+    this.music,
   });
 
   /// Returns `true` if this story is older than 24 hours.
@@ -165,8 +172,11 @@ final class VImageStory extends VStoryItem {
     required super.createdAt,
     required super.isSeen,
     super.overlayBuilder,
-  }) : assert(url != null || filePath != null,
-            'Either url or filePath must be provided');
+    super.music,
+  }) : assert(
+          url != null || filePath != null,
+          'Either url or filePath must be provided',
+        );
 
   /// Returns a unique cache key based on URL for caching purposes.
   ///
@@ -197,6 +207,7 @@ final class VImageStory extends VStoryItem {
     DateTime? createdAt,
     bool? isSeen,
     StoryOverlayBuilder? overlayBuilder,
+    VStoryMusic? music,
   }) {
     return VImageStory(
       url: url ?? this.url,
@@ -206,6 +217,7 @@ final class VImageStory extends VStoryItem {
       createdAt: createdAt ?? this.createdAt,
       isSeen: isSeen ?? this.isSeen,
       overlayBuilder: overlayBuilder ?? this.overlayBuilder,
+      music: music ?? this.music,
     );
   }
 }
@@ -259,8 +271,11 @@ final class VVideoStory extends VStoryItem {
     required super.createdAt,
     required super.isSeen,
     super.overlayBuilder,
-  }) : assert(url != null || filePath != null,
-            'Either url or filePath must be provided');
+    super.music,
+  }) : assert(
+          url != null || filePath != null,
+          'Either url or filePath must be provided',
+        );
 
   /// Returns a unique cache key based on URL for caching purposes.
   ///
@@ -290,6 +305,7 @@ final class VVideoStory extends VStoryItem {
     DateTime? createdAt,
     bool? isSeen,
     StoryOverlayBuilder? overlayBuilder,
+    VStoryMusic? music,
   }) {
     return VVideoStory(
       url: url ?? this.url,
@@ -299,6 +315,7 @@ final class VVideoStory extends VStoryItem {
       createdAt: createdAt ?? this.createdAt,
       isSeen: isSeen ?? this.isSeen,
       overlayBuilder: overlayBuilder ?? this.overlayBuilder,
+      music: music ?? this.music,
     );
   }
 }
@@ -432,6 +449,7 @@ final class VTextStory extends VStoryItem {
     required super.createdAt,
     required super.isSeen,
     super.overlayBuilder,
+    super.music,
   });
 
   /// Creates a copy of this story with the given fields replaced.
@@ -452,6 +470,7 @@ final class VTextStory extends VStoryItem {
     DateTime? createdAt,
     bool? isSeen,
     StoryOverlayBuilder? overlayBuilder,
+    VStoryMusic? music,
   }) {
     return VTextStory(
       text: text ?? this.text,
@@ -465,6 +484,7 @@ final class VTextStory extends VStoryItem {
       createdAt: createdAt ?? this.createdAt,
       isSeen: isSeen ?? this.isSeen,
       overlayBuilder: overlayBuilder ?? this.overlayBuilder,
+      music: music ?? this.music,
     );
   }
 }
@@ -525,8 +545,11 @@ final class VVoiceStory extends VStoryItem {
     required super.createdAt,
     required super.isSeen,
     super.overlayBuilder,
-  }) : assert(url != null || filePath != null,
-            'Either url or filePath must be provided');
+    super.music,
+  }) : assert(
+          url != null || filePath != null,
+          'Either url or filePath must be provided',
+        );
 
   /// Returns a unique cache key based on URL for caching purposes.
   ///
@@ -557,6 +580,7 @@ final class VVoiceStory extends VStoryItem {
     DateTime? createdAt,
     bool? isSeen,
     StoryOverlayBuilder? overlayBuilder,
+    VStoryMusic? music,
   }) {
     return VVoiceStory(
       url: url ?? this.url,
@@ -567,6 +591,7 @@ final class VVoiceStory extends VStoryItem {
       createdAt: createdAt ?? this.createdAt,
       isSeen: isSeen ?? this.isSeen,
       overlayBuilder: overlayBuilder ?? this.overlayBuilder,
+      music: music ?? this.music,
     );
   }
 }
@@ -678,6 +703,7 @@ final class VCustomStory extends VStoryItem {
     required super.createdAt,
     required super.isSeen,
     super.overlayBuilder,
+    super.music,
   });
 
   /// Creates a copy of this story with the given fields replaced.
@@ -693,6 +719,7 @@ final class VCustomStory extends VStoryItem {
     DateTime? createdAt,
     bool? isSeen,
     StoryOverlayBuilder? overlayBuilder,
+    VStoryMusic? music,
   }) {
     return VCustomStory(
       contentBuilder: contentBuilder ?? this.contentBuilder,
@@ -701,6 +728,7 @@ final class VCustomStory extends VStoryItem {
       createdAt: createdAt ?? this.createdAt,
       isSeen: isSeen ?? this.isSeen,
       overlayBuilder: overlayBuilder ?? this.overlayBuilder,
+      music: music ?? this.music,
     );
   }
 }

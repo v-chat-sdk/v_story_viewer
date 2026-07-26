@@ -1,6 +1,6 @@
 # v_story_viewer
 
-A high-performance Flutter story viewer package inspired by WhatsApp and Instagram stories. Supports images, videos, text, voice, and custom content with beautiful 3D cube transitions.
+A high-performance Flutter story viewer package inspired by WhatsApp and Instagram stories. Supports images, videos, text, voice, custom content, and synchronized background music with beautiful 3D cube transitions.
 
 [![pub package](https://img.shields.io/pub/v/v_story_viewer.svg)](https://pub.dev/packages/v_story_viewer)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
@@ -21,6 +21,7 @@ A high-performance Flutter story viewer package inspired by WhatsApp and Instagr
 - **3D Cube Transition**: Smooth cube-style page transitions between users (horizontal)
 - **Vertical Group Paging**: Optional vertical navigation between story groups
 - **Auto-Progress**: Automatic advancement with synced progress bar
+- **Background Music**: Per-story music with clipping, looping, mixing, and synchronized pause/navigation
 - **Gesture Controls**: Tap, long-press, swipe navigation with RTL support
 - **Keyboard Support**: Arrow keys, Space, Escape for desktop/web
 - **Caching**: Built-in video/audio caching for mobile platforms
@@ -36,7 +37,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  v_story_viewer: ^2.1.0
+  v_story_viewer: ^2.2.0
 ```
 
 Then run:
@@ -102,8 +103,10 @@ VStoryCircleList(
 
 ## Example App
 
-The `example/` app includes tabs for Basic, Advanced, Vertical, and Custom
-setups so you can quickly compare behaviors.
+The `example/` app includes tabs for Basic, Advanced, Vertical, Custom, and
+Music setups. Open the **Music** tab to test duration policies, clip looping,
+pause/resume, next/previous navigation, app lifecycle synchronization, and
+audio mixing. On web, tap the speaker icon once to allow audible playback.
 
 ## Story Types
 
@@ -255,6 +258,60 @@ VVoiceStory(
   isSeen: false,
 )
 ```
+
+### Background Music
+
+Attach optional music to any story through `VStoryMusic`. The viewer waits for
+content and music readiness, uses one master progress timeline, and keeps music
+aligned when pausing, resuming, tapping next/previous, or swiping groups.
+
+```dart
+VImageStory(
+  url: 'https://example.com/photo.jpg',
+  duration: Duration(seconds: 12),
+  music: VStoryMusic(
+    source: VPlatformFile.fromUrl(
+      networkUrl: 'https://example.com/theme.mp3',
+    ),
+    clipStart: Duration(seconds: 5),
+    clipEnd: Duration(seconds: 15),
+    durationPolicy: VStoryMusicDurationPolicy.shortest,
+    mixPolicy: VStoryMusicMixPolicy.duckOriginal,
+    volume: 0.35,
+    originalAudioVolume: 0.2,
+    loop: true,
+  ),
+  createdAt: DateTime.now(),
+  isSeen: false,
+)
+```
+
+`VPlatformFile.fromUrl`, `.fromPath`, `.fromBytes`, and `.fromAssets` are
+supported. Local paths are unavailable on web.
+
+#### Duration policies
+
+| Policy | Effective story duration |
+| --- | --- |
+| `keepStoryDuration` | Explicit story duration, detected media duration, or configured default |
+| `matchMusicClip` | Selected music clip duration |
+| `shortest` | Shorter of the story duration and selected music clip |
+
+An explicit `VStoryItem.duration` always takes precedence over a duration
+reported by video, voice, or custom content before the music policy is applied.
+
+#### Playback and mixing
+
+- Story progress is the master timeline. Music seeks back into alignment when
+  drift exceeds the correction threshold.
+- Hold, manual pause, reply/caption interactions, app backgrounding, group
+  swipes, and next/previous navigation pause or stop music with the story.
+- `mix` preserves original audio, `duckOriginal` lowers it, and
+  `replaceOriginal` mutes it.
+- Music failures call `onMusicError` and do not block story playback.
+- Built-in video and voice players apply every mix policy. Custom content
+  receives muted state for global mute and replace mode, but must implement
+  numeric ducking itself.
 
 ### VCustomStory
 
@@ -567,6 +624,11 @@ VStoryViewer(
 
   // Called when content fails to load
   onError: (group, item, error) {
+    logError(error);
+  },
+
+  // Music errors are non-fatal
+  onMusicError: (group, item, error) {
     logError(error);
   },
 

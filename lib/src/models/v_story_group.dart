@@ -97,7 +97,7 @@ class VStoryGroup {
     return unseen.isEmpty ? null : unseen.first;
   }
 
-  /// Returns the most recently created story (by [createdAt]).
+  /// Returns the most recently created story (by [VStoryItem.createdAt]).
   ///
   /// Returns `null` if no valid stories exist.
   VStoryItem? get latestStory {
@@ -106,7 +106,7 @@ class VStoryGroup {
     return valid.reduce((a, b) => a.createdAt.isAfter(b.createdAt) ? a : b);
   }
 
-  /// Returns the oldest story (by [createdAt]).
+  /// Returns the oldest story (by [VStoryItem.createdAt]).
   ///
   /// Returns `null` if no valid stories exist.
   VStoryItem? get oldestStory {

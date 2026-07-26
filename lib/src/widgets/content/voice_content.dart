@@ -9,19 +9,14 @@ import '../../models/v_story_config.dart';
 import '../../utils/story_cache_manager.dart';
 
 /// State for voice content loading
-enum _VoiceLoadState {
-  checkingCache,
-  downloading,
-  initializing,
-  ready,
-  error,
-}
+enum _VoiceLoadState { checkingCache, downloading, initializing, ready, error }
 
 /// Widget for displaying voice stories with slider and caching support
 class VoiceContent extends StatefulWidget {
   final VVoiceStory story;
   final bool isPaused;
   final bool isMuted;
+  final double volume;
   final bool enableCaching;
   final void Function(Duration duration) onLoaded;
   final void Function(VStoryError error) onError;
@@ -33,13 +28,14 @@ class VoiceContent extends StatefulWidget {
     required this.story,
     required this.isPaused,
     this.isMuted = false,
+    this.volume = 1.0,
     this.enableCaching = true,
     required this.onLoaded,
     required this.onError,
     this.onProgress,
     this.loadingBuilder,
     this.errorBuilder,
-  });
+  }) : assert(volume >= 0 && volume <= 1);
   @override
   State<VoiceContent> createState() => _VoiceContentState();
 }
@@ -78,19 +74,26 @@ class _VoiceContentState extends State<VoiceContent> {
       _loadAudio();
       return;
     }
-    if (widget.isPaused != oldWidget.isPaused) {
-      Future.microtask(() {
+    final playbackChanged = widget.isPaused != oldWidget.isPaused;
+    final volumeChanged = widget.isMuted != oldWidget.isMuted ||
+        widget.volume != oldWidget.volume;
+    if (playbackChanged || volumeChanged) {
+      Future.microtask(() async {
+        if (volumeChanged) {
+          await _player.setVolume(_effectiveVolume);
+        }
+        if (!mounted) return;
+        if (!playbackChanged) return;
         if (widget.isPaused) {
-          _player.pause();
+          await _player.pause();
         } else {
-          _player.resume();
+          await _player.resume();
         }
       });
     }
-    if (widget.isMuted != oldWidget.isMuted) {
-      _player.setVolume(widget.isMuted ? 0.0 : 1.0);
-    }
   }
+
+  double get _effectiveVolume => widget.isMuted ? 0.0 : widget.volume;
 
   void _setupListeners() {
     _positionSubscription?.cancel();
@@ -174,10 +177,9 @@ class _VoiceContentState extends State<VoiceContent> {
     if (!mounted) return;
     setState(() => _loadState = _VoiceLoadState.initializing);
     try {
-      await _player.setSource(UrlSource(
-        widget.story.url!,
-        mimeType: kIsWeb ? 'audio/mpeg' : null,
-      ));
+      await _player.setSource(
+        UrlSource(widget.story.url!, mimeType: kIsWeb ? 'audio/mpeg' : null),
+      );
       await _finalizeInitialization();
     } catch (e) {
       if (mounted) _handleError(e);
@@ -188,13 +190,13 @@ class _VoiceContentState extends State<VoiceContent> {
     final duration = await _player.getDuration();
     if (!mounted) return;
     _duration = duration;
-    await _player.setVolume(widget.isMuted ? 0.0 : 1.0);
+    await _player.setVolume(_effectiveVolume);
     if (!mounted) return;
     setState(() => _loadState = _VoiceLoadState.ready);
+    widget.onLoaded(duration ?? const Duration(seconds: 30));
     if (!widget.isPaused) {
       _player.resume();
     }
-    widget.onLoaded(duration ?? const Duration(seconds: 30));
   }
 
   void _handleError(Object error, [StackTrace? stackTrace]) {
@@ -274,10 +276,7 @@ class _VoiceContentState extends State<VoiceContent> {
           )
         : null;
     return Container(
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        gradient: gradient,
-      ),
+      decoration: BoxDecoration(color: backgroundColor, gradient: gradient),
       child: Center(
         child: switch (_loadState) {
           _VoiceLoadState.error => _buildError(),
@@ -331,11 +330,13 @@ class _VoiceContentState extends State<VoiceContent> {
                         data: SliderTheme.of(context).copyWith(
                           trackHeight: 4,
                           thumbShape: const RoundSliderThumbShape(
-                              enabledThumbRadius: 5),
+                            enabledThumbRadius: 5,
+                          ),
                           overlayShape: SliderComponentShape.noOverlay,
                           activeTrackColor: Colors.white,
-                          inactiveTrackColor:
-                              Colors.white.withValues(alpha: 0.3),
+                          inactiveTrackColor: Colors.white.withValues(
+                            alpha: 0.3,
+                          ),
                           thumbColor: Colors.white,
                         ),
                         child: Slider(
@@ -350,9 +351,11 @@ class _VoiceContentState extends State<VoiceContent> {
                   const SizedBox(width: 12),
                   // Time display inline
                   Text(
-                    _formatDuration(_duration != null
-                        ? _duration! - _position
-                        : Duration.zero),
+                    _formatDuration(
+                      _duration != null
+                          ? _duration! - _position
+                          : Duration.zero,
+                    ),
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.9),
                       fontSize: 13,
@@ -423,10 +426,7 @@ class _VoiceContentState extends State<VoiceContent> {
           style: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
         ),
         const SizedBox(height: 12),
-        TextButton(
-          onPressed: _retry,
-          child: const Text('Retry'),
-        ),
+        TextButton(onPressed: _retry, child: const Text('Retry')),
       ],
     );
   }

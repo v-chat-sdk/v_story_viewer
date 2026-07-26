@@ -1,16 +1,23 @@
-# example
+# V Story Viewer Example
 
-A new Flutter project.
+This app demonstrates the story types, navigation modes, customization options,
+and synchronized background music provided by `v_story_viewer`.
 
-## Getting Started
+## Run the Example
 
-This project is a starting point for a Flutter application.
+```sh
+flutter pub get
+flutter run -d <device>
+```
 
-A few resources to get you started if this is your first Flutter project:
+Open the **Music** tab and select:
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- **Music Timing** to test looping, clipped duration policies, press-and-hold
+  pause/resume, next/previous navigation, and app backgrounding.
+- **Music Mixing** to compare `duckOriginal`, `replaceOriginal`, and `mix`
+  against video or voice-story audio.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+The demo streams public media URLs, so it requires an internet connection.
+Music failures are shown as a non-fatal snackbar while the story continues.
+On web, tap the viewer's speaker icon once because browsers initially require
+a user gesture before allowing audible playback.

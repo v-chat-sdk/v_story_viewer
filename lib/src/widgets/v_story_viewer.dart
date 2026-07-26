@@ -7,7 +7,10 @@ import '../models/v_story_config.dart';
 import '../models/v_story_error.dart';
 import '../models/v_story_group.dart';
 import '../models/v_story_item.dart';
+import '../models/v_story_music.dart';
 import '../controllers/story_controller.dart';
+import '../controllers/story_duration_resolver.dart';
+import '../controllers/story_music_controller.dart';
 import '../transitions/cube_page_view.dart';
 import '../utils/story_cache_manager.dart';
 import 'v_story_header.dart';
@@ -169,12 +172,12 @@ class VStoryViewer extends StatefulWidget {
 
   /// Called when user submits a reply.
   ///
-  /// The [text] parameter contains the reply message.
+  /// The `text` parameter contains the reply message.
   final void Function(VStoryGroup group, VStoryItem item, String text)? onReply;
 
   /// Called on progress updates (~60fps, throttled).
   ///
-  /// The [progress] parameter is 0.0 to 1.0.
+  /// The `progress` parameter is 0.0 to 1.0.
   final void Function(VStoryGroup group, VStoryItem item, double progress)?
       onProgress;
 
@@ -201,6 +204,12 @@ class VStoryViewer extends StatefulWidget {
   /// ```
   final void Function(VStoryGroup group, VStoryItem item, VStoryError error)?
       onError;
+
+  /// Called when optional background music fails.
+  ///
+  /// Music errors are non-fatal: story content and progress continue.
+  final void Function(VStoryGroup group, VStoryItem item, VStoryError error)?
+      onMusicError;
 
   /// Called when content finishes loading.
   ///
@@ -258,6 +267,7 @@ class VStoryViewer extends StatefulWidget {
     this.onReply,
     this.onProgress,
     this.onError,
+    this.onMusicError,
     this.onLoad,
     this.onSwipeUp,
     this.onUserTap,
@@ -267,14 +277,31 @@ class VStoryViewer extends StatefulWidget {
   State<VStoryViewer> createState() => _VStoryViewerState();
 }
 
+enum _StoryPauseReason {
+  preparing,
+  manual,
+  pointerHold,
+  reply,
+  caption,
+  appLifecycle,
+  groupDrag,
+  callback,
+}
+
 class _VStoryViewerState extends State<VStoryViewer>
     with TickerProviderStateMixin {
   late StoryController _controller;
   late PageController _pageController;
   late AnimationController _progressAnimController;
+  late StoryMusicController _musicController;
   Timer? _autoSkipTimer;
-  bool _isPaused = false;
+  final Set<_StoryPauseReason> _pauseReasons = {_StoryPauseReason.preparing};
   bool _isContentLoaded = false;
+  bool _isMusicSettled = true;
+  bool _isMusicAvailable = false;
+  Duration? _contentDuration;
+  Duration? _musicSourceDuration;
+  int _sessionId = 0;
   final FocusNode _focusNode = FocusNode();
   // Long press focus mode
   bool _isLongPressed = false;
@@ -282,7 +309,7 @@ class _VStoryViewerState extends State<VStoryViewer>
   bool _isReplyFieldFocused = false;
   bool _isCaptionExpanded = false;
   // Mute state for web
-  bool _isMuted = false;
+  bool _isMuted = kIsWeb;
   // Pointer tracking for instant pause (tap vs hold detection)
   DateTime? _pointerDownTime;
   Offset? _pointerDownPosition;
@@ -290,12 +317,16 @@ class _VStoryViewerState extends State<VStoryViewer>
   static const _moveThreshold = 20.0;
   // Progress callback throttling
   DateTime? _lastProgressCallback;
+  DateTime? _lastMusicSync;
   // App lifecycle handling
   AppLifecycleListener? _lifecycleListener;
-  bool _wasPausedBeforeBackground = false;
   // Preload queue management
   final Set<String> _preloadingUrls = {};
   static const _maxConcurrentPreloads = 2;
+  static const _musicPreparationTimeout = Duration(seconds: 3);
+
+  bool get _isPaused => _pauseReasons.isNotEmpty;
+
   @override
   void initState() {
     super.initState();
@@ -305,11 +336,15 @@ class _VStoryViewerState extends State<VStoryViewer>
     );
     _pageController = PageController(initialPage: widget.initialGroupIndex);
     _progressAnimController = AnimationController(vsync: this);
+    _musicController = StoryMusicController(
+      onError: _onMusicControllerError,
+    );
     _progressAnimController.addListener(_onProgressUpdate);
     _progressAnimController.addStatusListener(_onProgressComplete);
     _setupLifecycleListener();
     _initializeCacheManager();
     _setupImmersiveMode();
+    _beginStorySession(updateUi: false);
   }
 
   void _setupImmersiveMode() {
@@ -346,31 +381,20 @@ class _VStoryViewerState extends State<VStoryViewer>
   }
 
   void _onAppInactive() {
-    if (!_isPaused) {
-      _wasPausedBeforeBackground = false;
-      _pauseProgress();
-    }
+    _pauseProgress(_StoryPauseReason.appLifecycle);
   }
 
   void _onAppPaused() {
-    if (!_isPaused) {
-      _wasPausedBeforeBackground = false;
-      _pauseProgress();
-    }
+    _pauseProgress(_StoryPauseReason.appLifecycle);
   }
 
   void _onAppResumed() {
-    if (!_wasPausedBeforeBackground &&
-        _isPaused &&
-        !_isReplyFieldFocused &&
-        !_isLongPressed) {
-      _resumeProgress();
-    }
-    _wasPausedBeforeBackground = true;
+    _resumeProgress(_StoryPauseReason.appLifecycle);
   }
 
   void _onAppDetached() {
     _progressAnimController.stop();
+    unawaited(_musicController.stop().catchError((_) {}));
   }
 
   @override
@@ -380,6 +404,7 @@ class _VStoryViewerState extends State<VStoryViewer>
       _preloadingUrls.clear();
       _lifecycleListener?.dispose();
       _autoSkipTimer?.cancel();
+      unawaited(_musicController.dispose().catchError((_) {}));
     } catch (_) {}
     try {
       _progressAnimController.removeListener(_onProgressUpdate);
@@ -410,6 +435,11 @@ class _VStoryViewerState extends State<VStoryViewer>
         _progressAnimController.value,
       );
     }
+    if (_lastMusicSync == null ||
+        now.difference(_lastMusicSync!) >= StoryMusicController.syncInterval) {
+      _lastMusicSync = now;
+      _runMusicOperation(_musicController.synchronize(_storyElapsed));
+    }
   }
 
   void _onProgressComplete(AnimationStatus status) {
@@ -422,93 +452,258 @@ class _VStoryViewerState extends State<VStoryViewer>
     }
   }
 
-  void _startProgress(Duration duration) {
-    _progressAnimController.duration = duration;
-    _progressAnimController.forward(from: 0);
+  Duration get _storyElapsed {
+    final duration = _progressAnimController.duration;
+    if (duration == null) return Duration.zero;
+    return Duration(
+      microseconds:
+          (duration.inMicroseconds * _progressAnimController.value).round(),
+    );
   }
 
-  void _pauseProgress() {
-    if (_isPaused) return; // Already paused, avoid redundant setState
-    _progressAnimController.stop();
-    _isPaused = true;
-    _controller.pause();
-    widget.onPause?.call(_controller.currentGroup, _controller.currentItem);
-    setState(() {}); // Sync UI (pause icon)
-  }
-
-  void _resumeProgress() {
-    if (!_isPaused) return; // Already playing, avoid redundant setState
-    if (_isContentLoaded) {
-      _progressAnimController.forward();
+  void _pauseProgress([_StoryPauseReason reason = _StoryPauseReason.manual]) {
+    final wasPaused = _isPaused;
+    if (!_pauseReasons.add(reason)) return;
+    if (!wasPaused) {
+      _progressAnimController.stop();
+      _controller.setState(StoryState.paused);
+      _runMusicOperation(_musicController.pause());
+      widget.onPause?.call(_controller.currentGroup, _controller.currentItem);
     }
-    _isPaused = false;
-    _controller.resume();
-    widget.onResume?.call(_controller.currentGroup, _controller.currentItem);
-    setState(() {}); // Sync UI (pause icon)
+    if (mounted) setState(() {});
+  }
+
+  void _resumeProgress([
+    _StoryPauseReason reason = _StoryPauseReason.manual,
+    bool notify = true,
+  ]) {
+    final wasPaused = _isPaused;
+    if (!_pauseReasons.remove(reason)) return;
+    if (wasPaused && !_isPaused) {
+      if (_isContentLoaded && _isMusicSettled) {
+        _controller.setState(StoryState.playing);
+        if (_progressAnimController.status != AnimationStatus.completed) {
+          _progressAnimController.forward();
+        }
+        if (_isMusicAvailable) {
+          _runMusicOperation(
+            _resumeMusicAtTimeline(_storyElapsed),
+          );
+        }
+      }
+      if (notify) {
+        widget.onResume?.call(
+          _controller.currentGroup,
+          _controller.currentItem,
+        );
+      }
+    }
+    if (mounted) setState(() {});
+  }
+
+  void _runMusicOperation(Future<void> operation) {
+    final session = _sessionId;
+    final group = _controller.currentGroup;
+    final story = _controller.currentItem;
+    unawaited(
+      _guardMusicOperation(operation, session, group, story),
+    );
+  }
+
+  Future<void> _resumeMusicAtTimeline(Duration initialPosition) async {
+    await _musicController.resumeAt(initialPosition);
+    await _musicController.synchronize(_storyElapsed);
+  }
+
+  Future<void> _guardMusicOperation(
+    Future<void> operation,
+    int session,
+    VStoryGroup group,
+    VStoryItem story,
+  ) async {
+    try {
+      await operation;
+    } catch (error, stackTrace) {
+      await _disableMusic(error, stackTrace, session, group, story);
+    }
+  }
+
+  void _onMusicControllerError(Object error, StackTrace stackTrace) {
+    final session = _sessionId;
+    final group = _controller.currentGroup;
+    final story = _controller.currentItem;
+    unawaited(
+      _disableMusic(error, stackTrace, session, group, story),
+    );
+  }
+
+  Future<void> _disableMusic(
+    Object error,
+    StackTrace stackTrace,
+    int session,
+    VStoryGroup group,
+    VStoryItem story,
+  ) async {
+    if (!mounted || session != _sessionId || !_isMusicAvailable) {
+      return;
+    }
+    _isMusicAvailable = false;
+    widget.onMusicError?.call(
+      group,
+      story,
+      VStoryLoadError.fromException(error, stackTrace),
+    );
+    setState(() {});
+    try {
+      await _musicController.stop();
+    } catch (_) {
+      // The story continues even if releasing the failed player also fails.
+    }
+  }
+
+  void _beginStorySession({bool updateUi = true}) {
+    final session = ++_sessionId;
+    final group = _controller.currentGroup;
+    final story = _controller.currentItem;
+
+    _autoSkipTimer?.cancel();
+    _pauseReasons
+      ..remove(_StoryPauseReason.caption)
+      ..remove(_StoryPauseReason.callback)
+      ..add(_StoryPauseReason.preparing);
+    _isCaptionExpanded = false;
+    _isContentLoaded = false;
+    _isMusicSettled = story.music == null;
+    _isMusicAvailable = false;
+    _contentDuration = null;
+    _musicSourceDuration = null;
+    _lastMusicSync = null;
+    _lastProgressCallback = null;
+    _controller.setState(StoryState.loading);
+    _progressAnimController.stop();
+    _progressAnimController.reset();
+    unawaited(_musicController.stop().catchError((_) {}));
+
+    final music = story.music;
+    if (music != null) {
+      unawaited(_prepareMusic(session, group, story, music));
+    }
+    if (updateUi && mounted) setState(() {});
+  }
+
+  Future<void> _prepareMusic(
+    int session,
+    VStoryGroup group,
+    VStoryItem story,
+    VStoryMusic music,
+  ) async {
+    try {
+      final preparation = await _musicController
+          .prepare(
+            music,
+            enableCaching: widget.config.enableCaching,
+            volume: _effectiveMusicVolume(music),
+          )
+          .timeout(_musicPreparationTimeout);
+      if (!mounted || session != _sessionId) return;
+      _musicSourceDuration = preparation.sourceDuration;
+      await _musicController
+          .setVolume(_effectiveMusicVolume(music))
+          .timeout(const Duration(seconds: 1));
+      if (!mounted || session != _sessionId) return;
+      _isMusicAvailable = true;
+      _isMusicSettled = true;
+      _tryStartSession(session);
+    } catch (error, stackTrace) {
+      if (!mounted || session != _sessionId) return;
+      _isMusicSettled = true;
+      _isMusicAvailable = false;
+      _musicSourceDuration = null;
+      unawaited(_musicController.stop().catchError((_) {}));
+      widget.onMusicError?.call(
+        group,
+        story,
+        VStoryLoadError.fromException(error, stackTrace),
+      );
+      _tryStartSession(session);
+    }
+  }
+
+  void _tryStartSession(int session) {
+    if (session != _sessionId || !_isContentLoaded || !_isMusicSettled) {
+      return;
+    }
+    var storyDuration = StoryDurationResolver.resolve(
+      story: _controller.currentItem,
+      fallbackDuration: widget.config.defaultDuration,
+      contentDuration: _contentDuration,
+      musicSourceDuration: _musicSourceDuration,
+    );
+    if (storyDuration <= Duration.zero) {
+      storyDuration = widget.config.defaultDuration;
+    }
+    _progressAnimController.duration = storyDuration;
+    _resumeProgress(_StoryPauseReason.preparing, false);
   }
 
   void _goToNext() {
     if (!_controller.next()) {
       if (!_controller.nextGroup()) {
-        widget.onComplete
-            ?.call(_controller.currentGroup, _controller.currentItem);
+        widget.onComplete?.call(
+          _controller.currentGroup,
+          _controller.currentItem,
+        );
         _close();
       } else {
         _pageController.nextPage(
           duration: const Duration(milliseconds: 400),
           curve: Curves.easeInOut,
         );
-        _resetContent();
+        _beginStorySession();
       }
     } else {
-      _resetContent();
+      _beginStorySession();
     }
   }
 
   void _goToPrevious() {
     if (_controller.previous()) {
       widget.onSkip?.call(_controller.currentGroup, _controller.currentItem);
-      _resetContent();
+      _beginStorySession();
     } else if (_controller.previousGroup()) {
       widget.onSkip?.call(_controller.currentGroup, _controller.currentItem);
       _pageController.previousPage(
         duration: const Duration(milliseconds: 400),
         curve: Curves.easeInOut,
       );
-      _resetContent();
+      _beginStorySession();
     } else {
-      _progressAnimController.forward(from: 0);
+      if (_isPaused) {
+        _progressAnimController.value = 0;
+      } else {
+        _progressAnimController.forward(from: 0);
+        if (_isMusicAvailable) {
+          _runMusicOperation(
+            _resumeMusicAtTimeline(Duration.zero),
+          );
+        }
+      }
     }
   }
 
-  void _resetContent() {
-    _autoSkipTimer?.cancel();
-    _isLongPressed = false;
-    _isContentLoaded = false;
-    _isPaused = false;
-    _isCaptionExpanded = false;
-    _progressAnimController.reset();
-    setState(() {});
-  }
-
   void _close() {
+    unawaited(_musicController.stop().catchError((_) {}));
     widget.onClose?.call(_controller.currentGroup, _controller.currentItem);
     Navigator.of(context).pop();
   }
 
-  void _onContentLoaded({Duration? duration}) {
+  void _onContentLoaded(int session, {Duration? duration}) {
+    if (session != _sessionId || _isContentLoaded) return;
     _isContentLoaded = true;
-    final storyDuration = duration ??
-        _controller.currentItem.duration ??
-        const Duration(seconds: 5);
+    _contentDuration = duration;
     widget.onLoad?.call(_controller.currentGroup, _controller.currentItem);
-    if (!_isPaused) {
-      _startProgress(storyDuration);
-    } else {
-      _progressAnimController.duration = storyDuration;
-    }
-    setState(() {});
-    // Preload next video/audio story
+    _tryStartSession(session);
+    if (mounted) setState(() {});
     if (widget.config.enablePreloading) {
       _preloadNextMedia();
     }
@@ -519,70 +714,77 @@ class _VStoryViewerState extends State<VStoryViewer>
       return;
     }
     if (_preloadingUrls.length >= _maxConcurrentPreloads) return;
-    // Find next media story to preload
-    VStoryItem? nextMedia;
-    String? cacheKey;
-    String? url;
-    // Check next story in current group
+
+    final capacity = _maxConcurrentPreloads - _preloadingUrls.length;
+    final targets = <MapEntry<String, String>>[];
+    final selectedUrls = <String>{..._preloadingUrls};
+
+    void addTargets(VStoryItem story) {
+      for (final target in _cacheTargetsFor(story)) {
+        if (targets.length >= capacity) return;
+        if (selectedUrls.add(target.value)) {
+          targets.add(target);
+        }
+      }
+    }
+
     final currentGroup = _controller.currentGroup;
     final currentIndex = _controller.currentItemIndex;
     final stories = currentGroup.sortedStories;
     for (var i = currentIndex + 1; i < stories.length; i++) {
-      final story = stories[i];
-      if (story is VVideoStory && story.url != null && story.cacheKey != null) {
-        nextMedia = story;
-        cacheKey = story.cacheKey;
-        url = story.url;
-        break;
-      } else if (story is VVoiceStory &&
-          story.url != null &&
-          story.cacheKey != null) {
-        nextMedia = story;
-        cacheKey = story.cacheKey;
-        url = story.url;
-        break;
-      }
+      addTargets(stories[i]);
+      if (targets.length >= capacity) break;
     }
-    // If no media in current group, check first story of next group
-    if (nextMedia == null && !_controller.isLastGroup) {
+
+    if (targets.length < capacity && !_controller.isLastGroup) {
       final nextGroupIndex = _controller.currentGroupIndex + 1;
       final nextGroup = widget.storyGroups[nextGroupIndex];
       for (final story in nextGroup.sortedStories) {
-        if (story is VVideoStory &&
-            story.url != null &&
-            story.cacheKey != null) {
-          cacheKey = story.cacheKey;
-          url = story.url;
-          break;
-        } else if (story is VVoiceStory &&
-            story.url != null &&
-            story.cacheKey != null) {
-          cacheKey = story.cacheKey;
-          url = story.url;
-          break;
-        }
+        addTargets(story);
+        if (targets.length >= capacity) break;
       }
     }
-    // Preload in background if found
-    if (cacheKey != null && url != null) {
-      final urlNonNull = url;
-      final cacheKeyNonNull = cacheKey;
-      if (_preloadingUrls.contains(urlNonNull)) return;
-      StoryCacheManager.instance
-          .getCachedFile(cacheKeyNonNull)
-          .then((cachedFile) {
-        if (cachedFile != null) return;
-        _preloadingUrls.add(urlNonNull);
-        StoryCacheManager.instance
-            .preloadFile(urlNonNull, cacheKeyNonNull)
-            .whenComplete(() {
-          _preloadingUrls.remove(urlNonNull);
-        });
-      });
+
+    for (final target in targets) {
+      _preloadingUrls.add(target.value);
+      unawaited(_preloadTarget(target));
     }
   }
 
-  void _onContentError(VStoryError error) {
+  Future<void> _preloadTarget(MapEntry<String, String> target) async {
+    try {
+      final cached = await StoryCacheManager.instance.getCachedFile(target.key);
+      if (cached == null) {
+        await StoryCacheManager.instance.preloadFile(target.value, target.key);
+      }
+    } catch (_) {
+      // Preloading is best effort and never blocks the active story.
+    } finally {
+      _preloadingUrls.remove(target.value);
+    }
+  }
+
+  List<MapEntry<String, String>> _cacheTargetsFor(VStoryItem story) {
+    final targets = <MapEntry<String, String>>[];
+    if (story is VVideoStory && story.url != null && story.cacheKey != null) {
+      targets.add(MapEntry(story.cacheKey!, story.url!));
+    }
+    if (story is VVoiceStory && story.url != null && story.cacheKey != null) {
+      targets.add(MapEntry(story.cacheKey!, story.url!));
+    }
+    final source = story.music?.source;
+    final musicUrl = source?.fullNetworkUrl;
+    if (source != null &&
+        source.isFromUrl &&
+        musicUrl != null &&
+        musicUrl.isNotEmpty) {
+      targets.add(MapEntry(source.getCachedUrlKey, musicUrl));
+    }
+    return targets;
+  }
+
+  void _onContentError(int session, VStoryError error) {
+    if (session != _sessionId) return;
     widget.onError?.call(
       _controller.currentGroup,
       _controller.currentItem,
@@ -590,7 +792,7 @@ class _VStoryViewerState extends State<VStoryViewer>
     );
     _autoSkipTimer?.cancel();
     _autoSkipTimer = Timer(const Duration(seconds: 5), () {
-      if (mounted) {
+      if (mounted && session == _sessionId) {
         _goToNext();
       }
     });
@@ -606,10 +808,10 @@ class _VStoryViewerState extends State<VStoryViewer>
         _goToPrevious();
         break;
       case LogicalKeyboardKey.space:
-        if (_isPaused) {
-          _resumeProgress();
+        if (_pauseReasons.contains(_StoryPauseReason.manual)) {
+          _resumeProgress(_StoryPauseReason.manual);
         } else {
-          _pauseProgress();
+          _pauseProgress(_StoryPauseReason.manual);
         }
         break;
       case LogicalKeyboardKey.escape:
@@ -643,7 +845,7 @@ class _VStoryViewerState extends State<VStoryViewer>
   void _onPointerDown(PointerDownEvent event) {
     _pointerDownTime = DateTime.now();
     _pointerDownPosition = event.position;
-    _pauseProgress();
+    _pauseProgress(_StoryPauseReason.pointerHold);
     setState(() => _isLongPressed = true);
   }
 
@@ -652,26 +854,30 @@ class _VStoryViewerState extends State<VStoryViewer>
     final duration = DateTime.now().difference(_pointerDownTime!);
     final distance = (event.position - _pointerDownPosition!).distance;
     setState(() => _isLongPressed = false);
-    _resumeProgress();
     if (duration < _tapThreshold && distance < _moveThreshold) {
       _handleTapNavigation(event.localPosition);
     }
+    _pointerDownTime = null;
+    _pointerDownPosition = null;
+    _resumeProgress(_StoryPauseReason.pointerHold);
   }
 
   void _onPointerCancel(PointerCancelEvent event) {
     setState(() => _isLongPressed = false);
-    _resumeProgress();
+    _pointerDownTime = null;
+    _pointerDownPosition = null;
+    _resumeProgress(_StoryPauseReason.pointerHold);
   }
 
   // Reply field focus handlers
   void _onReplyFieldFocus() {
-    _pauseProgress();
+    _pauseProgress(_StoryPauseReason.reply);
     setState(() => _isReplyFieldFocused = true);
   }
 
   void _onReplyFieldUnfocus() {
     setState(() => _isReplyFieldFocused = false);
-    _resumeProgress();
+    _resumeProgress(_StoryPauseReason.reply);
   }
 
   void _dismissReplyOverlay() {
@@ -680,13 +886,19 @@ class _VStoryViewerState extends State<VStoryViewer>
 
   void _toggleMute() {
     setState(() => _isMuted = !_isMuted);
+    final music = _controller.currentItem.music;
+    if (music != null && _isMusicAvailable) {
+      _runMusicOperation(
+        _musicController.setVolume(_effectiveMusicVolume(music)),
+      );
+    }
   }
 
   void _togglePause() {
-    if (_isPaused) {
-      _resumeProgress();
+    if (_pauseReasons.contains(_StoryPauseReason.manual)) {
+      _resumeProgress(_StoryPauseReason.manual);
     } else {
-      _pauseProgress();
+      _pauseProgress(_StoryPauseReason.manual);
     }
   }
 
@@ -695,15 +907,36 @@ class _VStoryViewerState extends State<VStoryViewer>
       _isCaptionExpanded = !_isCaptionExpanded;
     });
     if (_isCaptionExpanded) {
-      _pauseProgress();
+      _pauseProgress(_StoryPauseReason.caption);
     } else {
-      _resumeProgress();
+      _resumeProgress(_StoryPauseReason.caption);
     }
   }
 
+  double _effectiveMusicVolume(VStoryMusic music) =>
+      _isMuted ? 0.0 : music.volume;
+
+  double get _originalAudioVolume {
+    if (_isMuted) return 0.0;
+    if (!_isMusicAvailable) return 1.0;
+    final music = _controller.currentItem.music;
+    if (music == null) return 1.0;
+    return switch (music.mixPolicy) {
+      VStoryMusicMixPolicy.mix => 1.0,
+      VStoryMusicMixPolicy.duckOriginal => music.originalAudioVolume,
+      VStoryMusicMixPolicy.replaceOriginal => 0.0,
+    };
+  }
+
+  bool get _customContentMuted =>
+      _isMuted ||
+      (_isMusicAvailable &&
+          _controller.currentItem.music?.mixPolicy ==
+              VStoryMusicMixPolicy.replaceOriginal);
+
   bool get _isMediaStory {
     final story = _controller.currentItem;
-    return story is VVideoStory || story is VVoiceStory;
+    return story is VVideoStory || story is VVoiceStory || story.music != null;
   }
 
   static final _captionDecoration = BoxDecoration(
@@ -733,12 +966,17 @@ class _VStoryViewerState extends State<VStoryViewer>
               controller: _pageController,
               itemCount: widget.storyGroups.length,
               scrollDirection: widget.config.groupScrollDirection,
-              onDragStart: _pauseProgress,
-              onDragEnd: () {},
-              onDragCancel: _resumeProgress,
+              onDragStart: () => _pauseProgress(_StoryPauseReason.groupDrag),
+              onDragEnd: () => _resumeProgress(_StoryPauseReason.groupDrag),
+              onDragCancel: () => _resumeProgress(_StoryPauseReason.groupDrag),
               onPageChanged: (index) {
-                _controller.goToGroup(index);
-                _resetContent();
+                final changed = index != _controller.currentGroupIndex;
+                if (changed) {
+                  _controller.goToGroup(index);
+                  _beginStorySession();
+                } else {
+                  _controller.settleGroupNavigation();
+                }
               },
               itemBuilder: (context, groupIndex) {
                 return _buildStoryPage(groupIndex);
@@ -876,12 +1114,15 @@ class _VStoryViewerState extends State<VStoryViewer>
                       onTap: _toggleCaptionExpanded,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
                         decoration: _captionDecoration,
                         constraints: _isCaptionExpanded
                             ? BoxConstraints(
                                 maxHeight:
-                                    MediaQuery.sizeOf(context).height * 0.4)
+                                    MediaQuery.sizeOf(context).height * 0.4,
+                              )
                             : null,
                         child: _isCaptionExpanded
                             ? SingleChildScrollView(
@@ -890,9 +1131,12 @@ class _VStoryViewerState extends State<VStoryViewer>
                                   children: [
                                     Text(
                                       _getCaptionForStory(
-                                          _controller.currentItem)!,
+                                        _controller.currentItem,
+                                      )!,
                                       style: const TextStyle(
-                                          color: Colors.white, fontSize: 14),
+                                        color: Colors.white,
+                                        fontSize: 14,
+                                      ),
                                       textAlign: TextAlign.center,
                                     ),
                                     const SizedBox(height: 4),
@@ -909,7 +1153,8 @@ class _VStoryViewerState extends State<VStoryViewer>
                               )
                             : _CollapsedCaption(
                                 text: _getCaptionForStory(
-                                    _controller.currentItem)!,
+                                  _controller.currentItem,
+                                )!,
                                 showMoreLabel:
                                     widget.config.texts.showMoreLabel,
                               ),
@@ -932,7 +1177,9 @@ class _VStoryViewerState extends State<VStoryViewer>
                     constraints: const BoxConstraints(maxWidth: 650),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 8),
+                        horizontal: 8,
+                        vertical: 8,
+                      ),
                       child: AnimatedBuilder(
                         animation: _controller,
                         builder: (context, _) {
@@ -994,25 +1241,41 @@ class _VStoryViewerState extends State<VStoryViewer>
                                 : null,
                             onUserTap: widget.onUserTap != null
                                 ? () async {
-                                    _pauseProgress();
+                                    final session = _sessionId;
+                                    _pauseProgress(_StoryPauseReason.callback);
                                     final shouldResume =
                                         await widget.onUserTap!(
                                       _controller.currentGroup,
                                       _controller.currentItem,
                                     );
-                                    if (shouldResume) _resumeProgress();
+                                    if (!mounted || session != _sessionId) {
+                                      return;
+                                    }
+                                    if (!shouldResume) {
+                                      _pauseProgress(_StoryPauseReason.manual);
+                                    }
+                                    _resumeProgress(_StoryPauseReason.callback);
                                   }
                                 : null,
-                            onMenuTap:
-                                widget.onMenuTap != null && isCurrentGroup
-                                    ? () async {
-                                        _pauseProgress();
-                                        final shouldResume =
-                                            await widget.onMenuTap!(
-                                                group, _controller.currentItem);
-                                        if (shouldResume) _resumeProgress();
-                                      }
-                                    : null,
+                            onMenuTap: widget.onMenuTap != null &&
+                                    isCurrentGroup
+                                ? () async {
+                                    final session = _sessionId;
+                                    _pauseProgress(_StoryPauseReason.callback);
+                                    final shouldResume =
+                                        await widget.onMenuTap!(
+                                      group,
+                                      _controller.currentItem,
+                                    );
+                                    if (!mounted || session != _sessionId) {
+                                      return;
+                                    }
+                                    if (!shouldResume) {
+                                      _pauseProgress(_StoryPauseReason.manual);
+                                    }
+                                    _resumeProgress(_StoryPauseReason.callback);
+                                  }
+                                : null,
                             onCloseTap: _close,
                             isPaused: _isPaused,
                             isMuted: _isMuted,
@@ -1066,43 +1329,54 @@ class _VStoryViewerState extends State<VStoryViewer>
     final config = widget.config;
     final loadingBuilder = config.loadingBuilder;
     final errorBuilder = config.errorBuilder;
+    final session = _sessionId;
+    void onError(VStoryError error) => _onContentError(session, error);
     return switch (story) {
       VImageStory() => config.imageBuilder != null
           ? config.imageBuilder!(
-              context, story, () => _onContentLoaded(), _onContentError)
+              context,
+              story,
+              () => _onContentLoaded(session),
+              onError,
+            )
           : ImageContent(
               key: ValueKey(
-                  '${_controller.currentGroupIndex}_${_controller.currentItemIndex}_image'),
+                '${_controller.currentGroupIndex}_${_controller.currentItemIndex}_${session}_image',
+              ),
               story: story,
-              onLoaded: () => _onContentLoaded(),
-              onError: _onContentError,
+              onLoaded: () => _onContentLoaded(session),
+              onError: onError,
               loadingBuilder: loadingBuilder,
               errorBuilder: errorBuilder,
             ),
       VTextStory() => TextContent(
           key: ValueKey(
-              '${_controller.currentGroupIndex}_${_controller.currentItemIndex}_text'),
+            '${_controller.currentGroupIndex}_${_controller.currentItemIndex}_${session}_text',
+          ),
           story: story,
-          onLoaded: () => _onContentLoaded(),
+          onLoaded: () => _onContentLoaded(session),
         ),
       VVideoStory() => config.videoBuilder != null
           ? config.videoBuilder!(
               context,
               story,
               _isPaused,
-              _isMuted,
-              (duration) => _onContentLoaded(duration: duration),
-              _onContentError,
+              _customContentMuted,
+              (duration) => _onContentLoaded(session, duration: duration),
+              onError,
             )
           : VideoContent(
               key: ValueKey(
-                  '${_controller.currentGroupIndex}_${_controller.currentItemIndex}_video'),
+                '${_controller.currentGroupIndex}_${_controller.currentItemIndex}_${session}_video',
+              ),
               story: story,
               isPaused: _isPaused,
               isMuted: _isMuted,
+              volume: _originalAudioVolume,
               enableCaching: config.enableCaching,
-              onLoaded: (duration) => _onContentLoaded(duration: duration),
-              onError: _onContentError,
+              onLoaded: (duration) =>
+                  _onContentLoaded(session, duration: duration),
+              onError: onError,
               loadingBuilder: loadingBuilder,
               errorBuilder: errorBuilder,
             ),
@@ -1111,28 +1385,31 @@ class _VStoryViewerState extends State<VStoryViewer>
               context,
               story,
               _isPaused,
-              _isMuted,
-              (duration) => _onContentLoaded(duration: duration),
-              _onContentError,
+              _customContentMuted,
+              (duration) => _onContentLoaded(session, duration: duration),
+              onError,
             )
           : VoiceContent(
               key: ValueKey(
-                  '${_controller.currentGroupIndex}_${_controller.currentItemIndex}_voice'),
+                '${_controller.currentGroupIndex}_${_controller.currentItemIndex}_${session}_voice',
+              ),
               story: story,
               isPaused: _isPaused,
               isMuted: _isMuted,
+              volume: _originalAudioVolume,
               enableCaching: config.enableCaching,
-              onLoaded: (duration) => _onContentLoaded(duration: duration),
-              onError: _onContentError,
+              onLoaded: (duration) =>
+                  _onContentLoaded(session, duration: duration),
+              onError: onError,
               loadingBuilder: loadingBuilder,
               errorBuilder: errorBuilder,
             ),
       VCustomStory() => story.contentBuilder(
           context,
           _isPaused,
-          _isMuted,
-          (duration) => _onContentLoaded(duration: duration),
-          _onContentError,
+          _customContentMuted,
+          (duration) => _onContentLoaded(session, duration: duration),
+          onError,
         ),
     };
   }
@@ -1165,10 +1442,7 @@ class _VStoryViewerState extends State<VStoryViewer>
 }
 
 class _CollapsedCaption extends StatelessWidget {
-  const _CollapsedCaption({
-    required this.text,
-    required this.showMoreLabel,
-  });
+  const _CollapsedCaption({required this.text, required this.showMoreLabel});
   final String text;
   final String showMoreLabel;
   @override

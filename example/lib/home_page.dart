@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:v_story_viewer/v_story_viewer.dart';
-import 'data/basic_stories.dart';
+
 import 'data/advanced_stories.dart';
+import 'data/basic_stories.dart';
 import 'data/custom_stories.dart';
-import 'tabs/basic_tab.dart';
+import 'data/music_stories.dart';
 import 'tabs/advanced_tab.dart';
+import 'tabs/basic_tab.dart';
 import 'tabs/custom_tab.dart';
+import 'tabs/music_tab.dart';
 import 'tabs/vertical_tab.dart';
-import 'viewers/basic_viewer.dart';
 import 'viewers/advanced_viewer.dart';
+import 'viewers/basic_viewer.dart';
+import 'viewers/custom_header_viewer.dart';
 import 'viewers/custom_viewer.dart';
 import 'viewers/minimal_viewer.dart';
-import 'viewers/custom_header_viewer.dart';
+import 'viewers/music_viewer.dart';
 import 'viewers/vertical_viewer.dart';
 
 class HomePage extends StatefulWidget {
@@ -26,14 +30,17 @@ class _HomePageState extends State<HomePage>
   late List<VStoryGroup> _basicStories;
   late List<VStoryGroup> _advancedStories;
   late List<VStoryGroup> _customStories;
+  late List<VStoryGroup> _musicStories;
   final Set<String> _seenStoryIds = {};
+
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
     _basicStories = createBasicStories();
     _advancedStories = createAdvancedStories();
     _customStories = createCustomStories();
+    _musicStories = createMusicStories();
   }
 
   @override
@@ -68,6 +75,14 @@ class _HomePageState extends State<HomePage>
     openCustomViewer(context, _customStories, index);
   }
 
+  void _onMusicUserTap(VStoryGroup group, int index) {
+    openMusicViewer(context, _musicStories, index);
+  }
+
+  void _openMusicTimingDemo() {
+    openMusicViewer(context, _musicStories, 0);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -76,11 +91,14 @@ class _HomePageState extends State<HomePage>
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         bottom: TabBar(
           controller: _tabController,
+          isScrollable: true,
+          tabAlignment: TabAlignment.start,
           tabs: const [
             Tab(text: 'Basic', icon: Icon(Icons.auto_stories)),
             Tab(text: 'Advanced', icon: Icon(Icons.auto_awesome)),
             Tab(text: 'Vertical', icon: Icon(Icons.swap_vert)),
             Tab(text: 'Custom', icon: Icon(Icons.widgets)),
+            Tab(text: 'Music', icon: Icon(Icons.music_note)),
           ],
         ),
       ),
@@ -105,6 +123,11 @@ class _HomePageState extends State<HomePage>
           CustomTab(
             stories: _customStories,
             onUserTap: _onCustomUserTap,
+          ),
+          MusicTab(
+            stories: _musicStories,
+            onUserTap: _onMusicUserTap,
+            onStartDemo: _openMusicTimingDemo,
           ),
         ],
       ),

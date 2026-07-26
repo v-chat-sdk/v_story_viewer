@@ -1,6 +1,6 @@
 name: v_story_viewer
-description: "A high-performance Flutter story viewer like WhatsApp/Instagram. Supports image, video, text, voice stories with 3D cube transitions."
-version: 2.1.2
+description: "A high-performance Flutter viewer for image, video, text, voice, and custom stories with synchronized background music and 3D transitions."
+version: 2.2.0
 homepage: https://github.com/v-chat-sdk/v_story_viewer
 repository: https://github.com/v-chat-sdk/v_story_viewer
 issue_tracker: https://github.com/v-chat-sdk/v_story_viewer/issues
@@ -25,6 +25,7 @@ dependencies:
   timeago: ^3.7.1
   emoji_picker_flutter: ^4.4.0
   flutter_cache_manager: ^3.4.1
+  v_platform: ^2.1.5
 
 dev_dependencies:
   flutter_test:

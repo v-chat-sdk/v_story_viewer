@@ -10,19 +10,14 @@ import '../../models/v_story_config.dart';
 import '../../utils/story_cache_manager.dart';
 
 /// State for video content loading
-enum _VideoLoadState {
-  checkingCache,
-  downloading,
-  initializing,
-  ready,
-  error,
-}
+enum _VideoLoadState { checkingCache, downloading, initializing, ready, error }
 
 /// Widget for displaying video stories with caching support
 class VideoContent extends StatefulWidget {
   final VVideoStory story;
   final bool isPaused;
   final bool isMuted;
+  final double volume;
   final bool enableCaching;
   final void Function(Duration duration) onLoaded;
   final void Function(VStoryError error) onError;
@@ -34,13 +29,14 @@ class VideoContent extends StatefulWidget {
     required this.story,
     required this.isPaused,
     this.isMuted = false,
+    this.volume = 1.0,
     this.enableCaching = true,
     required this.onLoaded,
     required this.onError,
     this.onProgress,
     this.loadingBuilder,
     this.errorBuilder,
-  });
+  }) : assert(volume >= 0 && volume <= 1);
   @override
   State<VideoContent> createState() => _VideoContentState();
 }
@@ -71,19 +67,28 @@ class _VideoContentState extends State<VideoContent> {
       });
       return;
     }
-    if (widget.isPaused != oldWidget.isPaused) {
-      Future.microtask(() {
+    final playbackChanged = widget.isPaused != oldWidget.isPaused;
+    final volumeChanged = widget.isMuted != oldWidget.isMuted ||
+        widget.volume != oldWidget.volume;
+    if (playbackChanged || volumeChanged) {
+      Future.microtask(() async {
+        final controller = _controller;
+        if (controller == null) return;
+        if (volumeChanged) {
+          await controller.setVolume(_effectiveVolume);
+        }
+        if (!mounted || controller != _controller) return;
+        if (!playbackChanged) return;
         if (widget.isPaused) {
-          _controller?.pause();
+          await controller.pause();
         } else {
-          _controller?.play();
+          await controller.play();
         }
       });
     }
-    if (widget.isMuted != oldWidget.isMuted) {
-      _controller?.setVolume(widget.isMuted ? 0.0 : 1.0);
-    }
   }
+
+  double get _effectiveVolume => widget.isMuted ? 0.0 : widget.volume;
 
   Future<void> _loadVideo() async {
     // If local file path provided, use it directly
@@ -142,14 +147,16 @@ class _VideoContentState extends State<VideoContent> {
     try {
       final controller = VideoPlayerController.file(File(filePath));
       // Simulate progress 80% -> 95% during init
-      progressTimer =
-          Timer.periodic(const Duration(milliseconds: 100), (timer) {
+      progressTimer = Timer.periodic(const Duration(milliseconds: 100), (
+        timer,
+      ) {
         if (!mounted || _overallProgress >= 0.95) {
           timer.cancel();
           return;
         }
-        setState(() =>
-            _overallProgress = (_overallProgress + 0.01).clamp(0.0, 0.95));
+        setState(
+          () => _overallProgress = (_overallProgress + 0.01).clamp(0.0, 0.95),
+        );
       });
       await controller.initialize().timeout(const Duration(seconds: 30));
       progressTimer.cancel();
@@ -177,14 +184,16 @@ class _VideoContentState extends State<VideoContent> {
         Uri.parse(widget.story.url!),
       );
       // Simulate progress 0% -> 95% during streaming init
-      progressTimer =
-          Timer.periodic(const Duration(milliseconds: 100), (timer) {
+      progressTimer = Timer.periodic(const Duration(milliseconds: 100), (
+        timer,
+      ) {
         if (!mounted || _overallProgress >= 0.95) {
           timer.cancel();
           return;
         }
-        setState(() =>
-            _overallProgress = (_overallProgress + 0.02).clamp(0.0, 0.95));
+        setState(
+          () => _overallProgress = (_overallProgress + 0.02).clamp(0.0, 0.95),
+        );
       });
       await controller.initialize().timeout(const Duration(seconds: 30));
       progressTimer.cancel();
@@ -209,12 +218,12 @@ class _VideoContentState extends State<VideoContent> {
     _controller = controller;
     _controller!.addListener(_onVideoProgress);
     _controller!.setLooping(false);
-    _controller!.setVolume(widget.isMuted ? 0.0 : 1.0);
+    _controller!.setVolume(_effectiveVolume);
+    setState(() => _loadState = _VideoLoadState.ready);
+    widget.onLoaded(_controller!.value.duration);
     if (!widget.isPaused) {
       _controller!.play();
     }
-    setState(() => _loadState = _VideoLoadState.ready);
-    widget.onLoaded(_controller!.value.duration);
   }
 
   void _handleError(Object error, [StackTrace? stackTrace]) {
@@ -302,8 +311,9 @@ class _VideoContentState extends State<VideoContent> {
       _VideoLoadState.ready => _buildVideo(),
       _VideoLoadState.checkingCache => _buildLoading(null),
       _VideoLoadState.downloading => _buildLoading(_overallProgress),
-      _VideoLoadState.initializing =>
-        _buildLoading(_overallProgress), // Show progress during init
+      _VideoLoadState.initializing => _buildLoading(
+          _overallProgress,
+        ), // Show progress during init
     };
   }
 
@@ -376,10 +386,7 @@ class _VideoContentState extends State<VideoContent> {
               style: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
             ),
             const SizedBox(height: 12),
-            TextButton(
-              onPressed: _retry,
-              child: const Text('Retry'),
-            ),
+            TextButton(onPressed: _retry, child: const Text('Retry')),
           ],
         ),
       ),

@@ -13,10 +13,15 @@ void main() {
       expect(user.name, 'Test User');
       expect(user.imageUrl, 'https://example.com/avatar.jpg');
     });
-    test('equality based on id', () {
-      final user1 = VStoryUser(id: '1', name: 'User 1', imageUrl: 'url1');
-      final user2 = VStoryUser(id: '1', name: 'User 2', imageUrl: 'url2');
+    test('equality uses id, name, and image URL', () {
+      const user1 = VStoryUser(id: '1', name: 'User', imageUrl: 'url');
+      const user2 = VStoryUser(id: '1', name: 'User', imageUrl: 'url');
+      const updatedProfile =
+          VStoryUser(id: '1', name: 'Updated User', imageUrl: 'new-url');
+
       expect(user1, equals(user2));
+      expect(user1.hashCode, equals(user2.hashCode));
+      expect(user1, isNot(equals(updatedProfile)));
     });
   });
   group('VStoryItem', () {

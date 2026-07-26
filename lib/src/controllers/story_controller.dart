@@ -192,6 +192,12 @@ class StoryController extends ChangeNotifier {
     }
   }
 
+  /// Clears the temporary backward-navigation marker after PageView settles.
+  @internal
+  void settleGroupNavigation() {
+    _navigatingToPreviousGroup = false;
+  }
+
   /// Pause current story
   void pause() {
     if (_isDisposed) return;

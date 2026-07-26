@@ -1,3 +1,19 @@
+## 2.2.0
+
+### New Features
+* Added optional per-story `VStoryMusic` background audio using `VPlatformFile` URL, path, bytes, or asset sources.
+* Added clip bounds, looping, story-duration policies, and original-audio mix/duck/replace policies.
+* Added synchronized music pause, resume, navigation, group-swipe, lifecycle, and drift correction behavior.
+* Added non-fatal `VStoryViewer.onMusicError` reporting.
+* Added a dedicated Music Lab in the example app for timing, mixing, navigation, pause/resume, and lifecycle testing.
+
+### Fixes
+* Explicit story durations now take precedence over durations reported by video, voice, or custom content.
+* Independent pause reasons no longer resume playback while another pause condition remains active.
+
+### Documentation
+* Added background-music setup, source, timing-policy, mixing-policy, web autoplay, error-handling, and example-app guidance.
+
 ## 2.1.2
 
 ### Improvements

@@ -1,0 +1,26 @@
+# Repository-only contributor and planning files
+/AGENTS.md
+/CLAUDE.md
+/ai/
+
+# Local and generated artifacts
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.buildlog/
+.history
+.svn/
+.idea/
+*.iml
+*.ipr
+*.iws
+migrate_working_dir/
+/pubspec.lock
+**/doc/api/
+**/.dart_tool/
+**/.flutter-plugins-dependencies
+**/build/
+**/coverage/

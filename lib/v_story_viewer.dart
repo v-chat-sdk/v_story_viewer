@@ -2,6 +2,8 @@
 /// Supports image, video, text, and voice stories with 3D cube transitions.
 library;
 
+export 'package:v_platform/v_platform.dart' show VPlatformFile;
+
 // Models
 export 'src/models/v_story_item.dart';
 export 'src/models/v_story_group.dart';
@@ -10,6 +12,7 @@ export 'src/models/v_story_config.dart';
 export 'src/models/v_story_circle_config.dart';
 export 'src/models/v_story_texts.dart';
 export 'src/models/v_story_error.dart';
+export 'src/models/v_story_music.dart';
 // Widgets
 export 'src/widgets/v_story_circle.dart';
 export 'src/widgets/v_story_circle_list.dart';
