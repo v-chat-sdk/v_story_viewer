@@ -37,7 +37,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  v_story_viewer: ^2.2.0
+  v_story_viewer: ^2.2.1
 ```
 
 Then run:
@@ -583,6 +583,10 @@ VStoryConfig(
   ),
 )
 ```
+
+`onLoaded` and `onError` are safe to call from synchronous cache-hit builder
+callbacks. The viewer defers its lifecycle update until the current widget
+build completes.
 
 ## Callbacks
 

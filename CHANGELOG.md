@@ -1,3 +1,8 @@
+## 2.2.1
+
+### Fixes
+* Deferred custom content load and error callbacks that fire during widget build, preventing repeated `setState()` / `markNeedsBuild()` assertions on synchronous image cache hits.
+
 ## 2.2.0
 
 ### New Features

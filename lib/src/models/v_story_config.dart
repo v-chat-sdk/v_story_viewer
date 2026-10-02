@@ -138,6 +138,9 @@ typedef StoryProgressBuilder = Widget Function(
 /// - [onLoaded]: **MUST call** when image is loaded to start progress
 /// - [onError]: Call if image fails to load
 ///
+/// Loaders may call [onLoaded] or [onError] synchronously on a cache hit. The
+/// viewer defers the resulting lifecycle update until the current build ends.
+///
 /// Example:
 /// ```dart
 /// StoryImageBuilder imageBuilder = (context, story, onLoaded, onError) {
