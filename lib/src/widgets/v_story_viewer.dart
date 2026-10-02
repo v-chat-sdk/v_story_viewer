@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import '../models/v_story_config.dart';
 import '../models/v_story_error.dart';
@@ -697,8 +698,24 @@ class _VStoryViewerState extends State<VStoryViewer>
     Navigator.of(context).pop();
   }
 
+  bool _deferDuringBuild(VoidCallback callback) {
+    if (SchedulerBinding.instance.schedulerPhase !=
+        SchedulerPhase.persistentCallbacks) {
+      return false;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) callback();
+    });
+    return true;
+  }
+
   void _onContentLoaded(int session, {Duration? duration}) {
     if (session != _sessionId || _isContentLoaded) return;
+    if (_deferDuringBuild(
+      () => _onContentLoaded(session, duration: duration),
+    )) {
+      return;
+    }
     _isContentLoaded = true;
     _contentDuration = duration;
     widget.onLoad?.call(_controller.currentGroup, _controller.currentItem);
@@ -785,6 +802,7 @@ class _VStoryViewerState extends State<VStoryViewer>
 
   void _onContentError(int session, VStoryError error) {
     if (session != _sessionId) return;
+    if (_deferDuringBuild(() => _onContentError(session, error))) return;
     widget.onError?.call(
       _controller.currentGroup,
       _controller.currentItem,
